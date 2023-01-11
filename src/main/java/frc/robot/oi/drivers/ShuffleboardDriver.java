@@ -36,7 +36,7 @@ public class ShuffleboardDriver {
         //         turretIndicator = new DoubleDisplayWidget(InfoTable.getEntry("turret"));
 
     public static StatusDisplayWidget statusDisplay =
-            new StatusDisplayWidget(InfoTable.getEntry("status"));
+            new StatusDisplayWidget(InfoTable.getStringTopic("status").getEntry(""));
 
     // public static NetworkTableEntry shooterSpeed = InfoTable.getEntry("Shooter Speed"),
     //         shooterTemp = InfoTable.getEntry("Shooter Temp"),

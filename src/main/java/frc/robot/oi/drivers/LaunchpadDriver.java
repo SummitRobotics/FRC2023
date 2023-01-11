@@ -1,6 +1,5 @@
 package frc.robot.oi.drivers;
 
-import edu.wpi.first.hal.HAL;
 import frc.robot.oi.inputs.LEDButton;
 import frc.robot.oi.inputs.LEDButton.LED;
 import frc.robot.oi.inputs.OIAxis;
@@ -93,6 +92,6 @@ public class LaunchpadDriver extends GenericDriver {
      */
     public void setOutput(int outputNumber, boolean value) {
         outputs = (outputs & ~(1 << (outputNumber - 1))) | ((value ? 1 : 0) << (outputNumber - 1));
-        HAL.setJoystickOutputs((byte) port, outputs, (short) 0, (short) 0);
+        // HAL.setJoystickOutputs((byte) port, outputs, (short) 0, (short) 0);
     }
 }

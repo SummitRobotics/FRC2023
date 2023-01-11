@@ -7,7 +7,7 @@
 
 package frc.robot.oi.shuffleboardwidgets;
 
-import edu.wpi.first.networktables.NetworkTableEntry;
+import edu.wpi.first.networktables.StringEntry;
 import edu.wpi.first.wpilibj.util.Color8Bit;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.utilities.lists.Colors;
@@ -18,7 +18,7 @@ import java.util.HashMap;
  */
 public class StatusDisplayWidget extends SubsystemBase {
 
-    private final NetworkTableEntry entry;
+    private final StringEntry entry;
     private String message;
     private Color8Bit defaultColor;
     private final HashMap<String, StatusMessage> nameAndMessage;
@@ -29,9 +29,10 @@ public class StatusDisplayWidget extends SubsystemBase {
      *
      * @param entry Takes in a Network Table Entry
      */
-    public StatusDisplayWidget(NetworkTableEntry entry) {
+    public StatusDisplayWidget(StringEntry entry) {
         this.entry = entry;
-        entry.forceSetString("");
+        entry.setDefault("");
+        entry.set("");
 
         changed = true;
         nameAndMessage = new HashMap<>();
@@ -136,7 +137,7 @@ public class StatusDisplayWidget extends SubsystemBase {
             }
 
             // displays the message
-            entry.setString(message);
+            entry.set(message);
 
             changed = false;
         }

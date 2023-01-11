@@ -1,13 +1,13 @@
 package frc.robot.oi.shuffleboardwidgets;
 
-import edu.wpi.first.networktables.NetworkTableEntry;
+import edu.wpi.first.networktables.DoublePublisher;
 
 /**
  * Wrapper for double-write-only Shuffleboard widgets.
  */
 public class DoubleDisplayWidget {
 
-    private final NetworkTableEntry entry;
+    private final DoublePublisher entry;
 
     /**
      * Displays value on a widget.
@@ -15,10 +15,10 @@ public class DoubleDisplayWidget {
      * @param entry the network table entry to display.
      * @apiNote THIS JAVA DOC MIGHT BE WRONG!
      */
-    public DoubleDisplayWidget(NetworkTableEntry entry) {
+    public DoubleDisplayWidget(DoublePublisher entry) {
 
         this.entry = entry;
-        entry.forceSetDouble(0);
+        entry.set(0);
     }
 
     /**
@@ -27,6 +27,6 @@ public class DoubleDisplayWidget {
      * @param value the value that the display should show
      */
     public void setValue(double value) {
-        entry.setDouble(value);
+        entry.set(value);
     }
 }
