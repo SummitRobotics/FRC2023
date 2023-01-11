@@ -1,6 +1,6 @@
 # FRC 2023
 
-[![CI](https://github.com/SummitRobotics/FRC2023/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/SummitRobotics/FRC2023/actions/workflows/build.yml)
+[![Build](https://github.com/SummitRobotics/FRC2023/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/SummitRobotics/FRC2023/actions/workflows/build.yml)
 
 Team 5468's 2023 FRC robot code. This code is written in Java and is based off of WPILib's Java control system and utilizes a command based system.
 
