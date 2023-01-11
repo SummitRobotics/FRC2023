@@ -7,14 +7,15 @@
 
 package frc.robot.utilities;
 
-import edu.wpi.first.wpilibj2.command.button.Button;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
+
 import java.util.function.BooleanSupplier;
 
 /**
  * takes a button or boolean supplier and makes a new button.
  * Which is only true on the rising edge of the press
  */
-public class SimpleButton extends Button {
+public class SimpleTrigger extends Trigger {
 
     private final BooleanSupplier supplier;
     private boolean last;
@@ -24,7 +25,7 @@ public class SimpleButton extends Button {
      *
      * @param supplier BooleanSupplier
      */
-    public SimpleButton(BooleanSupplier supplier) {
+    public SimpleTrigger(BooleanSupplier supplier) {
         this.supplier = supplier;
 
         last = false;
@@ -35,8 +36,8 @@ public class SimpleButton extends Button {
      *
      * @param supplier A Button
      */
-    public SimpleButton(Button supplier) {
-        this.supplier = supplier::get;
+    public SimpleTrigger(Trigger supplier) {
+        this.supplier = supplier::getAsBoolean;
 
         last = false;
     }

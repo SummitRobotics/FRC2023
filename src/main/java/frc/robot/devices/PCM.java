@@ -5,13 +5,12 @@ import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.PneumaticHub;
 import edu.wpi.first.wpilibj.Timer;
 import frc.robot.subsystems.Drivetrain;
-import frc.robot.utilities.Testable;
 import java.util.HashMap;
 
 /**
  * Contains methods for interfacing with the PCM (Pneumatics Control Module).
 */
-public class PCM implements Sendable, Testable {
+public class PCM implements Sendable {
 
     private PneumaticHub hub;
     private Drivetrain drivetrain;

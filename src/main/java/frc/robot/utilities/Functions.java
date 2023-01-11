@@ -3,9 +3,6 @@ package frc.robot.utilities;
 import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.trajectory.TrajectoryUtil;
 import edu.wpi.first.wpilibj.Filesystem;
-import edu.wpi.first.wpilibj2.command.Command;
-import frc.robot.commands.drivetrain.FollowTrajectoryThreaded;
-import frc.robot.subsystems.Drivetrain;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -114,20 +111,17 @@ public class Functions {
     }
 
     /**
-     * creates a trajectory command from a file name.
+     * creates a trajectory from a file name.
      *
-     * @param drivetrain the drivetrain subsystem
      * @param fileName   the path to and name of the file
-     * @return the FollowTrajectoryThreaded for the path file
+     * @return the Trajectory for the path file
      * @throws IOException thrown if the file was not found or readable
      */
-    public static Command splineCommandFromFile(Drivetrain drivetrain, String fileName)
+    public static Trajectory trajectoryFromFile(String fileName)
             throws IOException {
         Path path = Filesystem.getDeployDirectory().toPath().resolve(fileName);
 
-        Trajectory trajectory = TrajectoryUtil.fromPathweaverJson(path);
-
-        return new FollowTrajectoryThreaded(drivetrain, trajectory);
+        return TrajectoryUtil.fromPathweaverJson(path);
     }
     /**
      * takes a list of numbers and gets the median value of them. 
