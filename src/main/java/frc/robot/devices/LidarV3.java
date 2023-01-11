@@ -54,6 +54,11 @@ public class LidarV3 implements Lidar, Sendable {
         startMeasuring();
     }
 
+    @Override
+    protected void finalize() {
+        stopMeasuring();
+    }
+
     /**
      * Tells the lidar to start taking measurements. Must be called before getting measurements
      */
