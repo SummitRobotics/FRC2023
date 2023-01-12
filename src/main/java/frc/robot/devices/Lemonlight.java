@@ -1,12 +1,17 @@
 package frc.robot.devices;
 
+import edu.wpi.first.math.VecBuilder;
+import edu.wpi.first.math.Vector;
+import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.util.sendable.SendableBuilder;
-import frc.robot.utilities.Vector3D;
+import frc.robot.utilities.math.RigidTransform3;
+import frc.robot.utilities.math.Rotation3;
+import frc.robot.utilities.math.Vector3;
 
 /**
  * Device driver for the limelight.
@@ -24,7 +29,7 @@ public class Lemonlight implements Sendable {
     private final NetworkTableEntry tv, tx, ty, ta;
     private NetworkTableEntry camMode, pipeline, ledMode;
     private final Type type;
-    private final Vector3D position, direction;
+    private final RigidTransform3 position;
     private final double targetHeight;
 
     /**
@@ -32,14 +37,12 @@ public class Lemonlight implements Sendable {
      *
      * @param tableName The table of the limelight. Default is "limelight"
      * @param type The type of camera
-     * @param position The position of the limelight.
-     * @param direction The direction of the limelight.
+     * @param position The position of the limelight. Foward is Y, Right is X and Up is Z.
      * @param targetHeight The height from the camera to the target.
      * @apiNote For both the position and direction vector the positive y-axis is forward on the robot.
      */
-    public Lemonlight(String tableName, Type type, Vector3D position, Vector3D direction, double targetHeight) {
+    public Lemonlight(String tableName, Type type, RigidTransform3 position, double targetHeight) {
         this.position = position;
-        this.direction = direction.normalize();
         this.targetHeight = targetHeight;
         NetworkTable limelight;
         if (type == Type.Limelight) {
@@ -143,7 +146,8 @@ public class Lemonlight implements Sendable {
     }
 
     public double getHorizontalOffset(double distanceOffset, double horizontalOffset) {
-        return getTargetVector(distanceOffset, horizontalOffset).getAngleInPlane(Vector3D.Plane.XYPlane, Vector3D.Axis.YAxis);
+        Vector3 targetVector = getTargetVector(distanceOffset, horizontalOffset);
+        return Math.atan(targetVector.x / targetVector.y);
     }
 
     public double getHorizontalOffset() {
@@ -151,7 +155,8 @@ public class Lemonlight implements Sendable {
     }
 
     public double getLimelightDistanceEstimate() {
-        return getTargetVector().setZComponent(0).getMagnitude();
+        Vector3 targetVector = getTargetVector();
+        return targetVector.add(0, 0, -targetVector.z).length;
     }
 
     /**
@@ -163,8 +168,13 @@ public class Lemonlight implements Sendable {
         return ty.getDouble(0);
     }
 
+    public double getVerticalOffset(double distanceOffset, double horizontalOffset) {
+        Vector3 targetVector = getTargetVector(distanceOffset, horizontalOffset);
+        return Math.atan(targetVector.z / targetVector.y);
+    }
+
     public double getVerticalOffset() {
-        return getTargetVector().getAngleInPlane(Vector3D.Plane.YZPlane, Vector3D.Axis.YAxis);
+        return getVerticalOffset(0,0);
     }
 
     /**
@@ -176,7 +186,7 @@ public class Lemonlight implements Sendable {
         return ta.getDouble(0);
     }
 
-    private Vector3D getRawTargetVectorDirection() {
+    private Vector3 getRawTargetVectorDirection() {
         double alpha = Math.toRadians(getHorizontalOffsetRaw());
         double beta = Math.toRadians(getVerticalOffsetRaw());
 
@@ -185,15 +195,9 @@ public class Lemonlight implements Sendable {
         double x = Math.tan(alpha);
         double z = Math.tan(beta);
 
-        Vector3D forward = direction.copy();
-        Vector3D horizontal = direction.crossProduct(new Vector3D(0,0,1));
-        Vector3D vertical = horizontal.crossProduct(forward);
+        Vector3 targetVector = new Vector3(x, y, z);
 
-        forward.scale(y);
-        horizontal.scale(x);
-        vertical.scale(z);
-
-        return new Vector3D().add(forward).add(horizontal).add(vertical).normalize();
+        return targetVector.rotate(position.rotation.inverse());
     }
 
     /**
@@ -203,9 +207,9 @@ public class Lemonlight implements Sendable {
      *
      * @return The RAW vector from the camera to the target.
      */
-    public Vector3D getRawTargetVector() {
-        Vector3D vec = getRawTargetVectorDirection();
-        return vec.scale(targetHeight / vec.getZComponent());
+    public Vector3 getRawTargetVector() {
+        Vector3 vec = getRawTargetVectorDirection();
+        return vec.scale(targetHeight / vec.z);
     }
 
     /**
@@ -216,10 +220,10 @@ public class Lemonlight implements Sendable {
      * @param horizontalOffset The final horizontal offset.
      * @return A target vector
      */
-    public Vector3D getTargetVector(double distanceOffset, double horizontalOffset) {
-        Vector3D finalVector = position.addNew(getRawTargetVector());
-        Vector3D distanceOffsetVector = finalVector.copy().setZComponent(0).normalize();
-        Vector3D horizontalOffsetVector = distanceOffsetVector.crossProduct(new Vector3D(0, 0, 1)).normalize();
+    public Vector3 getTargetVector(double distanceOffset, double horizontalOffset) {
+        Vector3 finalVector = position.translation.add(getRawTargetVector());
+        Vector3 distanceOffsetVector = finalVector.add(0, 0, -finalVector.z).norm();
+        Vector3 horizontalOffsetVector = distanceOffsetVector.cross(new Vector3(0, 0, 1)).norm();
 
         return finalVector.add(distanceOffsetVector.scale(distanceOffset)).add(horizontalOffsetVector.scale(horizontalOffset));
     }
@@ -229,7 +233,7 @@ public class Lemonlight implements Sendable {
      * The final vector is adjusted for the limelights position and direction.
      * @return A target vector
      */
-    public Vector3D getTargetVector() {
+    public Vector3 getTargetVector() {
         return getTargetVector(0, 0);
     }
 
@@ -243,8 +247,8 @@ public class Lemonlight implements Sendable {
 
         builder.addDoubleProperty("offset", this::getHorizontalOffset, null);
         builder.addStringProperty("targetVector", () -> getTargetVector().toString(), null);
-        builder.addDoubleProperty("vectorMagnitude", ()-> getTargetVector().getMagnitude(), null);
-        builder.addDoubleProperty("targetDistance", () -> getTargetVector().setZComponent(0).getMagnitude(), null);
-        builder.addDoubleProperty("angleVector", ()-> Math.toDegrees(getTargetVector().getAngleInPlane(Vector3D.Plane.XYPlane, Vector3D.Axis.YAxis)), null);
+        builder.addDoubleProperty("vectorMagnitude", ()-> getTargetVector().length, null);
+        builder.addDoubleProperty("targetDistance", () -> getTargetVector().add(0, 0, -getTargetVector().z).length, null);
+        //builder.addDoubleProperty("angleVector", ()-> Math.toDegrees(getTargetVector().getAngleInPlane(Vector3D.Plane.XYPlane, Vector3D.Axis.YAxis)), null);
     }
 }
