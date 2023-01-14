@@ -13,6 +13,7 @@ public class RobotContainer {
   public RobotContainer() {
     configureBindings();
 
+    // Example for how to use prioritized OITriggers
     // OITrigger oitrigger = new OITrigger(() -> true);
     // oitrigger.prioritize(5).getTrigger().onTrue(
         // new InstantCommand(() -> System.out.println("Test")));

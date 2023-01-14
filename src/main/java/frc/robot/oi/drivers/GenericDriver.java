@@ -2,7 +2,8 @@ package frc.robot.oi.drivers;
 
 import edu.wpi.first.wpilibj.DriverStation;
 import frc.robot.oi.inputs.OIAxis;
-import frc.robot.oi.inputs.OIButton;
+import frc.robot.oi.inputs.OITrigger;
+
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 
@@ -65,27 +66,10 @@ public abstract class GenericDriver {
         return () -> getRawAxis(axis);
     }
 
-    /**
-     * Creates an OI button using a port.
-     *
-     * @param port the button port
-     * @return the generated button
-     */
-    protected OIButton generateOIButton(int port) {
-        return new OIButton(getButtonGetter(port));
+    protected OITrigger generateOITrigger(int port) {
+        return new OITrigger(getButtonGetter(port));
     }
-
-    /**
-     * Creates an OI button with a given id using a port.
-     *
-     * @param port the button port
-     * @param id   the button's id
-     * @return the generated button
-     */
-    protected OIButton generateOIButton(int port, String id) {
-        return new OIButton(getButtonGetter(port), id);
-    }
-
+ 
     /**
      * Creates an axis using a port.
      *

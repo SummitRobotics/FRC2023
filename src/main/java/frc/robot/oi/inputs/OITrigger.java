@@ -15,6 +15,10 @@ public class OITrigger {
         this.condition = condition;
     }
 
+    public OITrigger() {
+        this.condition = () -> false;
+    }
+
     public PrioritizedTrigger prioritize(int priority) {
         return new PrioritizedTrigger(Math.max(priority, 0));
     }

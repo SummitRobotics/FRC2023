@@ -2,7 +2,7 @@ package frc.robot.oi.drivers;
 
 import edu.wpi.first.wpilibj.XboxController.Button;
 import frc.robot.oi.inputs.OIAxis;
-import frc.robot.oi.inputs.OIButton;
+import frc.robot.oi.inputs.OITrigger;
 import java.util.function.BooleanSupplier;
 
 /**
@@ -41,7 +41,8 @@ public class ControllerDriver extends GenericDriver {
         }
     }
 
-    public OIButton buttonA,
+    public OITrigger
+            buttonA,
             buttonB,
             buttonX,
             buttonY,
@@ -65,26 +66,20 @@ public class ControllerDriver extends GenericDriver {
      */
     public ControllerDriver(int port) {
         super(port);
+        buttonA = generateOITrigger(Button.kA.value);
+        buttonB = generateOITrigger(Button.kB.value);
+        buttonX = generateOITrigger(Button.kX.value);
+        buttonY = generateOITrigger(Button.kY.value);
+        buttonStart = generateOITrigger(Button.kStart.value);
+        buttonBack = generateOITrigger(Button.kBack.value);
+        rightBumper = generateOITrigger(Button.kRightBumper.value);
+        leftBumper = generateOITrigger(Button.kLeftBumper.value);
 
-        buttonA = generateOIButton(Button.kA.value, "a");
-        buttonB = generateOIButton(Button.kB.value, "b");
-        buttonX = generateOIButton(Button.kX.value, "x");
-        buttonY = generateOIButton(Button.kY.value, "y");
-        buttonStart = generateOIButton(Button.kStart.value, "start");
-        buttonBack = generateOIButton(Button.kBack.value, "back");
-        rightBumper = generateOIButton(Button.kRightBumper.value, "rightBumper");
-        leftBumper = generateOIButton(Button.kLeftBumper.value, "leftBumper");
-
-        dPadUp = new OIButton(getDPadValue(DPadValues.UP), "up");
-        dPadDown = new OIButton(getDPadValue(DPadValues.DOWN), "down");
-        dPadLeft = new OIButton(getDPadValue(DPadValues.LEFT), "left");
-        dPadRight = new OIButton(getDPadValue(DPadValues.RIGHT), "right");
-        dPadAny = new OIButton(new BooleanSupplier() {
-            @Override
-            public boolean getAsBoolean() {
-                return !(getPOV() == -1);
-            }
-        }, "any");
+        dPadUp = new OITrigger(getDPadValue(DPadValues.UP));
+        dPadDown = new OITrigger(getDPadValue(DPadValues.DOWN));
+        dPadLeft = new OITrigger(getDPadValue(DPadValues.LEFT));
+        dPadRight = new OITrigger(getDPadValue(DPadValues.RIGHT));
+        dPadAny = new OITrigger(() -> getPOV() != -1);
 
         leftX = generateOIAxis(0);
         leftY = generateOIAxis(1);

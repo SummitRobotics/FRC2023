@@ -1,7 +1,7 @@
 package frc.robot.oi.drivers;
 
 import frc.robot.oi.inputs.OIAxis;
-import frc.robot.oi.inputs.OIButton;
+import frc.robot.oi.inputs.OITrigger;
 import frc.robot.utilities.Functions;
 
 /**
@@ -9,7 +9,7 @@ import frc.robot.utilities.Functions;
  */
 public class JoystickDriver extends GenericDriver {
 
-    public OIButton button5, button2, button3, button4, button6, 
+    public OITrigger button5, button2, button3, button4, button6, 
         trigger, button7, button8, button9, button10, button11;
     public OIAxis axisX, axisY, axisZ;
     private boolean assureZUp = false, assureZDown = false;
@@ -22,18 +22,18 @@ public class JoystickDriver extends GenericDriver {
     public JoystickDriver(int port) {
         super(port);
 
-        trigger = generateOIButton(1);
+        trigger = generateOITrigger(1);
 
-        button2 = generateOIButton(2);
-        button3 = generateOIButton(3);
-        button4 = generateOIButton(4);
-        button5 = generateOIButton(5);
-        button6 = generateOIButton(6);
-        button7 = generateOIButton(7);
-        button8 = generateOIButton(8);
-        button9 = generateOIButton(9);
-        button10 = generateOIButton(10);
-        button11 = generateOIButton(11);
+        button3 = generateOITrigger(3);
+        button4 = generateOITrigger(4);
+        button5 = generateOITrigger(5);
+        button2 = generateOITrigger(2);
+        button6 = generateOITrigger(6);
+        button7 = generateOITrigger(7);
+        button8 = generateOITrigger(8);
+        button9 = generateOITrigger(9);
+        button10 = generateOITrigger(10);
+        button11 = generateOITrigger(11);
         axisX = generateOIAxis(0);
         axisY = generateOIAxis(1);
         // axisZ = generateOIAxis(2);

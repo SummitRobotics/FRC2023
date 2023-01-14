@@ -3,7 +3,8 @@ package frc.robot.oi.drivers;
 import frc.robot.oi.inputs.LEDButton;
 import frc.robot.oi.inputs.LEDButton.LED;
 import frc.robot.oi.inputs.OIAxis;
-import frc.robot.oi.inputs.OIButton;
+import frc.robot.oi.inputs.OITrigger;
+
 import java.util.function.DoubleSupplier;
 
 
@@ -16,7 +17,7 @@ public class LaunchpadDriver extends GenericDriver {
 
     public LEDButton
             buttonA, buttonB, buttonC, buttonD, buttonE, buttonF, buttonG, buttonH, buttonI;
-    public OIButton missileA, missileB, funLeft, funMiddle, funRight;
+    public OITrigger missileA, missileB, funLeft, funMiddle, funRight;
     public OIAxis axisA, axisB, axisC, axisD, axisE, axisF, axisG, axisH;
 
     public DoubleSupplier reee;
@@ -41,8 +42,8 @@ public class LaunchpadDriver extends GenericDriver {
         buttonH = generateLEDButton(8);
         buttonI = generateLEDButton(9);
 
-        missileA = generateOIButton(10);
-        missileB = generateOIButton(11);
+        missileA = generateOITrigger(10);
+        missileB = generateOITrigger(11);
 
         bigLEDGreen = getLEDLambda(10);
         bigLEDRed = getLEDLambda(11);
@@ -75,13 +76,11 @@ public class LaunchpadDriver extends GenericDriver {
         return (boolean state) -> setOutput(output, state);
     }
 
-    private OIButton generateATDRangeButton(int output, double min, double max) {
-        DoubleSupplier axis = getAxisGetter(output);
-        return new OIButton(
-                () -> {
-                    double value = axis.getAsDouble();
-                    return value >= min && max >= value;
-                });
+    private OITrigger generateATDRangeButton(int output, double min, double max) {
+        return new OITrigger(() -> {
+            double value = getAxisGetter(output).getAsDouble();
+            return value >= min && max >= value;
+        });
     }
 
     /**
