@@ -66,6 +66,12 @@ public abstract class GenericDriver {
         return () -> getRawAxis(axis);
     }
 
+    /**
+     * Creates an OITrigger using a port.
+     *
+     * @param port The button port
+     * @return The generated trigger
+     */
     protected OITrigger generateOITrigger(int port) {
         return new OITrigger(getButtonGetter(port));
     }
@@ -79,7 +85,6 @@ public abstract class GenericDriver {
     protected OIAxis generateOIAxis(int port) {
         return new OIAxis(getAxisGetter(port));
     }
-
 
     /**
      * gets if the joystick is connected to the driver station.

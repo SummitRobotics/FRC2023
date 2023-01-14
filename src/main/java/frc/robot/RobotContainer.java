@@ -6,17 +6,10 @@ package frc.robot;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-// import edu.wpi.first.wpilibj2.command.InstantCommand;
-// import frc.robot.oi.inputs.OITrigger;
 
 public class RobotContainer {
   public RobotContainer() {
     configureBindings();
-
-    // Example for how to use prioritized OITriggers
-    // OITrigger oitrigger = new OITrigger(() -> true);
-    // oitrigger.prioritize(5).getTrigger().onTrue(
-        // new InstantCommand(() -> System.out.println("Test")));
   }
 
   private void configureBindings() {}

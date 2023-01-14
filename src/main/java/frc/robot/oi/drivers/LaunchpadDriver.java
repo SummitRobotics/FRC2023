@@ -4,7 +4,6 @@ import frc.robot.oi.inputs.LEDButton;
 import frc.robot.oi.inputs.LEDButton.LED;
 import frc.robot.oi.inputs.OIAxis;
 import frc.robot.oi.inputs.OITrigger;
-
 import java.util.function.DoubleSupplier;
 
 
