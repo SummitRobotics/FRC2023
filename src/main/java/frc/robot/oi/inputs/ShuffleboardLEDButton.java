@@ -1,6 +1,7 @@
 package frc.robot.oi.inputs;
 
 import edu.wpi.first.networktables.NetworkTableEntry;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.StartEndCommand;
 
 /**
@@ -21,21 +22,16 @@ public class ShuffleboardLEDButton extends LEDButton {
     public ShuffleboardLEDButton(NetworkTableEntry entry) {
         this.entry = entry;
 
-        entry.forceSetNumber(0);
+        entry.setNumber(0);
 
         controller = new StartEndCommand(() -> setLed(true), () -> setLed(false));
-    }
+        condition = () -> getPressed();
 
-    @Override
-    public boolean get() {
         // if pressed is true report back and say we saw it being true by making it
-        // false again
-        if (getPressed()) {
-            setPressed(false);
-            return true;
-        } else {
-            return false;
-        }
+        // false again (ignores priority system)
+        getTrigger().onTrue(new InstantCommand(() -> {
+          setPressed(false);
+        }));
     }
 
     /*

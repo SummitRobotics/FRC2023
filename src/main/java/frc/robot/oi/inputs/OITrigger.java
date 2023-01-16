@@ -23,7 +23,7 @@ public class OITrigger {
 
     private final Map<PrioritizedTrigger, Integer> uses = new HashMap<>();
     private int highestPriority = 0;
-    private BooleanSupplier condition;
+    protected BooleanSupplier condition;
 
     /**
      * Creates an OITrigger from a condition.
@@ -39,6 +39,16 @@ public class OITrigger {
      */
     public OITrigger() {
         this.condition = () -> false;
+    }
+
+    /**
+     * Returns an ordinary trigger that DOES NOT work with the priority system.
+     * You'll typically want to use .prioritize().getTrigger() instead.
+     * 
+     * @return a Trigger instance
+     */
+    public Trigger getTrigger() {
+        return new Trigger(condition);
     }
 
     /**
