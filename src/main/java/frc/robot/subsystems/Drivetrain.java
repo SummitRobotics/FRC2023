@@ -150,7 +150,7 @@ public class Drivetrain extends SubsystemBase implements Testable {
         odometryTime.start();
 
 
-        odometry = new DifferentialDriveOdometry(gyro.getRotation2d());
+        odometry = new DifferentialDriveOdometry(gyro.getRotation2d(), 0, 0);
 
         f2d = new Field2d();
 
@@ -416,13 +416,13 @@ public class Drivetrain extends SubsystemBase implements Testable {
         rightBackPID.setReference(convertMPStoRPM(rightMS), ControlType.kVelocity, 2);
         
     }
+
     /**
      * maximum power PID can have. 
      *
      * @param power
      *
      */
-
     public void setPIDMaxPower(double power) {
         leftPID.setOutputRange(-power, power);
         leftMiddlePID.setOutputRange(-power, power);
@@ -430,16 +430,14 @@ public class Drivetrain extends SubsystemBase implements Testable {
         rightPID.setOutputRange(-power, power);
         rightMiddlePID.setOutputRange(-power, power);
         rightBackPID.setOutputRange(-power, power);
-
-
     }
+
     /**
      * Converts robot meters per second into motor rotations per minute.
      *
      * @param input the MPS to convert
      * @return the corresponding RPM
      */
-
     public double convertMPStoRPM(double input) {
         double out = input / WHEEL_RADIUS_IN_METERS;
         out *= 60;
@@ -507,12 +505,12 @@ public class Drivetrain extends SubsystemBase implements Testable {
             return encoder * WHEEL_CIRCUMFERENCE_IN_METERS / LOW_GEAR_RATIO;
         }
     }
+
     /**
      * goes a distance.
      *
      * @param position distance to travel in meters
      */
-
     public void distanceToTravel(double position) {
         setBothMotorTarget(distToEncoder(position));
     }
@@ -743,7 +741,7 @@ public class Drivetrain extends SubsystemBase implements Testable {
     public void setPose(Pose2d pose) {
         synchronized (odometry) {
             zeroDistance();
-            odometry.resetPosition(pose, gyro.getRotation2d());
+            odometry.resetPosition(gyro.getRotation2d(), 0, 0, pose);
         }
     }
 

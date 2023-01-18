@@ -9,7 +9,7 @@ import java.util.function.Consumer;
 /**
  * Class for LED Buttons.
  */
-public class LEDButton extends OIButton {
+public class LEDButton extends OITrigger {
 
     /**
      * LED interface.
@@ -39,20 +39,20 @@ public class LEDButton extends OIButton {
         super();
     }
 
-    private void triggerBind(Trigger trigger) {
-        trigger.whileActiveOnce(controller);
-    }
-
     public void setLED(boolean on){
         led.set(on);
     }
 
+    private void triggerBind(Trigger trigger) {
+        trigger.whileTrue(controller);
+    }
+
     public void toggleBind() {
-        this.toggleWhenPressed(controller);
+        this.getTrigger().toggleOnTrue(controller);
     }
 
     public void pressBind() {
-        triggerBind(this);
+        triggerBind(this.getTrigger());
     }
 
     public void commandBind(Command command) {
@@ -71,6 +71,6 @@ public class LEDButton extends OIButton {
 	}
 
     public void booleanSupplierBind(BooleanSupplier supplier) {
-        new Trigger(supplier).whileActiveContinuous(controller);
+        new Trigger(supplier).whileTrue(controller);
     }
 }
