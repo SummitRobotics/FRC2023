@@ -11,7 +11,8 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
  * Most commands will be passed an OITrigger for each button and will need to use
  * .prioritize().getTrigger() to get a Trigger instance. Follow the directions at 
  * https://docs.wpilib.org/en/stable/docs/software/commandbased/binding-commands-to-triggers.html
- * to then bind some kind of response to that trigger.
+ * to then bind some kind of response to that trigger. Priorities can be any integer
+ * from 0 to infinity, with 0 being the lowest priority.
  * 
  * Example:
  * 
@@ -54,7 +55,7 @@ public class OITrigger {
     /**
      * Returns an instance of a PrioritizedTrigger from the OITrigger.
      *
-     * @param priority The priority, generally from 0 to 10
+     * @param priority The priority (0 is lowest priority)
      * @return a PrioritizedTrigger
      */
     public PrioritizedTrigger prioritize(int priority) {

@@ -3,7 +3,6 @@ package frc.robot.oi.drivers;
 import edu.wpi.first.wpilibj.DriverStation;
 import frc.robot.oi.inputs.OIAxis;
 import frc.robot.oi.inputs.OITrigger;
-
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 
