@@ -10,7 +10,11 @@ import java.util.function.Supplier;
  */
 public interface Loggable {
 
+    // Name of the entire Loggable object (e.g. drivetrain, lidar).
     public String getLogName();
+
+    // Each key is the name of an individual data source; each value is a supplier for that data.
+    // All default to an empty HashMap.
 
     public default HashMap<String, BooleanSupplier> getBooleanLogData() {
         return new HashMap<String, BooleanSupplier>();
