@@ -827,7 +827,6 @@ public class Drivetrain extends SubsystemBase implements Testable {
         return gyro.getRotation2d().getDegrees();
     }
 
-
     /**
      * Method that runs once per scheduler cycle.
      */
