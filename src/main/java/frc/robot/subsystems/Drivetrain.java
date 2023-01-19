@@ -2,6 +2,10 @@ package frc.robot.subsystems;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+
+import org.photonvision.EstimatedRobotPose;
+
 import com.kauailabs.navx.frc.AHRS;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMax.ControlType;
@@ -10,9 +14,9 @@ import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkMaxPIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
+import edu.wpi.first.math.estimator.DifferentialDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.kinematics.DifferentialDriveKinematics;
-import edu.wpi.first.math.kinematics.DifferentialDriveOdometry;
 import edu.wpi.first.math.kinematics.DifferentialDriveWheelSpeeds;
 import edu.wpi.first.math.trajectory.TrajectoryConfig;
 import edu.wpi.first.math.trajectory.constraint.DifferentialDriveVoltageConstraint;
@@ -103,7 +107,7 @@ public class Drivetrain extends SubsystemBase implements Testable {
     private final RelativeEncoder rightMiddleEncoder = rightMiddle.getEncoder();
     private final RelativeEncoder rightBackEncoder = rightBack.getEncoder();
 
-    private final DifferentialDriveOdometry odometry;
+    private final DifferentialDrivePoseEstimator poseEstimator;
 
     private final AHRS gyro;
 
@@ -140,8 +144,9 @@ public class Drivetrain extends SubsystemBase implements Testable {
      * i am in PAIN wow this is BAD.
      *
      * @param gyro       odimetry is bad
+     * @param initialPose the initial pose of the robot
      */
-    public Drivetrain(AHRS gyro) {
+    public Drivetrain(AHRS gyro, Pose2d initialPose) {
         this.gyro = gyro;
 
         shift = new Solenoid(Ports.PCM_1, PneumaticsModuleType.REVPH, Ports.SHIFT_SOLENOID);
@@ -150,9 +155,10 @@ public class Drivetrain extends SubsystemBase implements Testable {
         odometryTime.start();
 
 
-        odometry = new DifferentialDriveOdometry(gyro.getRotation2d(), 0, 0);
+        poseEstimator = new DifferentialDrivePoseEstimator(DriveKinimatics, gyro.getRotation2d(), 0, 0, initialPose);
 
         f2d = new Field2d();
+        f2d.setRobotPose(poseEstimator.getEstimatedPosition());
 
         // tells other two motors to follow the first
         
@@ -277,6 +283,14 @@ public class Drivetrain extends SubsystemBase implements Testable {
 
     }
 
+    /**
+     * i am in PAIN wow this is BAD.
+     *
+     * @param gyro       odimetry is bad
+     */
+    public Drivetrain(AHRS gyro) {
+        this(gyro, new Pose2d());
+    }
 
     /**
      * Shifts the robot into high gear.
@@ -739,15 +753,15 @@ public class Drivetrain extends SubsystemBase implements Testable {
      * @param pose the new pose
      */
     public void setPose(Pose2d pose) {
-        synchronized (odometry) {
+        synchronized (poseEstimator) {
             zeroDistance();
-            odometry.resetPosition(gyro.getRotation2d(), 0, 0, pose);
+            poseEstimator.resetPosition(gyro.getRotation2d(), 0, 0, pose);
         }
     }
 
     public Pose2d getPose() {
-        synchronized (odometry) {
-            return odometry.getPoseMeters();
+        synchronized (poseEstimator) {
+            return poseEstimator.getEstimatedPosition();
         }
     }
 
@@ -812,14 +826,20 @@ public class Drivetrain extends SubsystemBase implements Testable {
      * Updates odometry.
      * It only updates at a rate of 500hz maximum.
      */
-    public void updateOdometry() {
-        synchronized (odometry) {
+    public void updateOdometry(Optional<EstimatedRobotPose>... visionPoseEstimates) {
+        synchronized (poseEstimator) {
             //prevemts unnessarly fast updates to the odemetry (2 ms)
             if (odometryTime.get() > 0.002) {
-                odometry.update(gyro.getRotation2d(), getLeftDistance(), getRightDistance());
+                poseEstimator.update(gyro.getRotation2d(), getLeftDistance(), getRightDistance());
                 odometryTime.reset();
             }
-            f2d.setRobotPose(odometry.getPoseMeters());
+
+            for (Optional<EstimatedRobotPose> visionPoseEstimate : visionPoseEstimates) {
+                visionPoseEstimate.ifPresent(estimatedRobotPose -> {
+                    poseEstimator.addVisionMeasurement(estimatedRobotPose.estimatedPose.toPose2d(), estimatedRobotPose.timestampSeconds);
+                });
+            }
+            f2d.setRobotPose(poseEstimator.getEstimatedPosition());
         }
     }
 
