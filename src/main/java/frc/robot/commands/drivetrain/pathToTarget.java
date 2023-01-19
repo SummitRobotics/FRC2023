@@ -6,25 +6,25 @@ import frc.robot.devices.Lemonlight;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.utilities.Functions;
 import frc.robot.utilities.lists.PIDValues;
+
 /**
  *  goes to a target using limelight. 
  */
-
 public class pathToTarget extends CommandBase {
-    /** Creates a new pathToTarget. */
+
     Lemonlight limelight;
     Drivetrain drivetrain;
     PIDController alignPID;
     PIDController movePID;
     boolean hasRecordedLimelightDistance;
     static int count;
+
     /**
      * Paths to a target using limelight data. 
      *
      * @param limelight limelight to use
      * @param drivetrain drivetrain for pathing
      */
-    
     public pathToTarget(Lemonlight limelight, Drivetrain drivetrain) {
         this.limelight = limelight;
         this.drivetrain = drivetrain;
@@ -52,8 +52,8 @@ public class pathToTarget extends CommandBase {
     @Override
     public void execute() {
         if (limelight.hasTarget()) {
-            double angle = limelight.getVerticalOffset();
-            double distance = limelight.getLimelightDistanceEstimateIN(limelight.MAIN_MOUNT_HEIGHT, limelight.MAIN_MOUNT_ANGLE, limelight.MAIN_TARGET_HEIGHT, angle);
+            double distance = limelight.getLimelightDistanceEstimate();
+
             double movePower = -Functions.clampDouble(movePID.calculate(distance), 0.5, -0.5);
             double turnPower = alignPID.calculate(limelight.getHorizontalOffset());
             drivetrain.setLeftMotorPower(movePower - turnPower);

@@ -1,10 +1,12 @@
 package frc.robot.commands.drivetrain;
 
 import edu.wpi.first.wpilibj2.command.CommandBase;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import frc.robot.devices.LEDs.LEDCall;
 import frc.robot.devices.LEDs.LEDRange;
 import frc.robot.devices.LEDs.LEDs;
 import frc.robot.oi.inputs.OIAxis;
+import frc.robot.oi.inputs.OITrigger;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.utilities.ChangeRateLimiter;
 import frc.robot.utilities.Functions;
@@ -26,13 +28,9 @@ public class ArcadeDrive extends CommandBase {
 
     private final OIAxis.PrioritizedAxis forwardPowerAxis;
     private final OIAxis.PrioritizedAxis reversePowerAxis;
-    private final OIButton.PrioritizedButton switchfootPRI;
-    private final SimpleButton switchfoot;
     private final OIAxis.PrioritizedAxis turnAxis;
 
     private final ChangeRateLimiter limiter;
-    private final ChangeRateLimiter turnLimiter;
-
 
     private static final double DEAD_ZONE = .01;
 
@@ -57,26 +55,31 @@ public class ArcadeDrive extends CommandBase {
      */
     public ArcadeDrive(
         Drivetrain drivetrain,
-        Intake intake, 
         OIAxis forwardPowerAxis, 
         OIAxis reversePowerAxis, 
         OIAxis turnAxis,
-        OIButton switchfoot) {
-        switchfootPRI = switchfoot.prioritize(AxisPriorities.DRIVE);
-        this.switchfoot = new SimpleButton(switchfootPRI::get);
+        OITrigger switchfoot) {
         this.drivetrain = drivetrain;
-        this.intake = intake;
         this.forwardPowerAxis = forwardPowerAxis.prioritize(AxisPriorities.DRIVE);
         this.reversePowerAxis = reversePowerAxis.prioritize(AxisPriorities.DRIVE);
         this.turnAxis = turnAxis.prioritize(AxisPriorities.DRIVE);
 
         limiter = new ChangeRateLimiter(MAX_CHANGE_RATE);
-        turnLimiter = new ChangeRateLimiter(0.05);
-
 
         addRequirements(drivetrain);
         isSingleAxis = false;
         ledsOn = false;
+
+        switchfoot.prioritize(AxisPriorities.DRIVE).getTrigger().onTrue(
+            new InstantCommand(() -> {
+                activateSwitchfoot = !activateSwitchfoot;
+                if (activateSwitchfoot) {
+                    LEDs.getInstance().addCall("reversed", new LEDCall(LEDPriorities.DRIVE_REV, LEDRange.Aarms).ffh(Colors.YELLOW, Colors.OFF));  
+                } else {
+                    LEDs.getInstance().removeCall("reversed");
+                }
+            }
+        ));
     }
 
     /**
@@ -91,20 +94,28 @@ public class ArcadeDrive extends CommandBase {
         Drivetrain drivetrain, 
         OIAxis powerAxis, 
         OIAxis turnAxis, 
-        OIButton switchfoot) {
-        switchfootPRI = switchfoot.prioritize(AxisPriorities.DRIVE);
-        this.switchfoot = new SimpleButton(switchfootPRI::get);
+        OITrigger switchfoot) {
         this.drivetrain = drivetrain;
         this.forwardPowerAxis = powerAxis.prioritize(AxisPriorities.DRIVE);
         this.reversePowerAxis = null;
         this.turnAxis = turnAxis.prioritize(AxisPriorities.DRIVE);
 
         limiter = new ChangeRateLimiter(MAX_CHANGE_RATE);
-        turnLimiter = new ChangeRateLimiter(0.05);
 
         addRequirements(drivetrain);
         isSingleAxis = true;
         ledsOn = false;
+
+        switchfoot.prioritize(AxisPriorities.DRIVE).getTrigger().onTrue(
+            new InstantCommand(() -> {
+                activateSwitchfoot = !activateSwitchfoot;
+                if (activateSwitchfoot) {
+                    LEDs.getInstance().addCall("reversed", new LEDCall(LEDPriorities.DRIVE_REV, LEDRange.Aarms).ffh(Colors.YELLOW, Colors.OFF));  
+                } else {
+                    LEDs.getInstance().removeCall("reversed");
+                }
+            }
+        ));
     }
 
     // Called when the command is initially scheduled.
@@ -152,8 +163,6 @@ public class ArcadeDrive extends CommandBase {
 
         //System.out.println(turn);
 
-        double limiterTurn = turnLimiter.getRateLimitedValue(turn);
-
         if (activateSwitchfoot) {
             //dumb stuff is dumb
             if (!ledsOn) {
@@ -162,19 +171,9 @@ public class ArcadeDrive extends CommandBase {
             turn = -turn;
         }
 
-
         // calculates power to the motors
         double leftPower = power + turn;
         double rightPower = power - turn;
-
-        if (switchfoot.get()) {
-            activateSwitchfoot = !activateSwitchfoot;
-            if (activateSwitchfoot) {
-                LEDs.getInstance().addCall("reversed", new LEDCall(LEDPriorities.DRIVE_REV, LEDRange.Aarms).ffh(Colors.YELLOW, Colors.OFF));  
-            } else {
-                LEDs.getInstance().removeCall("reversed");
-            }
-        }
 
         if (!activateSwitchfoot) {
             drivetrain.setLeftMotorPower(leftPower);
