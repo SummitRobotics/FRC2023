@@ -1,8 +1,6 @@
 package frc.robot.subsystems;
 
 import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
 
 import org.photonvision.EstimatedRobotPose;
 
@@ -90,7 +88,6 @@ public class Drivetrain extends SubsystemBase implements Testable {
     private final CANSparkMax rightBack =
         new CANSparkMax(Ports.Drivetrain.RIGHT_1, MotorType.kBrushless);
 
-    private final ArrayList<CANSparkMax> allMotors = new ArrayList<>(List.of(left, leftMiddle, leftBack, right, rightMiddle, rightBack));
     // pid controllers
     private final SparkMaxPIDController leftPID = left.getPIDController();
     private final SparkMaxPIDController leftMiddlePID = leftMiddle.getPIDController();
@@ -826,7 +823,7 @@ public class Drivetrain extends SubsystemBase implements Testable {
      * Updates odometry.
      * It only updates at a rate of 500hz maximum.
      */
-    public void updateOdometry(Optional<EstimatedRobotPose>... visionPoseEstimates) {
+    public void updateOdometry(EstimatedRobotPose... visionPoseEstimates) {
         synchronized (poseEstimator) {
             //prevemts unnessarly fast updates to the odemetry (2 ms)
             if (odometryTime.get() > 0.002) {
@@ -834,10 +831,8 @@ public class Drivetrain extends SubsystemBase implements Testable {
                 odometryTime.reset();
             }
 
-            for (Optional<EstimatedRobotPose> visionPoseEstimate : visionPoseEstimates) {
-                visionPoseEstimate.ifPresent(estimatedRobotPose -> {
-                    poseEstimator.addVisionMeasurement(estimatedRobotPose.estimatedPose.toPose2d(), estimatedRobotPose.timestampSeconds);
-                });
+            for (EstimatedRobotPose visionPoseEstimate : visionPoseEstimates) {
+                poseEstimator.addVisionMeasurement(visionPoseEstimate.estimatedPose.toPose2d(), visionPoseEstimate.timestampSeconds);
             }
             f2d.setRobotPose(poseEstimator.getEstimatedPosition());
         }
