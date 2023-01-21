@@ -32,6 +32,16 @@ public final class Ports {
             SHIFT_SOLENOID = 4;
     }
 
+    public static final class Arm {
+        public static final int
+            TURRET = 0,
+            JOINT_1 = 0,
+            JOINT_2 = 0,
+            JOINT_3 = 0,
+            WRIST = 0,
+            CLAMP_SOLENOID = 0;
+    }
+
     public static final class LED {
         public static final int
             PORT = 0,
