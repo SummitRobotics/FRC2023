@@ -14,49 +14,34 @@ package frc.robot.utilities.lists;
  */
 public final class Ports {
 
-    public static final int
-            // OI
+    public static final class OI {
+        public static final int
             XBOX_PORT = 0,
             LAUNCHPAD_PORT = 1,
-            JOYSTICK_PORT = 2,
+            JOYSTICK_PORT = 2;
+    }
 
-            // Drivetrain
-            // TODO: Set ports
-            LEFT_DRIVE_1 = 10,
-            LEFT_DRIVE_2 = 11,
-            LEFT_DRIVE_3 = 12,
-            RIGHT_DRIVE_1 = 13,
-            RIGHT_DRIVE_2 = 14,
-            RIGHT_DRIVE_3 = 15,
-            SHIFT_SOLENOID = 4,
+    public static final class Drivetrain {
+        public static final int
+            LEFT_1 = 10,
+            LEFT_2 = 11,
+            LEFT_3 = 12,
+            RIGHT_1 = 13,
+            RIGHT_2 = 14,
+            RIGHT_3 = 15,
+            SHIFT_SOLENOID = 4;
+    }
 
-            // Shooter
-            SHOOTER_MOTOR_1 = 30,
-            SHOOTER_MOTOR_2 = 31,
-            HOOD_SOLENOID = 7,
+    public static final class LED {
+        public static final int
+            PORT = 0,
+            LENGTH = 114;
+    }
 
-            // Climb
-            LEFT_CLIMB_MOTOR = 21,
-            RIGHT_CLIMB_MOTOR = 20,
-            PIVOT_CLIMB_SOLENOID = 6,
-            LEFT_DETACH_SOLENOID = 2,
-            RIGHT_DETACH_SOLENOID = 0,
-            LEFT_LIMIT_SWITCH = 0,
-            RIGHT_LIMIT_SWITCH = 1,
-            // LEDs
-            LED_PORT = 0,
-            LED_LENGTH = 114,
-
-            // pneumatics
-            PRESSURE_SENSOR = 0,
-            PCM_1 = 2,
-            PDP = 1,
-
-            // conveyor
-            FRONT_CONVEYOR = 40,
-            BACK_CONVEYOR = 41,
-
-            // intake
-            INTAKE_MOTOR = 50,
-            INTAKE_SOLENOID = 3;
+    public static final class Other {
+        public static final int
+        PRESSURE_SENSOR = 0,
+        PCM_1 = 2,
+        PDP = 1;
+    }
 }
