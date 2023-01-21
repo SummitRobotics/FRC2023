@@ -71,24 +71,24 @@ public class Drivetrain extends SubsystemBase implements Testable {
 
     // left motors
     private final CANSparkMax left =
-        new CANSparkMax(Ports.LEFT_DRIVE_3, MotorType.kBrushless);
+        new CANSparkMax(Ports.Drivetrain.LEFT_3, MotorType.kBrushless);
 
     private final CANSparkMax leftMiddle =
-        new CANSparkMax(Ports.LEFT_DRIVE_2, MotorType.kBrushless);
+        new CANSparkMax(Ports.Drivetrain.LEFT_2, MotorType.kBrushless);
 
     private final CANSparkMax leftBack =
-        new CANSparkMax(Ports.LEFT_DRIVE_1, MotorType.kBrushless);
+        new CANSparkMax(Ports.Drivetrain.LEFT_1, MotorType.kBrushless);
 
 
     // right motors
     private final CANSparkMax right =
-        new CANSparkMax(Ports.RIGHT_DRIVE_3, MotorType.kBrushless);
+        new CANSparkMax(Ports.Drivetrain.RIGHT_3, MotorType.kBrushless);
 
     private final CANSparkMax rightMiddle =
-        new CANSparkMax(Ports.RIGHT_DRIVE_2, MotorType.kBrushless);
+        new CANSparkMax(Ports.Drivetrain.RIGHT_2, MotorType.kBrushless);
 
     private final CANSparkMax rightBack =
-        new CANSparkMax(Ports.RIGHT_DRIVE_1, MotorType.kBrushless);
+        new CANSparkMax(Ports.Drivetrain.RIGHT_1, MotorType.kBrushless);
 
     private final ArrayList<CANSparkMax> allMotors = new ArrayList<>(List.of(left, leftMiddle, leftBack, right, rightMiddle, rightBack));
     // pid controllers
@@ -149,7 +149,7 @@ public class Drivetrain extends SubsystemBase implements Testable {
     public Drivetrain(AHRS gyro, Pose2d initialPose) {
         this.gyro = gyro;
 
-        shift = new Solenoid(Ports.PCM_1, PneumaticsModuleType.REVPH, Ports.SHIFT_SOLENOID);
+        shift = new Solenoid(Ports.Other.PCM_1, PneumaticsModuleType.REVPH, Ports.Drivetrain.SHIFT_SOLENOID);
 
         odometryTime.reset();
         odometryTime.start();
