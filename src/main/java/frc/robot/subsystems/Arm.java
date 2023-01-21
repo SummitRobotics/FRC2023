@@ -13,8 +13,9 @@ import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj.Servo;
-import edu.wpi.first.wpilibj.I2C.Port;
+import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.utilities.Functions;
 import frc.robot.utilities.lists.Ports;
@@ -74,6 +75,10 @@ public class Arm extends SubsystemBase {
     joint1Encoder = joint1Motor.getEncoder(),
     joint2Encoder = joint2Motor.getEncoder();
 
+  private final Solenoid clampSolenoid = new Solenoid(PneumaticsModuleType.REVPH,Ports.Arm.CLAMP_SOLENOID);
+  // Seperate boolean to store clamp state because it is slow to get the state of the solenoid.
+  private boolean clampSolenoidState;
+
   /** 
    * Creates a new Arm.
    * The arm consists of a turret and Four joints.
@@ -105,6 +110,8 @@ public class Arm extends SubsystemBase {
     turretMotor.setIdleMode(CANSparkMax.IdleMode.kBrake);
     joint1Motor.setIdleMode(CANSparkMax.IdleMode.kBrake);
     joint2Motor.setIdleMode(CANSparkMax.IdleMode.kBrake);
+
+    clampSolenoidState = clampSolenoid.get();
   }
 
   /**
@@ -269,5 +276,29 @@ public class Arm extends SubsystemBase {
     
     Rotation3d wristRotation = getWristRotation().plus(getJoint3Rotation()).plus(getJoint2Rotation()).plus(getJoint1Rotation()).plus(getTurretRotation());
     return new Transform3d(linkage0, wristRotation);
+  }
+
+  /**
+   * Actuates the clamp on the end of the arm
+  */
+  public void clamp() {
+    clampSolenoid.set(true);
+    clampSolenoidState = true;
+  }
+
+  /**
+   * Releases the clamp on the end of the arm
+   */
+  public void unclamp() {
+    clampSolenoid.set(false);
+    clampSolenoidState = false;
+  }
+
+  /**
+   * Gets the state of the clamp solenoid
+   * @return The state of the clamp solenoid
+   */
+  public boolean getClampSolenoidState() {
+    return clampSolenoidState;
   }
 }
