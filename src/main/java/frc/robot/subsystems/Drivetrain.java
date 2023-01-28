@@ -6,6 +6,7 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import org.ejml.equation.MatrixConstructor;
 import org.photonvision.EstimatedRobotPose;
 
 import com.kauailabs.navx.frc.AHRS;
@@ -15,11 +16,16 @@ import com.revrobotics.CANSparkMax.IdleMode;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkMaxPIDController;
+
+import edu.wpi.first.math.Matrix;
+import edu.wpi.first.math.Nat;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.estimator.DifferentialDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.kinematics.DifferentialDriveKinematics;
 import edu.wpi.first.math.kinematics.DifferentialDriveWheelSpeeds;
+import edu.wpi.first.math.numbers.N1;
+import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.trajectory.TrajectoryConfig;
 import edu.wpi.first.math.trajectory.constraint.DifferentialDriveVoltageConstraint;
 import edu.wpi.first.util.sendable.SendableBuilder;
@@ -160,6 +166,7 @@ public class Drivetrain extends SubsystemBase implements Testable {
 
 
         poseEstimator = new DifferentialDrivePoseEstimator(DriveKinimatics, gyro.getRotation2d(), 0, 0, initialPose);
+        poseEstimator.setVisionMeasurementStdDevs((new Matrix<>(Nat.N3(), Nat.N1())).plus(1));
 
         f2d = new Field2d();
         f2d.setRobotPose(poseEstimator.getEstimatedPosition());

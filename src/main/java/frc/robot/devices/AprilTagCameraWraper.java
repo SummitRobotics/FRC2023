@@ -60,8 +60,8 @@ public class AprilTagCameraWraper {
       *     of the observation. Assumes a planar field and the robot is always firmly on the ground
       */
      public Optional<EstimatedRobotPose> getEstimatedGlobalPose(Pose2d prevEstimatedRobotPose) {
-         photonPoseEstimator.setReferencePose(prevEstimatedRobotPose);
-         return photonPoseEstimator.update();
+        photonPoseEstimator.setReferencePose(prevEstimatedRobotPose);
+        return photonPoseEstimator.update();
      }
  }
  
