@@ -153,7 +153,7 @@ public class Drivetrain extends SubsystemBase implements Testable {
     public Drivetrain(AHRS gyro, Pose2d initialPose) {
         this.gyro = gyro;
 
-        shift = new Solenoid(Ports.Other.PCM_1, PneumaticsModuleType.REVPH, Ports.Drivetrain.SHIFT_SOLENOID);
+        shift = new Solenoid(Ports.Other.PCM, PneumaticsModuleType.REVPH, Ports.Drivetrain.SHIFT_SOLENOID);
 
         odometryTime.reset();
         odometryTime.start();
