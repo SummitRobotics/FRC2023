@@ -9,13 +9,17 @@ import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkMaxPIDController;
 import com.revrobotics.CANSparkMax.ControlType;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
-
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj.Servo;
+<<<<<<< HEAD
 import edu.wpi.first.wpilibj.Solenoid;
+=======
+>>>>>>> 82205c173e0ce1e046b5b40c6f2f0429e4e4d0a1
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.utilities.Functions;
 import frc.robot.utilities.lists.Ports;
@@ -149,12 +153,34 @@ public class Arm extends SubsystemBase {
     turretPIDController.setReference(position, ControlType.kPosition);
   }
 
+  // TODO - tune functions for converting target joint angles to encoder positions
+  // lead screws won't move joints linearly
+  /**
+   * Converts a target joint angle to an encoder position.
+   *
+   * @param position The position
+   */
+  public double getConvertedJoint1Position(double position) {
+    return position;
+  }
+
+  /**
+   * Converts a target joint angle to an encoder position.
+   * 
+   * @param position The position
+   */
+  public double getConvertedJoint2Position(double position) {
+    return position;
+  }
+
   /**
    * Sets the 1st joint's motor to the given position.
    * @param position The position to set the motor to in rotations.
    */
   public void setJoint1Position(double position) {
-    joint1PIDController.setReference(position, ControlType.kPosition);
+    joint1PIDController.setReference(
+      getConvertedJoint1Position(position),
+      ControlType.kPosition);
   }
 
   /**
@@ -162,7 +188,9 @@ public class Arm extends SubsystemBase {
    * @param position The position to set the motor to in rotations.
    */
   public void setJoint2Position(double position) {
-    joint2PIDController.setReference(position, ControlType.kPosition);
+    joint2PIDController.setReference(
+      getConvertedJoint2Position(position),
+      ControlType.kPosition);
   }
 
   /**
@@ -278,6 +306,7 @@ public class Arm extends SubsystemBase {
     return new Transform3d(linkage0, wristRotation);
   }
 
+<<<<<<< HEAD
   /**
    * Actuates the clamp on the end of the arm
   */
@@ -300,5 +329,56 @@ public class Arm extends SubsystemBase {
    */
   public boolean getClampSolenoidState() {
     return clampSolenoidState;
+=======
+  public void setTurretAngle(double radians) {
+    setTurretPosition((HOME_TURRET_ANGLE + radians) / TURRET_RADIANS_PER_ROTATION);
+  }
+
+  public void setJoint1Angle(double radians) {
+    setJoint1Position((HOME_ARM_JOINT_1_ANGLE + radians) / ARM_JOINT_1_RADIANS_PER_ROTATION);
+  }
+
+  public void setJoint2Angle(double radians) {
+    setJoint2Position((HOME_ARM_JOINT_2_ANGLE + radians) / ARM_JOINT_2_RADIANS_PER_ROTATION);
+  }
+
+  public void setJoint3Angle(double radians) {
+    setJoint3Position((HOME_ARM_JOINT_3_ANGLE + radians) / ARM_JOINT_3_RADIANS);
+  }
+
+  public void setWristAngle(double radians) {
+    setWristPosition((HOME_WRIST_SWIVIL_ANGLE + radians) / WRIST_SWIVIL_RADIANS);
+  }
+
+  public void setToPosition(double grabberAngleRadians, Translation3d pointToGrab) {
+    // clamp grab angle
+    grabberAngleRadians = Functions.clampDouble(grabberAngleRadians, Math.PI / 2, 0);
+    // rotate turret to the same plane as pointToGrab
+    double angleToPoint = Math.atan(pointToGrab.getY() / pointToGrab.getX());
+    setTurretAngle(angleToPoint);
+
+    // convert pointToGrab to 2d space
+    Translation2d pointToGrab2d = pointToGrab
+      .rotateBy(new Rotation3d(0,0,-angleToPoint))
+      .rotateBy(new Rotation3d(Math.PI / 2, 0, 0))
+      .toTranslation2d()
+      .plus(new Translation2d(0, -ARM_LINKAGE_0_LENGTH))
+      .plus(new Translation2d(ARM_LINKAGE_3_LENGTH, new Rotation2d(Math.PI - grabberAngleRadians)));
+    
+    // solve the triangle with law of cosines
+    double a = ARM_LINKAGE_1_LENGTH;
+    double b = ARM_LINKAGE_2_LENGTH;
+    double c = pointToGrab2d.getNorm();
+    double alpha = Math.acos((a*a + b*b - c*c) / (2*a*b));
+    double beta  = Math.acos((b*b + c*c - a*a) / (2*b*c));
+    double gamma = Math.PI - alpha - beta;
+
+    // rotate joints to position
+    setJoint1Angle(Math.atan(pointToGrab2d.getX() / pointToGrab2d.getY()) - alpha);
+    setJoint2Angle(Math.PI - gamma);
+    setJoint3Angle(Math.PI - beta - (Math.PI - grabberAngleRadians -
+      (Math.PI / 2 - alpha - (Math.atan(pointToGrab2d.getX() / pointToGrab2d.getY()) - alpha))));
+    setWristAngle(Math.PI / 2);
+>>>>>>> 82205c173e0ce1e046b5b40c6f2f0429e4e4d0a1
   }
 }
