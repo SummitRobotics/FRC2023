@@ -147,7 +147,7 @@ public class Drivetrain extends SubsystemBase implements Testable {
     /**
      * i am in PAIN wow this is BAD.
      *
-     * @param gyro       odimetry is bad
+     * @param gyro       odimetry is bads
      * @param initialPose the initial pose of the robot
      */
     public Drivetrain(AHRS gyro, Pose2d initialPose) {

@@ -37,9 +37,9 @@ public class RobotContainer {
   
   private Command teleInit;
 
-  // private final AprilTagCameraWraper camera1;
-  // private final AprilTagCameraWraper camera2;
-  // private final AprilTagCameraWraper camera3;
+  private final AprilTagCameraWraper camera1;
+  private final AprilTagCameraWraper camera2;
+  private final AprilTagCameraWraper camera3;
 
   public RobotContainer() throws IOException {
     scheduler = CommandScheduler.getInstance();
@@ -50,20 +50,20 @@ public class RobotContainer {
     pcm = new PCM(Ports.Other.PCM, drivetrain);
 
 
-    // camera1 = new AprilTagCameraWraper("Camera1", new Transform3d(new Translation3d(Units.inchesToMeters(8.75), Units.inchesToMeters(11.625), Units.inchesToMeters(32.5)), new Rotation3d(0,0,Math.PI/2)));
-    // camera2 = new AprilTagCameraWraper("Camera2", new Transform3d(new Translation3d(Units.inchesToMeters(8.75), Units.inchesToMeters(3), Units.inchesToMeters(27.25)), new Rotation3d(0,0,0)));
-    // camera3 = new AprilTagCameraWraper("Camera3", new Transform3d(new Translation3d(Units.inchesToMeters(8.75), Units.inchesToMeters(-11.625), Units.inchesToMeters(32.5)), new Rotation3d(0,0,-Math.PI/2)));
+    camera1 = new AprilTagCameraWraper("Camera1", new Transform3d(new Translation3d(Units.inchesToMeters(8.75), Units.inchesToMeters(11.625), Units.inchesToMeters(32.5)), new Rotation3d(0,0,Math.PI/2)));
+    camera2 = new AprilTagCameraWraper("Camera2", new Transform3d(new Translation3d(Units.inchesToMeters(8.75), Units.inchesToMeters(3), Units.inchesToMeters(27.25)), new Rotation3d(0,0,0)));
+    camera3 = new AprilTagCameraWraper("Camera3", new Transform3d(new Translation3d(Units.inchesToMeters(8.75), Units.inchesToMeters(-11.625), Units.inchesToMeters(32.5)), new Rotation3d(0,0,-Math.PI/2)));
 
-    // drivetrain.addVisionCamera(camera1);
-    // drivetrain.addVisionCamera(camera2);
-    // drivetrain.addVisionCamera(camera3);
+    drivetrain.addVisionCamera(camera1);
+    drivetrain.addVisionCamera(camera2);
+    drivetrain.addVisionCamera(camera3);
 
     arcadeDrive = new ArcadeDrive(drivetrain, controller.rightTrigger, controller.leftTrigger, controller.leftX, controller.dPadAny);
     drivetrain.setDefaultCommand(arcadeDrive);
 
     teleInit = new SequentialCommandGroup(
       new InstantCommand(pcm::enableCompressorDigital),
-      new InstantCommand(drivetrain::highGear)
+      new InstantCommand(drivetrain::lowGear)
     );
 
     SmartDashboard.putData(drivetrain);
@@ -83,7 +83,22 @@ public class RobotContainer {
     gyro.calibrate();
   }
 
-  public void teleInit() {
+  public void teleopInit() {
     scheduler.schedule(teleInit);
+  }
+
+  public void teleopPeriodic() {
+  }
+
+  public void testInit() {
+  }
+
+  public void testPeriodic(){
+  }
+
+  public void autonomousInit(){
+  }
+
+  public void autonomousPeriodic() {
   }
 }
