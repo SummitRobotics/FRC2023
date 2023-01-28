@@ -142,12 +142,34 @@ public class Arm extends SubsystemBase {
     turretPIDController.setReference(position, ControlType.kPosition);
   }
 
+  // TODO - tune functions for converting target joint angles to encoder positions
+  // lead screws won't move joints linearly
+  /**
+   * Converts a target joint angle to an encoder position.
+   *
+   * @param position The position
+   */
+  public double getConvertedJoint1Position(double position) {
+    return position;
+  }
+
+  /**
+   * Converts a target joint angle to an encoder position.
+   * 
+   * @param position The position
+   */
+  public double getConvertedJoint2Position(double position) {
+    return position;
+  }
+
   /**
    * Sets the 1st joint's motor to the given position.
    * @param position The position to set the motor to in rotations.
    */
   public void setJoint1Position(double position) {
-    joint1PIDController.setReference(position, ControlType.kPosition);
+    joint1PIDController.setReference(
+      getConvertedJoint1Position(position),
+      ControlType.kPosition);
   }
 
   /**
@@ -155,7 +177,9 @@ public class Arm extends SubsystemBase {
    * @param position The position to set the motor to in rotations.
    */
   public void setJoint2Position(double position) {
-    joint2PIDController.setReference(position, ControlType.kPosition);
+    joint2PIDController.setReference(
+      getConvertedJoint2Position(position),
+      ControlType.kPosition);
   }
 
   /**
