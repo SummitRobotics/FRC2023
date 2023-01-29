@@ -15,11 +15,7 @@ import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
-import edu.wpi.first.wpilibj.Servo;
-<<<<<<< HEAD
 import edu.wpi.first.wpilibj.Solenoid;
-=======
->>>>>>> 82205c173e0ce1e046b5b40c6f2f0429e4e4d0a1
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.utilities.Functions;
 import frc.robot.utilities.lists.Ports;
@@ -40,6 +36,15 @@ public class Arm extends SubsystemBase {
     ARM_JOINT_2_I = 0,
     ARM_JOINT_2_D = 0,
     ARM_JOINT_2_FF = 0,
+    
+    ARM_JOINT_3_P = 0,
+    ARM_JOINT_3_I = 0,
+    ARM_JOINT_3_D = 0,
+    ARM_JOINT_3_FF = 0,
+
+    WRIST_P = 0,
+    WRIST_I = 0,
+    WRIST_D = 0,
     
     ARM_LINKAGE_0_LENGTH = 0, // Length in meters
     ARM_LINKAGE_1_LENGTH = 0, // Length in meters
@@ -63,21 +68,23 @@ public class Arm extends SubsystemBase {
   private final CANSparkMax
     turretMotor = new CANSparkMax(Ports.Arm.TURRET, MotorType.kBrushless),
     joint1Motor = new CANSparkMax(Ports.Arm.JOINT_1, MotorType.kBrushless),
-    joint2Motor = new CANSparkMax(Ports.Arm.JOINT_2, MotorType.kBrushless);
-
-  private final Servo
-    joint3Servo = new Servo(Ports.Arm.JOINT_3),
-    wristServo = new Servo(Ports.Arm.WRIST);
+    joint2Motor = new CANSparkMax(Ports.Arm.JOINT_2, MotorType.kBrushless),
+    joint3Motor = new CANSparkMax(Ports.Arm.JOINT_3, MotorType.kBrushless),
+    wristMotor = new CANSparkMax(Ports.Arm.WRIST, MotorType.kBrushless);
 
   private final SparkMaxPIDController
     turretPIDController = turretMotor.getPIDController(),
     joint1PIDController = joint1Motor.getPIDController(),
-    joint2PIDController = joint2Motor.getPIDController();
+    joint2PIDController = joint2Motor.getPIDController(),
+    joint3PIDController = joint3Motor.getPIDController(),
+    wristPIDController = wristMotor.getPIDController();
 
   private final RelativeEncoder
     turretEncoder = turretMotor.getEncoder(),
     joint1Encoder = joint1Motor.getEncoder(),
-    joint2Encoder = joint2Motor.getEncoder();
+    joint2Encoder = joint2Motor.getEncoder(),
+    joint3Encoder = joint3Motor.getEncoder(),
+    wirstEncoder = wristMotor.getEncoder();
 
   private final Solenoid clampSolenoid = new Solenoid(PneumaticsModuleType.REVPH,Ports.Arm.CLAMP_SOLENOID);
   // Seperate boolean to store clamp state because it is slow to get the state of the solenoid.
@@ -107,13 +114,26 @@ public class Arm extends SubsystemBase {
     joint2PIDController.setD(ARM_JOINT_2_D);
     joint2PIDController.setFF(ARM_JOINT_2_FF);
 
+    joint3PIDController.setP(ARM_JOINT_3_P);
+    joint3PIDController.setI(ARM_JOINT_3_I);
+    joint3PIDController.setD(ARM_JOINT_3_D);
+    joint3PIDController.setFF(ARM_JOINT_3_FF);
+
+    wristPIDController.setP(WRIST_P);
+    wristPIDController.setI(WRIST_I);
+    wristPIDController.setD(WRIST_D);
+
     turretMotor.clearFaults();
     joint1Motor.clearFaults();
     joint2Motor.clearFaults();
+    joint3Motor.clearFaults();
+    wristMotor.clearFaults();
 
     turretMotor.setIdleMode(CANSparkMax.IdleMode.kBrake);
     joint1Motor.setIdleMode(CANSparkMax.IdleMode.kBrake);
     joint2Motor.setIdleMode(CANSparkMax.IdleMode.kBrake);
+    joint3Motor.setIdleMode(CANSparkMax.IdleMode.kBrake);
+    wristMotor.setIdleMode(CANSparkMax.IdleMode.kBrake);
 
     clampSolenoidState = clampSolenoid.get();
   }
@@ -146,109 +166,146 @@ public class Arm extends SubsystemBase {
   }
 
   /**
+   * Sets the 3rd joint's motor to the given speed.
+   * @param speed The speed to set the motor to.
+   */
+  public void setArmTertiaryMotorPower(double power) {
+    power = Functions.clampDouble(power, 1, -1);
+    joint3Motor.set(power);
+  }
+
+  /**
+   * Sets the wrist motor to the given speed.
+   * @param speed The speed to set the motor to.
+   */
+  public void setWristMotorPower(double power) {
+    power = Functions.clampDouble(power, 1, -1);
+    wristMotor.set(power);
+  }
+
+  /**
    * Sets the turret motor to the given position.
    * @param position The position to set the motor to in rotations.
    */
-  public void setTurretPosition(double position) {
-    turretPIDController.setReference(position, ControlType.kPosition);
-  }
-
-  // TODO - tune functions for converting target joint angles to encoder positions
-  // lead screws won't move joints linearly
-  /**
-   * Converts a target joint angle to an encoder position.
-   *
-   * @param position The position
-   */
-  public double getConvertedJoint1Position(double position) {
-    return position;
-  }
-
-  /**
-   * Converts a target joint angle to an encoder position.
-   * 
-   * @param position The position
-   */
-  public double getConvertedJoint2Position(double position) {
-    return position;
+  public void setTurretMotorRotations(double motorRotations) {
+    turretPIDController.setReference(motorRotations, ControlType.kPosition);
   }
 
   /**
    * Sets the 1st joint's motor to the given position.
    * @param position The position to set the motor to in rotations.
    */
-  public void setJoint1Position(double position) {
-    joint1PIDController.setReference(
-      getConvertedJoint1Position(position),
-      ControlType.kPosition);
+  public void setArmMainMotorRotations(double motorRotations) {
+    joint1PIDController.setReference(motorRotations, ControlType.kPosition);
   }
 
   /**
    * Sets the 2nd joint's motor to the given position.
    * @param position The position to set the motor to in rotations.
    */
-  public void setJoint2Position(double position) {
-    joint2PIDController.setReference(
-      getConvertedJoint2Position(position),
-      ControlType.kPosition);
+  public void setArmSecondaryMotorRotations(double motorRotations) {
+    joint2PIDController.setReference(motorRotations, ControlType.kPosition);
   }
 
   /**
-   * Sets the wrist servo to the given position.
+   * Sets the 3rd joint's motor to the given position.
    * @param position The position to set the motor to in rotations.
    */
-  public void setWristPosition(double position) {
-    position = Functions.clampDouble(position, 1, 0);
-    wristServo.set(position);
+  public void setArmTertiaryMotorRotations(double motorRotations) {
+    joint3PIDController.setReference(motorRotations, ControlType.kPosition);
   }
 
   /**
-   * Sets joint 3 servo to the given position.
+   * Sets the wrist motor to the given position.
    * @param position The position to set the motor to in rotations.
    */
-  public void setJoint3Position(double position) {
-    position = Functions.clampDouble(position, 1, 0);
-    joint3Servo.set(position);
+  public void setWristMotorRotations(double motorRotations) {
+    wristPIDController.setReference(motorRotations, ControlType.kPosition);
   }
 
   /**
-   * Gets the turret motor's position.
+   * Gets the turret's motor encoder position.
    * @return The turret motor's position in rotations.
    */
-  public double getTurretPosition() {
+  public double getTurretEncoderPosition() {
     return turretEncoder.getPosition();
   }
 
   /**
-   * Gets the 1st joint's motor position.
-   * @return The joint's 1st motor position in rotations.
+   * Gets the 1st joint's motor encoder position.
+   * @return The 1st joint motor's position in rotations.
    */
-  public double getJoint1Position() {
+  public double getArmMainEncoderPosition() {
     return joint1Encoder.getPosition();
   }
 
   /**
-   * Gets the 2st joint's motor position.
-   * @return The joint's 2nd motor position in rotations.
+   * Gets the 2nd joint's motor encoder position.
+   * @return The 2nd joint motor's position in rotations.
    */
-  public double getJoint2Position() {
+  public double getArmSecondaryEncoderPosition() {
     return joint2Encoder.getPosition();
   }
 
   /**
-   * Gets the wrist servo position.
-   * @return The wrist servo position where 0 is one extreme of servo and 1 is the other.
+   * Gets the 3rd joint's motor encoder position.
+   * @return The 3rd joint motor's position in rotations.
    */
-  public double getWristPosition() {
-    return wristServo.get();
+  public double getArmTertiaryEncoderPosition() {
+    return joint3Encoder.getPosition();
   }
 
   /**
-   * Gets the joint3 servo position.
-   * @return The joint3 servo position where 0 is one extreme of servo and 1 is the other.
+   * Gets the wrist's motor encoder position.
+   * @return The wrist motor's position in rotations.
    */
-  public double getJoint3Position() {
-    return joint3Servo.get();
+  public double getWristEncoderPosition() {
+    return wirstEncoder.getPosition();
+  }
+
+  // TODO: NEED TO COMPUTE THIS
+  /**
+   * Converts the given encoder position to an angle the turret is at
+   * @return The angle the turret is at in radians with 0 being straight forward and positive being counterclockwise.
+   */
+  public double getTurretAngle() {
+    return 0;
+  }
+
+  // TODO: NEED TO COMPUTE THIS
+  /**
+   * Converts the given encoder position to an angle the 1st joint is at
+   * @return The angle the 1st joint is at in radians with 0 being straight and positive being counterclockwise.
+   */
+  public double getArmMainAngle() {
+    return 0;
+  }
+
+  // TODO: NEED TO COMPUTE THIS
+  /**
+   * Converts the given encoder position to an angle the 2nd joint is at
+   * @return The angle the 2nd joint is at in radians with 0 being straight and positive being counterclockwise.
+   */
+  public double getArmSecondaryAngle() {
+    return 0;
+  }
+
+  // TODO: NEED TO COMPUTE THIS
+  /**
+   * Converts the given encoder position to an angle the 3rd joint is at
+   * @return The angle the 3rd joint is at in radians with 0 being straight and positive being counterclockwise.
+   */
+  public double getArmTertiaryAngle() {
+    return 0;
+  }
+
+  // TODO: NEED TO COMPUTE THIS
+  /**
+   * Converts the given encoder position to an angle the wrist is at
+   * @return The angle the wrist is at in radians with 0 being straight and positive being counterclockwise.
+   */
+  public double getWristAngle() {
+    return 0;
   }
 
   /**
@@ -256,39 +313,39 @@ public class Arm extends SubsystemBase {
    * @return The Turrets Rotation as a Rotation3d.
    */
   public Rotation3d getTurretRotation() {
-    return new Rotation3d(0, 0, (getTurretPosition() * TURRET_RADIANS_PER_ROTATION) + HOME_TURRET_ANGLE);
+    return new Rotation3d(0, 0, getTurretAngle());
   }
 
   /**
-   * Gets the 1st joint's angle as a Rotation3d.
-   * @return The 1st joint's angle as a Rotation3d.
+   * Gets the 1st Joint's Rotation as a Rotation3d.
+   * @return The 1st Joint's Rotation as a Rotation3d.
    */
-  public Rotation3d getJoint1Rotation() {
-    return new Rotation3d(0, (getJoint1Position() * ARM_JOINT_1_RADIANS_PER_ROTATION) + HOME_ARM_JOINT_1_ANGLE, 0);
+  public Rotation3d getArmMainRotation() {
+    return new Rotation3d(0, getArmMainAngle(), 0);
   }
 
   /**
-   * Gets the 2nd joint's angle as a Rotation3d.
-   * @return The 2nd joint's angle as a Rotation3d.
+   * Gets the 2nd Joint's Rotation as a Rotation3d.
+   * @return The 2nd Joint's Rotation as a Rotation3d.
    */
-  public Rotation3d getJoint2Rotation() {
-    return new Rotation3d(0, (getJoint2Position() * ARM_JOINT_2_RADIANS_PER_ROTATION) + HOME_ARM_JOINT_2_ANGLE, 0);
+  public Rotation3d getArmSecondaryRotation() {
+    return new Rotation3d(0, getArmSecondaryAngle(), 0);
   }
 
   /**
-   * Gets the wrist's angle as a Rotation3d.
-   * @return The wrist's angle as a Rotation3d.
+   * Gets the 3rd Joint's Rotation as a Rotation3d.
+   * @return The 3rd Joint's Rotation as a Rotation3d.
    */
-  public Rotation3d getJoint3Rotation() {
-    return new Rotation3d(0, (getJoint2Position() * ARM_JOINT_3_RADIANS) + HOME_ARM_JOINT_2_ANGLE, 0);
+  public Rotation3d getArmTertiaryRotation() {
+    return new Rotation3d(0, getArmTertiaryAngle(), 0);
   }
 
   /**
-   * Gets the Turret's angle as a Rotation3d.
-   * @return The Turret's angle as a Rotation3d.
+   * Gets the Wrist's Rotation as a Rotation3d.
+   * @return The Wrist's Rotation as a Rotation3d.
    */
   public Rotation3d getWristRotation() {
-    return new Rotation3d((getWristPosition() * WRIST_SWIVIL_RADIANS) + HOME_WRIST_SWIVIL_ANGLE, 0, 0);
+    return new Rotation3d(getWristAngle(), 0, 0);
   }
 
   /**
@@ -297,57 +354,59 @@ public class Arm extends SubsystemBase {
    * @return The complete position of the arm.
    */
   public Transform3d calculateKinematics() {
-    Translation3d linkage3 = new Translation3d(ARM_LINKAGE_3_LENGTH, getJoint3Rotation());
-    Translation3d linkage2 = (new Translation3d(ARM_LINKAGE_2_LENGTH, getJoint2Rotation())).plus(linkage3.rotateBy(getJoint2Rotation()));
-    Translation3d linkage1 = (new Translation3d(ARM_LINKAGE_1_LENGTH, getJoint1Rotation())).plus(linkage2.rotateBy(getJoint1Rotation()));
+    Translation3d linkage3 = new Translation3d(ARM_LINKAGE_3_LENGTH, getArmTertiaryRotation());
+    Translation3d linkage2 = (new Translation3d(ARM_LINKAGE_2_LENGTH, getArmSecondaryRotation())).plus(linkage3.rotateBy(getArmSecondaryRotation()));
+    Translation3d linkage1 = (new Translation3d(ARM_LINKAGE_1_LENGTH, getArmMainRotation())).plus(linkage2.rotateBy(getArmMainRotation()));
     Translation3d linkage0 = (new Translation3d(ARM_LINKAGE_0_LENGTH, getTurretRotation())).plus(linkage1.rotateBy(getTurretRotation()));
     
-    Rotation3d wristRotation = getWristRotation().plus(getJoint3Rotation()).plus(getJoint2Rotation()).plus(getJoint1Rotation()).plus(getTurretRotation());
+    Rotation3d wristRotation = getWristRotation().plus(getArmTertiaryRotation()).plus(getArmSecondaryRotation()).plus(getArmMainRotation()).plus(getTurretRotation());
     return new Transform3d(linkage0, wristRotation);
   }
 
-<<<<<<< HEAD
   /**
-   * Actuates the clamp on the end of the arm
-  */
-  public void clamp() {
-    clampSolenoid.set(true);
-    clampSolenoidState = true;
-  }
-
-  /**
-   * Releases the clamp on the end of the arm
+   * Sets the turret to a specific angle where 0 is straight forward and positive is counterclockwise.
+   * @param angle The angle to set the turret to in radians.
    */
-  public void unclamp() {
-    clampSolenoid.set(false);
-    clampSolenoidState = false;
+
+  public void setTurretAngle(double angle) {
+    double rotations = angle * 0; // TO DO CALUCLATE THIS
+    setTurretMotorRotations(rotations);
   }
 
   /**
-   * Gets the state of the clamp solenoid
-   * @return The state of the clamp solenoid
+   * Sets the 1st joint to a specific angle where 0 is straight and positive is counterclockwise.
+   * @param angle The angle to set the 1st joint to in radians.
    */
-  public boolean getClampSolenoidState() {
-    return clampSolenoidState;
-=======
-  public void setTurretAngle(double radians) {
-    setTurretPosition((HOME_TURRET_ANGLE + radians) / TURRET_RADIANS_PER_ROTATION);
+  public void setArmMainAngle(double angle) {
+    double rotations = angle * 0; // TO DO CALUCLATE THIS
+    setArmMainMotorRotations(rotations);
   }
 
-  public void setJoint1Angle(double radians) {
-    setJoint1Position((HOME_ARM_JOINT_1_ANGLE + radians) / ARM_JOINT_1_RADIANS_PER_ROTATION);
+  /**
+   * Sets the 2nd joint to a specific angle where 0 is straight and positive is counterclockwise.
+   * @param angle The angle to set the 2nd joint to in radians.
+   */
+  public void setArmSecondaryAngle(double angle) {
+    double rotations = angle * 0; // TO DO CALUCLATE THIS
+    setArmSecondaryMotorRotations(rotations);
   }
 
-  public void setJoint2Angle(double radians) {
-    setJoint2Position((HOME_ARM_JOINT_2_ANGLE + radians) / ARM_JOINT_2_RADIANS_PER_ROTATION);
+  /**
+   * Sets the 3rd joint to a specific angle where 0 is straight and positive is counterclockwise.
+   * @param angle The angle to set the 3rd joint to in radians.
+   */
+  public void setArmTertiaryAngle(double angle) {
+    double rotations = angle * 0; // TO DO CALUCLATE THIS
+    setArmTertiaryMotorRotations(rotations);
   }
 
-  public void setJoint3Angle(double radians) {
-    setJoint3Position((HOME_ARM_JOINT_3_ANGLE + radians) / ARM_JOINT_3_RADIANS);
-  }
-
-  public void setWristAngle(double radians) {
-    setWristPosition((HOME_WRIST_SWIVIL_ANGLE + radians) / WRIST_SWIVIL_RADIANS);
+  /**
+   * Sets the wrist to a specific angle where 0 is straight and positive is counterclockwise.
+   * @param angle The angle to set the wrist to in radians.
+   */
+  public void setWristAngle(double angle) {
+    double rotations = angle * 0; // TO DO CALUCLATE THIS
+    setWristMotorRotations(rotations);
   }
 
   public void setToPosition(double grabberAngleRadians, Translation3d pointToGrab) {
@@ -374,11 +433,34 @@ public class Arm extends SubsystemBase {
     double gamma = Math.PI - alpha - beta;
 
     // rotate joints to position
-    setJoint1Angle(Math.atan(pointToGrab2d.getX() / pointToGrab2d.getY()) - alpha);
-    setJoint2Angle(Math.PI - gamma);
-    setJoint3Angle(Math.PI - beta - (Math.PI - grabberAngleRadians -
+    setArmMainAngle(Math.atan(pointToGrab2d.getX() / pointToGrab2d.getY()) - alpha);
+    setArmSecondaryAngle(Math.PI - gamma);
+    setArmTertiaryAngle(Math.PI - beta - (Math.PI - grabberAngleRadians -
       (Math.PI / 2 - alpha - (Math.atan(pointToGrab2d.getX() / pointToGrab2d.getY()) - alpha))));
     setWristAngle(Math.PI / 2);
->>>>>>> 82205c173e0ce1e046b5b40c6f2f0429e4e4d0a1
+  }
+
+  /**
+   * Actuates the clamp on the end of the arm
+  */
+  public void clamp() {
+    clampSolenoid.set(true);
+    clampSolenoidState = true;
+  }
+
+  /**
+   * Releases the clamp on the end of the arm
+   */
+  public void unclamp() {
+    clampSolenoid.set(false);
+    clampSolenoidState = false;
+  }
+
+  /**
+   * Gets the state of the clamp solenoid
+   * @return The state of the clamp solenoid
+   */
+  public boolean getClampSolenoidState() {
+    return clampSolenoidState;
   }
 }
