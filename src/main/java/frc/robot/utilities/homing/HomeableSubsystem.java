@@ -1,8 +1,12 @@
 package frc.robot.utilities.homing;
 
+import edu.wpi.first.wpilibj2.command.Subsystem;
+
 /**
- * A functional interface that subsystems with homeable components will implement
+ * An interface that subsystems with homeable motors will implement
  */
 public interface HomeableSubsystem {
-    public Homeable[] getHomeables();
+    public HomeableCANSparkMax[] getHomeables();
+
+    public Subsystem getSubsystemObject();
 }
