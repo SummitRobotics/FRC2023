@@ -34,8 +34,8 @@ public final class Ports {
 
     public static final class Intake {
         public static final int
-            INTAKE_MOTOR = 16,
-            INTAKE_SOLENOID = 5;
+            INTAKE_MOTOR = 0,
+            INTAKE_SOLENOID = 0;
     }
 
     public static final class LED {
