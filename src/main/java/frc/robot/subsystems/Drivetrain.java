@@ -1,11 +1,12 @@
 package frc.robot.subsystems;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
-
+import java.util.function.BooleanSupplier;
+import java.util.function.DoubleSupplier;
 import org.photonvision.EstimatedRobotPose;
-
 import com.kauailabs.navx.frc.AHRS;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMax.ControlType;
@@ -30,6 +31,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.devices.LEDs.LEDCall;
 import frc.robot.devices.LEDs.LEDRange;
 import frc.robot.utilities.Functions;
+import frc.robot.utilities.Loggable;
 import frc.robot.utilities.Testable;
 import frc.robot.utilities.lists.Colors;
 import frc.robot.utilities.lists.LEDPriorities;
@@ -38,7 +40,7 @@ import frc.robot.utilities.lists.Ports;
 /**
  * Subsystem to control the drivetrain of the robot.
  */
-public class Drivetrain extends SubsystemBase implements Testable {
+public class Drivetrain extends SubsystemBase implements Testable, Loggable {
 
     // TODO re tune/calculate all these
     public static final double 
@@ -893,5 +895,32 @@ public class Drivetrain extends SubsystemBase implements Testable {
 
         // builder.addBooleanProperty("shifterStatus", this::getShift, null);
         //builder.addDoubleArrayProperty("pidValues", this::getPid, null);
+    }
+
+    @Override
+    public String getLogName() {
+        return "Drivetrain";
+    }
+
+    @Override
+    public HashMap<String, DoubleSupplier> getDoubleLogData() {
+        HashMap<String, DoubleSupplier> out = new HashMap<>();
+        out.put("X Position", getPose()::getX);
+        out.put("Y Position", getPose()::getY);
+        out.put("Rotation", getPose().getRotation()::getDegrees);
+        out.put("Left Encoder Position", leftEncoder::getPosition);
+        out.put("Right Encoder Position", rightEncoder::getPosition);
+        out.put("Left Encoder Velocity", leftEncoder::getVelocity);
+        out.put("Right Encoder Velocity", rightEncoder::getVelocity);
+        out.put("Left Distance Accumulator", () -> leftDistanceAcum);
+        out.put("Right Distance Accumulator", () -> rightDistanceAcum);
+        return out;
+    }
+
+    @Override
+    public HashMap<String, BooleanSupplier> getBooleanLogData() {
+        HashMap<String, BooleanSupplier> out = new HashMap<>();
+        out.put("Shifter State", () -> oldShift);
+        return out;
     }
 }
