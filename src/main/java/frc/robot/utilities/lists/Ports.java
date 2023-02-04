@@ -32,6 +32,12 @@ public final class Ports {
             SHIFT_SOLENOID = 4;
     }
 
+    public static final class Intake {
+        public static final int
+            INTAKE_MOTOR = 0,
+            INTAKE_SOLENOID = 0;
+    }
+
     public static final class LED {
         public static final int
             PORT = 0,
