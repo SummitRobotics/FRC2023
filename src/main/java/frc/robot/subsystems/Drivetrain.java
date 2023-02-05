@@ -3,7 +3,6 @@ package frc.robot.subsystems;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-
 import org.photonvision.EstimatedRobotPose;
 
 import com.kauailabs.navx.frc.AHRS;
@@ -13,6 +12,9 @@ import com.revrobotics.CANSparkMax.IdleMode;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkMaxPIDController;
+
+import edu.wpi.first.math.Matrix;
+import edu.wpi.first.math.Nat;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.estimator.DifferentialDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -27,6 +29,7 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.devices.AprilTagCameraWraper;
 import frc.robot.devices.LEDs.LEDCall;
 import frc.robot.devices.LEDs.LEDRange;
 import frc.robot.utilities.Functions;
@@ -71,24 +74,24 @@ public class Drivetrain extends SubsystemBase implements Testable {
 
     // left motors
     private final CANSparkMax left =
-        new CANSparkMax(Ports.LEFT_DRIVE_3, MotorType.kBrushless);
+        new CANSparkMax(Ports.Drivetrain.LEFT_3, MotorType.kBrushless);
 
     private final CANSparkMax leftMiddle =
-        new CANSparkMax(Ports.LEFT_DRIVE_2, MotorType.kBrushless);
+        new CANSparkMax(Ports.Drivetrain.LEFT_2, MotorType.kBrushless);
 
     private final CANSparkMax leftBack =
-        new CANSparkMax(Ports.LEFT_DRIVE_1, MotorType.kBrushless);
+        new CANSparkMax(Ports.Drivetrain.LEFT_1, MotorType.kBrushless);
 
 
     // right motors
     private final CANSparkMax right =
-        new CANSparkMax(Ports.RIGHT_DRIVE_3, MotorType.kBrushless);
+        new CANSparkMax(Ports.Drivetrain.RIGHT_3, MotorType.kBrushless);
 
     private final CANSparkMax rightMiddle =
-        new CANSparkMax(Ports.RIGHT_DRIVE_2, MotorType.kBrushless);
+        new CANSparkMax(Ports.Drivetrain.RIGHT_2, MotorType.kBrushless);
 
     private final CANSparkMax rightBack =
-        new CANSparkMax(Ports.RIGHT_DRIVE_1, MotorType.kBrushless);
+        new CANSparkMax(Ports.Drivetrain.RIGHT_1, MotorType.kBrushless);
 
     private final ArrayList<CANSparkMax> allMotors = new ArrayList<>(List.of(left, leftMiddle, leftBack, right, rightMiddle, rightBack));
     // pid controllers
@@ -137,25 +140,27 @@ public class Drivetrain extends SubsystemBase implements Testable {
     private final Timer odometryTime = new Timer();
 
     private final Field2d f2d;
+    private final ArrayList<AprilTagCameraWraper> visionCameras = new ArrayList<>();
 
     private LEDCall lowGear = new LEDCall(LEDPriorities.LOW_GEAR, LEDRange.All).sine(Colors.RED);
     
     /**
      * i am in PAIN wow this is BAD.
      *
-     * @param gyro       odimetry is bad
+     * @param gyro       odimetry is bads
      * @param initialPose the initial pose of the robot
      */
     public Drivetrain(AHRS gyro, Pose2d initialPose) {
         this.gyro = gyro;
 
-        shift = new Solenoid(Ports.PCM_1, PneumaticsModuleType.REVPH, Ports.SHIFT_SOLENOID);
+        shift = new Solenoid(Ports.Other.PCM, PneumaticsModuleType.REVPH, Ports.Drivetrain.SHIFT_SOLENOID);
 
         odometryTime.reset();
         odometryTime.start();
 
 
         poseEstimator = new DifferentialDrivePoseEstimator(DriveKinimatics, gyro.getRotation2d(), 0, 0, initialPose);
+        poseEstimator.setVisionMeasurementStdDevs((new Matrix<>(Nat.N3(), Nat.N1())).plus(1));
 
         f2d = new Field2d();
         f2d.setRobotPose(poseEstimator.getEstimatedPosition());
@@ -826,7 +831,7 @@ public class Drivetrain extends SubsystemBase implements Testable {
      * Updates odometry.
      * It only updates at a rate of 500hz maximum.
      */
-    public void updateOdometry(Optional<EstimatedRobotPose>... visionPoseEstimates) {
+    public void updateOdometry(ArrayList<EstimatedRobotPose> visionPoseEstimates) {
         synchronized (poseEstimator) {
             //prevemts unnessarly fast updates to the odemetry (2 ms)
             if (odometryTime.get() > 0.002) {
@@ -834,13 +839,26 @@ public class Drivetrain extends SubsystemBase implements Testable {
                 odometryTime.reset();
             }
 
-            for (Optional<EstimatedRobotPose> visionPoseEstimate : visionPoseEstimates) {
-                visionPoseEstimate.ifPresent(estimatedRobotPose -> {
-                    poseEstimator.addVisionMeasurement(estimatedRobotPose.estimatedPose.toPose2d(), estimatedRobotPose.timestampSeconds);
-                });
+            for (EstimatedRobotPose visionPoseEstimate : visionPoseEstimates) {
+                poseEstimator.addVisionMeasurement(visionPoseEstimate.estimatedPose.toPose2d(), visionPoseEstimate.timestampSeconds);
             }
             f2d.setRobotPose(poseEstimator.getEstimatedPosition());
         }
+    }
+
+    public void updateOdometry() {
+        ArrayList<EstimatedRobotPose> visionPoseEstimates = new ArrayList<>();
+        for (AprilTagCameraWraper visionCamera : visionCameras) {
+            Optional<EstimatedRobotPose> visionRobotPose = visionCamera.getEstimatedGlobalPose(getPose());
+            visionRobotPose.ifPresent(poseEstimate -> {
+                visionPoseEstimates.add(poseEstimate);
+            });
+        }
+        updateOdometry(visionPoseEstimates);
+    }
+
+    public void addVisionCamera(AprilTagCameraWraper visionPoseEstimator) {
+        visionCameras.add(visionPoseEstimator);
     }
 
     public double getRotation() {

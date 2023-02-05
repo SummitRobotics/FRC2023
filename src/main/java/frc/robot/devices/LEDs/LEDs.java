@@ -40,10 +40,10 @@ public class LEDs extends SubsystemBase {
      * Creates a new LED management class, based on the robot configuration.
      */
     private LEDs() {
-        ledStrip = new AddressableLED(Ports.LED_PORT);
-        buffer = new AddressableLEDBuffer(Ports.LED_LENGTH);
+        ledStrip = new AddressableLED(Ports.LED.PORT);
+        buffer = new AddressableLEDBuffer(Ports.LED.LENGTH);
 
-        ledStrip.setLength(Ports.LED_LENGTH);
+        ledStrip.setLength(Ports.LED.LENGTH);
         ledStrip.start();
 
         calls = new HashMap<>();
