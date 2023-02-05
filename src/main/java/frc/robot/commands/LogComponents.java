@@ -15,9 +15,9 @@ import frc.robot.utilities.Loggable;
 public class LogComponents extends CommandBase {
 
     Loggable[] toLog;
-    HashMap<String, BooleanLogEntry> booleanEntries;
-    HashMap<String, DoubleLogEntry> doubleEntries;
-    HashMap<String, StringLogEntry> stringEntries;
+    HashMap<String, BooleanLogEntry> booleanEntries = new HashMap<String, BooleanLogEntry>();
+    HashMap<String, DoubleLogEntry> doubleEntries = new HashMap<String, DoubleLogEntry>();
+    HashMap<String, StringLogEntry> stringEntries = new HashMap<String, StringLogEntry>();
     DataLog dataLog;
     
     /*
