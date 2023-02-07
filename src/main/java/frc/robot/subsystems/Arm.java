@@ -6,7 +6,10 @@ package frc.robot.subsystems;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
+import java.util.Map.Entry;
 
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
@@ -464,13 +467,22 @@ public class Arm extends SubsystemBase {
   }
 
   public static class MovementMap {
+    private static MovementMap instance;
+
     private final Set<Node<Region>> nodes = new HashSet<>();
 
-    MovementMap() {
-      //TODO ADD ALL REGIONS
+    private MovementMap() {
+          // TODO add nodes
     }
 
-    public ArrayList<Translation3d> generatePathBetweenTwoPoints(Translation3d start, Translation3d end) {
+    public static MovementMap getInstance() {
+      if (instance == null) {
+        instance = new MovementMap();
+      }
+      return instance;
+    }
+
+    public List<Translation3d> generatePathBetweenTwoPoints(Translation3d start, Translation3d end) {
       Node<Region> startNode = null;
       for (Node<Region> node : nodes) {
         if (node.getData().contains(start)) {
@@ -483,7 +495,90 @@ public class Arm extends SubsystemBase {
       }
       
       // Do Dijkstra's algorithm to find the shortest path to a region that contains the end point
+
+      Set<NodeWrapper<Region>> settledNodes = new HashSet<>();
+      Set<NodeWrapper<Region>> unsettledNodes = new HashSet<>();
+
+      NodeWrapper<Region> startNodeWrapper = new NodeWrapper<>(startNode, 0);
+
+      unsettledNodes.add(startNodeWrapper);
+
+      while (unsettledNodes.size() != 0) {
+        NodeWrapper<Region> currentNode = getLowestDistanceNode(unsettledNodes);
+        if (currentNode.node.getData().contains(end)){
+          List<Translation3d> path = new ArrayList<>();
+          for (Node<Region> pathNode: currentNode.getShortestPath()) {
+            path.add(pathNode.getData().getCenter());
+          }
+          return path;
+        }
+        unsettledNodes.remove(currentNode);
+        for (Node<Region> neighboor: 
+            currentNode.node.getNeighbors()) {
+            double edgeWeight = currentNode.node.getData().distanceToOther(neighboor.getData());
+            NodeWrapper<Region> neighboorNode = new NodeWrapper<>(neighboor, currentNode.distance + edgeWeight);
+            if (!settledNodes.contains(neighboorNode)) {
+              calculateMinimumDistance(neighboorNode, edgeWeight, currentNode);
+              unsettledNodes.add(neighboorNode);
+            }
+          }
+        settledNodes.add(currentNode);
+      }
       return null;
+    }
+
+    private static NodeWrapper<Region> getLowestDistanceNode(Set<NodeWrapper<Region>> unsettledNodes) {
+      NodeWrapper<Region> lowestDistanceNode = null;
+      double lowestDistance = Double.MAX_VALUE;
+      for (NodeWrapper<Region> node: unsettledNodes) {
+            double nodeDistance = node.getDistance();
+            if (nodeDistance < lowestDistance) {
+                lowestDistance = nodeDistance;
+                lowestDistanceNode = node;
+            }
+        }
+        return lowestDistanceNode;
+    }
+
+    private static void calculateMinimumDistance(NodeWrapper<Region> evaluationNode, double edgeWeigh, NodeWrapper<Region> sourceNode) {
+        double sourceDistance = sourceNode.getDistance();
+        if (sourceDistance + edgeWeigh < evaluationNode.getDistance()) {
+            evaluationNode.setDistance(sourceDistance + edgeWeigh);
+            LinkedList<Node<Region>> shortestPath = new LinkedList<>(sourceNode.getShortestPath());
+            shortestPath.add(sourceNode.getNode());
+            evaluationNode.setShortestPath(shortestPath);
+        }
+    }
+
+    private class NodeWrapper<T> {
+      private final Node<T> node;
+      private double distance = Double.MAX_VALUE;
+      private LinkedList<Node<T>> shortestPath = new LinkedList<>();
+
+      public NodeWrapper(Node<T> node, double distance) {
+        this.node = node;
+        this.distance = distance;
+      }
+
+      public Node<T> getNode() {
+        return node;
+      }
+
+      public double getDistance() {
+        return distance;
+      }
+
+      public void setDistance(double distance) {
+        this.distance = distance;
+      }
+
+      public LinkedList<Node<T>> getShortestPath() {
+        return shortestPath;
+      }
+
+      public void setShortestPath(LinkedList<Node<T>> path) {
+        this.shortestPath = path;
+      }
     }
   }
 }
