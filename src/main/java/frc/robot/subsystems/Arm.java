@@ -4,6 +4,10 @@
 
 package frc.robot.subsystems;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
+
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkMaxPIDController;
@@ -18,6 +22,8 @@ import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.utilities.Functions;
+import frc.robot.utilities.Node;
+import frc.robot.utilities.Region;
 import frc.robot.utilities.lists.Ports;
 
 public class Arm extends SubsystemBase {
@@ -49,21 +55,9 @@ public class Arm extends SubsystemBase {
     ARM_LINKAGE_0_LENGTH = 0, // Length in meters
     ARM_LINKAGE_1_LENGTH = 0, // Length in meters
     ARM_LINKAGE_2_LENGTH = 0, // Length in meters
-    ARM_LINKAGE_3_LENGTH = 0, // Length in meters
-
-    // Thease are the angles the joints are at when the encoders are at 0.
-    HOME_TURRET_ANGLE = 0,       // Angle in radians where positive is counterclockwise
-    HOME_ARM_JOINT_1_ANGLE = 0,  // Angle in radians where positive is counterclockwise
-    HOME_ARM_JOINT_2_ANGLE = 0,  // Angle in radians where positive is counterclockwise
-    HOME_ARM_JOINT_3_ANGLE = 0,  // Angle in radians where positive is counterclockwise
-    HOME_WRIST_SWIVIL_ANGLE = 0, // Angle in radians where positive is counterclockwise
-
-    TURRET_RADIANS_PER_ROTATION = 0,      // Prob Negitive beucause positive in the encoder is clockwise and positive in the arm is counterclockwise.
-    ARM_JOINT_1_RADIANS_PER_ROTATION = 0,
-    ARM_JOINT_2_RADIANS_PER_ROTATION = 0,
-    ARM_JOINT_3_RADIANS = 0,
-    WRIST_SWIVIL_RADIANS = 0;
+    ARM_LINKAGE_3_LENGTH = 0; // Length in meters
   
+  public static final Translation3d ROBOT_TO_TURRET_BASE = new Translation3d(0, 0, 0);
 
   private final CANSparkMax
     turretMotor = new CANSparkMax(Ports.Arm.TURRET, MotorType.kBrushless),
@@ -369,7 +363,7 @@ public class Arm extends SubsystemBase {
    */
 
   public void setTurretAngle(double angle) {
-    double rotations = angle * 0; // TO DO CALUCLATE THIS
+    double rotations = angle * 0; // TODO CALUCLATE THIS
     setTurretMotorRotations(rotations);
   }
 
@@ -378,7 +372,7 @@ public class Arm extends SubsystemBase {
    * @param angle The angle to set the 1st joint to in radians.
    */
   public void setArmMainAngle(double angle) {
-    double rotations = angle * 0; // TO DO CALUCLATE THIS
+    double rotations = angle * 0; // TODO CALUCLATE THIS
     setArmMainMotorRotations(rotations);
   }
 
@@ -387,7 +381,7 @@ public class Arm extends SubsystemBase {
    * @param angle The angle to set the 2nd joint to in radians.
    */
   public void setArmSecondaryAngle(double angle) {
-    double rotations = angle * 0; // TO DO CALUCLATE THIS
+    double rotations = angle * 0; // TODO CALUCLATE THIS
     setArmSecondaryMotorRotations(rotations);
   }
 
@@ -396,7 +390,7 @@ public class Arm extends SubsystemBase {
    * @param angle The angle to set the 3rd joint to in radians.
    */
   public void setArmTertiaryAngle(double angle) {
-    double rotations = angle * 0; // TO DO CALUCLATE THIS
+    double rotations = angle * 0; // TODO CALUCLATE THIS
     setArmTertiaryMotorRotations(rotations);
   }
 
@@ -405,10 +399,15 @@ public class Arm extends SubsystemBase {
    * @param angle The angle to set the wrist to in radians.
    */
   public void setWristAngle(double angle) {
-    double rotations = angle * 0; // TO DO CALUCLATE THIS
+    double rotations = angle * 0; // TODO CALUCLATE THIS
     setWristMotorRotations(rotations);
   }
 
+  /**
+   * Sets the arm to grab a specific point in space.
+   * @param grabberAngleRadians The angle of the grabber in radians compared to the ground. O is forward and PI/2 is straight down.
+   * @param pointToGrab The point in space to grab relitive to the base of the turret. AKA the center of rotation for the turret.
+   */
   public void setToPosition(double grabberAngleRadians, Translation3d pointToGrab) {
     // clamp grab angle
     grabberAngleRadians = Functions.clampDouble(grabberAngleRadians, Math.PI / 2, 0);
@@ -462,5 +461,29 @@ public class Arm extends SubsystemBase {
    */
   public boolean getClampSolenoidState() {
     return clampSolenoidState;
+  }
+
+  public static class MovementMap {
+    private final Set<Node<Region>> nodes = new HashSet<>();
+
+    MovementMap() {
+      //TODO ADD ALL REGIONS
+    }
+
+    public ArrayList<Translation3d> generatePathBetweenTwoPoints(Translation3d start, Translation3d end) {
+      Node<Region> startNode = null;
+      for (Node<Region> node : nodes) {
+        if (node.getData().contains(start)) {
+          startNode = node;
+          break;
+        }
+      }
+      if (startNode == null) {
+        throw new IllegalArgumentException("Start point is not in a region");
+      }
+      
+      // Do Dijkstra's algorithm to find the shortest path to a region that contains the end point
+      return null;
+    }
   }
 }
