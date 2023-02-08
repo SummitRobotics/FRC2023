@@ -159,6 +159,7 @@ public class Intake extends SubsystemBase implements HomeableSubsystem, Loggable
     public HashMap<String, DoubleSupplier> getDoubleLogData() {
         HashMap<String, DoubleSupplier> out = new HashMap<>();
         out.put("Intake Motor Velocity", intakeEncoder::getVelocity);
+        out.put("Pivot Motor Position", pivotEncoder::getPosition);
         return out;
     }
 }
