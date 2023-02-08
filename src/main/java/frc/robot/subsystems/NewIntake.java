@@ -5,15 +5,19 @@ import com.revrobotics.RelativeEncoder;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj.Solenoid;
+import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.utilities.homing.HomeableCANSparkMax;
+import frc.robot.utilities.homing.HomeableSubsystem;
 import frc.robot.utilities.lists.Ports;
 
-public class NewIntake extends SubsystemBase /*implements Loggable, HomeableSubsystem*/ {
+public class NewIntake extends SubsystemBase implements HomeableSubsystem {
+
     private final CANSparkMax intakeMotor = new CANSparkMax(Ports.Intake.INTAKE_MOTOR, MotorType.kBrushless);
-    private final RelativeEncoder intakeEncoder = intakeMotor.getEncoder();
     private final CANSparkMax pivotMotor = new CANSparkMax(Ports.Intake.PIVOT_MOTOR, MotorType.kBrushless);
     private final RelativeEncoder pivotEncoder = pivotMotor.getEncoder();
     private final Solenoid lock = new Solenoid(PneumaticsModuleType.REVPH, Ports.Intake.LOCK_SOLENOID);
+    private boolean isLocked;
     private State state;
 
     public enum State {
@@ -22,11 +26,14 @@ public class NewIntake extends SubsystemBase /*implements Loggable, HomeableSubs
         RAISED;
     }
 
+    private final double INTAKE_SPEED = 0.5;
+
     /**
      * Creates a new Intake.
      */
     public NewIntake() {
         state = State.RAISED;
+        isLocked = true;
     }
 
     /**
@@ -50,7 +57,7 @@ public class NewIntake extends SubsystemBase /*implements Loggable, HomeableSubs
     /**
      * Sets the intake state
      *
-     * @param state The intake state
+     * @param state
      */
     public void setState(State state) {
         this.state = state;
@@ -63,7 +70,67 @@ public class NewIntake extends SubsystemBase /*implements Loggable, HomeableSubs
         return state;
     }
 
+    /**
+     * Sets the lock state; true is locked.
+     *
+     * @param isLocked
+     */
     public void setLock(boolean isLocked) {
-        
+        this.isLocked = isLocked;
+        lock.set(isLocked);
+    }
+
+    /**
+     * Locks the pneumatic piston.
+     */
+    public void lock() {
+        setLock(true);
+    }
+
+    /**
+     * Unlocks the pneumatic piston.
+     */
+    public void unlock() {
+        setLock(false);
+    }
+
+    /**
+     * Toggles the pneumatic piston.
+     */
+    public void toggleLock() {
+        setLock(!isLocked);
+    }
+
+    public double getPivotEncoderPos() {
+        return pivotEncoder.getPosition();
+    }
+
+    @Override
+    public HomeableCANSparkMax[] getHomeables() {
+        // TODO - check if motor power should be positive or negative, check current threshold
+        return new HomeableCANSparkMax[] {
+            new HomeableCANSparkMax(
+                intakeMotor,
+                this,
+                0.3,
+                15.0
+            )
+        };
+    }
+
+    @Override
+    public Subsystem getSubsystemObject() {
+        return this;
+    }
+
+    @Override
+    public void periodic() {
+        switch (state) {
+            case LOWERED_MOVING:
+                setIntakeMotor(INTAKE_SPEED);
+                break;
+            default:
+                setIntakeMotor(0);
+        }
     }
 }
