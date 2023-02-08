@@ -41,6 +41,13 @@ public final class Ports {
             WRIST = 0,
             CLAMP_SOLENOID = 0;
     }
+    
+    public static final class Intake {
+        public static final int
+            INTAKE_MOTOR = 0,
+            PIVOT_MOTOR = 0,
+            LOCK_SOLENOID = 0;
+    }
 
     public static final class LED {
         public static final int
