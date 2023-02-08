@@ -9,7 +9,6 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-import java.util.Map.Entry;
 
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
@@ -24,13 +23,15 @@ import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.subsystems.Arm.ArmConfiguration.POSITION_TYPE;
 import frc.robot.utilities.Functions;
 import frc.robot.utilities.Node;
 import frc.robot.utilities.Region;
 import frc.robot.utilities.lists.Ports;
 
 public class Arm extends SubsystemBase {
-
+  
+  public static final Translation3d ROBOT_TO_TURRET_BASE = new Translation3d(0, 0, 0);
   public static final double
     TURRET_P = 0,
     TURRET_I = 0,
@@ -60,9 +61,7 @@ public class Arm extends SubsystemBase {
     ARM_LINKAGE_2_LENGTH = 0, // Length in meters
     ARM_LINKAGE_3_LENGTH = 0; // Length in meters
   
-  public static final Translation3d ROBOT_TO_TURRET_BASE = new Translation3d(0, 0, 0);
-
-  private final CANSparkMax
+    private final CANSparkMax
     turretMotor = new CANSparkMax(Ports.Arm.TURRET, MotorType.kBrushless),
     joint1Motor = new CANSparkMax(Ports.Arm.JOINT_1, MotorType.kBrushless),
     joint2Motor = new CANSparkMax(Ports.Arm.JOINT_2, MotorType.kBrushless),
@@ -83,8 +82,8 @@ public class Arm extends SubsystemBase {
     joint3Encoder = joint3Motor.getEncoder(),
     wirstEncoder = wristMotor.getEncoder();
 
+    // Seperate boolean to store clamp state because it is slow to get the state of the solenoid.
   private final Solenoid clampSolenoid = new Solenoid(PneumaticsModuleType.REVPH,Ports.Arm.CLAMP_SOLENOID);
-  // Seperate boolean to store clamp state because it is slow to get the state of the solenoid.
   private boolean clampSolenoidState;
 
   /** 
@@ -148,7 +147,7 @@ public class Arm extends SubsystemBase {
    * Sets the 1st joint's motor to the given speed.
    * @param speed The speed to set the motor to.
    */
-  public void setArmMainMotorPower(double power) {
+  public void setFirstJointMotorPower(double power) {
     power = Functions.clampDouble(power, 1, -1);
     joint1Motor.set(power);
   }
@@ -157,7 +156,7 @@ public class Arm extends SubsystemBase {
    * Sets the 2nd joint's motor to the given speed.
    * @param speed The speed to set the motor to.
    */
-  public void setArmSecondaryMotorPower(double power) {
+  public void setSecondJointMotorPower(double power) {
     power = Functions.clampDouble(power, 1, -1);
     joint2Motor.set(power);
   }
@@ -166,7 +165,7 @@ public class Arm extends SubsystemBase {
    * Sets the 3rd joint's motor to the given speed.
    * @param speed The speed to set the motor to.
    */
-  public void setArmTertiaryMotorPower(double power) {
+  public void setThirdJointMotorPower(double power) {
     power = Functions.clampDouble(power, 1, -1);
     joint3Motor.set(power);
   }
@@ -192,7 +191,7 @@ public class Arm extends SubsystemBase {
    * Sets the 1st joint's motor to the given position.
    * @param position The position to set the motor to in rotations.
    */
-  public void setArmMainMotorRotations(double motorRotations) {
+  public void setFirstJointMotorRotations(double motorRotations) {
     joint1PIDController.setReference(motorRotations, ControlType.kPosition);
   }
 
@@ -200,7 +199,7 @@ public class Arm extends SubsystemBase {
    * Sets the 2nd joint's motor to the given position.
    * @param position The position to set the motor to in rotations.
    */
-  public void setArmSecondaryMotorRotations(double motorRotations) {
+  public void setSecondJointMotorRotations(double motorRotations) {
     joint2PIDController.setReference(motorRotations, ControlType.kPosition);
   }
 
@@ -208,7 +207,7 @@ public class Arm extends SubsystemBase {
    * Sets the 3rd joint's motor to the given position.
    * @param position The position to set the motor to in rotations.
    */
-  public void setArmTertiaryMotorRotations(double motorRotations) {
+  public void setThirdJointMotorRotations(double motorRotations) {
     joint3PIDController.setReference(motorRotations, ControlType.kPosition);
   }
 
@@ -232,7 +231,7 @@ public class Arm extends SubsystemBase {
    * Gets the 1st joint's motor encoder position.
    * @return The 1st joint motor's position in rotations.
    */
-  public double getArmMainEncoderPosition() {
+  public double getFirstJointEncoderPosition() {
     return joint1Encoder.getPosition();
   }
 
@@ -240,7 +239,7 @@ public class Arm extends SubsystemBase {
    * Gets the 2nd joint's motor encoder position.
    * @return The 2nd joint motor's position in rotations.
    */
-  public double getArmSecondaryEncoderPosition() {
+  public double getSecondJointEncoderPosition() {
     return joint2Encoder.getPosition();
   }
 
@@ -248,7 +247,7 @@ public class Arm extends SubsystemBase {
    * Gets the 3rd joint's motor encoder position.
    * @return The 3rd joint motor's position in rotations.
    */
-  public double getArmTertiaryEncoderPosition() {
+  public double getThirdJointEncoderPosition() {
     return joint3Encoder.getPosition();
   }
 
@@ -260,186 +259,30 @@ public class Arm extends SubsystemBase {
     return wirstEncoder.getPosition();
   }
 
-  // TODO: NEED TO COMPUTE THIS
   /**
-   * Converts the given encoder position to an angle the turret is at
-   * @return The angle the turret is at in radians with 0 being straight forward and positive being counterclockwise.
+   * Returns the current configuration of the arm.
+   * @return The current configuration of the arm.
    */
-  public double getTurretAngle() {
-    return 0;
-  }
-
-  // TODO: NEED TO COMPUTE THIS
-  /**
-   * Converts the given encoder position to an angle the 1st joint is at
-   * @return The angle the 1st joint is at in radians with 0 being straight and positive being counterclockwise.
-   */
-  public double getArmMainAngle() {
-    return 0;
-  }
-
-  // TODO: NEED TO COMPUTE THIS
-  /**
-   * Converts the given encoder position to an angle the 2nd joint is at
-   * @return The angle the 2nd joint is at in radians with 0 being straight and positive being counterclockwise.
-   */
-  public double getArmSecondaryAngle() {
-    return 0;
-  }
-
-  // TODO: NEED TO COMPUTE THIS
-  /**
-   * Converts the given encoder position to an angle the 3rd joint is at
-   * @return The angle the 3rd joint is at in radians with 0 being straight and positive being counterclockwise.
-   */
-  public double getArmTertiaryAngle() {
-    return 0;
-  }
-
-  // TODO: NEED TO COMPUTE THIS
-  /**
-   * Converts the given encoder position to an angle the wrist is at
-   * @return The angle the wrist is at in radians with 0 being straight and positive being counterclockwise.
-   */
-  public double getWristAngle() {
-    return 0;
+  public ArmConfiguration getCurrentArmConfiguration() {
+    return new ArmConfiguration(
+      getTurretEncoderPosition(),
+      getFirstJointEncoderPosition(),
+      getSecondJointEncoderPosition(),
+      getThirdJointEncoderPosition(),
+      getWristEncoderPosition(),
+      POSITION_TYPE.ENCODER_ROTATIONS
+    );
   }
 
   /**
-   * Gets the Turrets Rotation as a Rotation3d.
-   * @return The Turrets Rotation as a Rotation3d.
+   * Sets the arm to a specific configuration.
    */
-  public Rotation3d getTurretRotation() {
-    return new Rotation3d(0, 0, getTurretAngle());
-  }
-
-  /**
-   * Gets the 1st Joint's Rotation as a Rotation3d.
-   * @return The 1st Joint's Rotation as a Rotation3d.
-   */
-  public Rotation3d getArmMainRotation() {
-    return new Rotation3d(0, getArmMainAngle(), 0);
-  }
-
-  /**
-   * Gets the 2nd Joint's Rotation as a Rotation3d.
-   * @return The 2nd Joint's Rotation as a Rotation3d.
-   */
-  public Rotation3d getArmSecondaryRotation() {
-    return new Rotation3d(0, getArmSecondaryAngle(), 0);
-  }
-
-  /**
-   * Gets the 3rd Joint's Rotation as a Rotation3d.
-   * @return The 3rd Joint's Rotation as a Rotation3d.
-   */
-  public Rotation3d getArmTertiaryRotation() {
-    return new Rotation3d(0, getArmTertiaryAngle(), 0);
-  }
-
-  /**
-   * Gets the Wrist's Rotation as a Rotation3d.
-   * @return The Wrist's Rotation as a Rotation3d.
-   */
-  public Rotation3d getWristRotation() {
-    return new Rotation3d(getWristAngle(), 0, 0);
-  }
-
-  /**
-   * Gets the final position of the arm relitive to the base of the turret.
-   * As well as its rotation. Used Forwards Kinematics.
-   * @return The complete position of the arm.
-   */
-  public Transform3d calculateKinematics() {
-    Translation3d linkage3 = new Translation3d(ARM_LINKAGE_3_LENGTH, getArmTertiaryRotation());
-    Translation3d linkage2 = (new Translation3d(ARM_LINKAGE_2_LENGTH, getArmSecondaryRotation())).plus(linkage3.rotateBy(getArmSecondaryRotation()));
-    Translation3d linkage1 = (new Translation3d(ARM_LINKAGE_1_LENGTH, getArmMainRotation())).plus(linkage2.rotateBy(getArmMainRotation()));
-    Translation3d linkage0 = (new Translation3d(ARM_LINKAGE_0_LENGTH, getTurretRotation())).plus(linkage1.rotateBy(getTurretRotation()));
-    
-    Rotation3d wristRotation = getWristRotation().plus(getArmTertiaryRotation()).plus(getArmSecondaryRotation()).plus(getArmMainRotation()).plus(getTurretRotation());
-    return new Transform3d(linkage0, wristRotation);
-  }
-
-  /**
-   * Sets the turret to a specific angle where 0 is straight forward and positive is counterclockwise.
-   * @param angle The angle to set the turret to in radians.
-   */
-
-  public void setTurretAngle(double angle) {
-    double rotations = angle * 0; // TODO CALUCLATE THIS
-    setTurretMotorRotations(rotations);
-  }
-
-  /**
-   * Sets the 1st joint to a specific angle where 0 is straight and positive is counterclockwise.
-   * @param angle The angle to set the 1st joint to in radians.
-   */
-  public void setArmMainAngle(double angle) {
-    double rotations = angle * 0; // TODO CALUCLATE THIS
-    setArmMainMotorRotations(rotations);
-  }
-
-  /**
-   * Sets the 2nd joint to a specific angle where 0 is straight and positive is counterclockwise.
-   * @param angle The angle to set the 2nd joint to in radians.
-   */
-  public void setArmSecondaryAngle(double angle) {
-    double rotations = angle * 0; // TODO CALUCLATE THIS
-    setArmSecondaryMotorRotations(rotations);
-  }
-
-  /**
-   * Sets the 3rd joint to a specific angle where 0 is straight and positive is counterclockwise.
-   * @param angle The angle to set the 3rd joint to in radians.
-   */
-  public void setArmTertiaryAngle(double angle) {
-    double rotations = angle * 0; // TODO CALUCLATE THIS
-    setArmTertiaryMotorRotations(rotations);
-  }
-
-  /**
-   * Sets the wrist to a specific angle where 0 is straight and positive is counterclockwise.
-   * @param angle The angle to set the wrist to in radians.
-   */
-  public void setWristAngle(double angle) {
-    double rotations = angle * 0; // TODO CALUCLATE THIS
-    setWristMotorRotations(rotations);
-  }
-
-  /**
-   * Sets the arm to grab a specific point in space.
-   * @param grabberAngleRadians The angle of the grabber in radians compared to the ground. O is forward and PI/2 is straight down.
-   * @param pointToGrab The point in space to grab relitive to the base of the turret. AKA the center of rotation for the turret.
-   */
-  public void setToPosition(double grabberAngleRadians, Translation3d pointToGrab) {
-    // clamp grab angle
-    grabberAngleRadians = Functions.clampDouble(grabberAngleRadians, Math.PI / 2, 0);
-    // rotate turret to the same plane as pointToGrab
-    double angleToPoint = Math.atan(pointToGrab.getY() / pointToGrab.getX());
-    setTurretAngle(angleToPoint);
-
-    // convert pointToGrab to 2d space
-    Translation2d pointToGrab2d = pointToGrab
-      .rotateBy(new Rotation3d(0,0,-angleToPoint))
-      .rotateBy(new Rotation3d(Math.PI / 2, 0, 0))
-      .toTranslation2d()
-      .plus(new Translation2d(0, -ARM_LINKAGE_0_LENGTH))
-      .plus(new Translation2d(ARM_LINKAGE_3_LENGTH, new Rotation2d(Math.PI - grabberAngleRadians)));
-    
-    // solve the triangle with law of cosines
-    double a = ARM_LINKAGE_1_LENGTH;
-    double b = ARM_LINKAGE_2_LENGTH;
-    double c = pointToGrab2d.getNorm();
-    double alpha = Math.acos((a*a + b*b - c*c) / (2*a*b));
-    double beta  = Math.acos((b*b + c*c - a*a) / (2*b*c));
-    double gamma = Math.PI - alpha - beta;
-
-    // rotate joints to position
-    setArmMainAngle(Math.atan(pointToGrab2d.getX() / pointToGrab2d.getY()) - alpha);
-    setArmSecondaryAngle(Math.PI - gamma);
-    setArmTertiaryAngle(Math.PI - beta - (Math.PI - grabberAngleRadians -
-      (Math.PI / 2 - alpha - (Math.atan(pointToGrab2d.getX() / pointToGrab2d.getY()) - alpha))));
-    setWristAngle(Math.PI / 2);
+  public void setToConfiguration(ArmConfiguration configuration) {
+    setTurretMotorRotations(configuration.getTurretPosition(POSITION_TYPE.ENCODER_ROTATIONS));
+    setFirstJointMotorRotations(configuration.getFirstJointPosition(POSITION_TYPE.ENCODER_ROTATIONS));
+    setSecondJointMotorRotations(configuration.getSecondJointPosition(POSITION_TYPE.ENCODER_ROTATIONS));
+    setThirdJointMotorRotations(configuration.getThirdJointPosition(POSITION_TYPE.ENCODER_ROTATIONS));
+    setWristMotorRotations(configuration.getWristPosition(POSITION_TYPE.ENCODER_ROTATIONS));
   }
 
   /**
@@ -466,23 +309,157 @@ public class Arm extends SubsystemBase {
     return clampSolenoidState;
   }
 
-  public static class MovementMap {
-    private static MovementMap instance;
+  /**
+   * Wrapper class for the arm position motors.
+   */
+  public static class ArmConfiguration {
 
-    private final Set<Node<Region>> nodes = new HashSet<>();
-
-    private MovementMap() {
-          // TODO add nodes
+    public enum POSITION_TYPE {
+      ENCODER_ROTATIONS,
+      ANGLE
     }
 
-    public static MovementMap getInstance() {
-      if (instance == null) {
-        instance = new MovementMap();
+    private final double
+      turretPositionRotations,
+      firstJointPositionRotations,
+      secondJointPositionRotations,
+      thirdJointPositionRotations,
+      wristPositionRotations;
+
+    private final Transform3d position;
+
+    ArmConfiguration(
+      double turretPosition,
+      double firstJointPosition,
+      double secondJointPosition,
+      double thirdJointPosition,
+      double wristPosition,
+      POSITION_TYPE positionType
+      ) {
+      if (positionType == POSITION_TYPE.ENCODER_ROTATIONS) {
+        this.turretPositionRotations = turretPosition;
+        this.firstJointPositionRotations = firstJointPosition;
+        this.secondJointPositionRotations = secondJointPosition;
+        this.thirdJointPositionRotations = thirdJointPosition;
+        this.wristPositionRotations = wristPosition;
+      } else {
+        this.turretPositionRotations = turretPosition * 0; // TODO CALCULATE THIS (ANGLE TO ROTATIONS)
+        this.firstJointPositionRotations = firstJointPosition * 0; // TODO CALCULATE THIS (ANGLE TO ROTATIONS)
+        this.secondJointPositionRotations = secondJointPosition * 0; // TODO CALCULATE THIS (ANGLE TO ROTATIONS)
+        this.thirdJointPositionRotations = thirdJointPosition * 0; // TODO CALCULATE THIS (ANGLE TO ROTATIONS)
+        this.wristPositionRotations = wristPosition * 0; // TODO CALCULATE THIS (ANGLE TO ROTATIONS)
       }
-      return instance;
+
+      Translation3d linkage3 = new Translation3d(ARM_LINKAGE_3_LENGTH, getThirdJointRotation());
+      Translation3d linkage2 = (new Translation3d(ARM_LINKAGE_2_LENGTH, getSecondJointRotation())).plus(linkage3.rotateBy(getSecondJointRotation()));
+      Translation3d linkage1 = (new Translation3d(ARM_LINKAGE_1_LENGTH, getFirstJointRotation())).plus(linkage2.rotateBy(getFirstJointRotation()));
+      Translation3d linkage0 = (new Translation3d(ARM_LINKAGE_0_LENGTH, getTurretRotation())).plus(linkage1.rotateBy(getTurretRotation()));
+      
+      Rotation3d wristRotation = getWristRotation().plus(getThirdJointRotation()).plus(getSecondJointRotation()).plus(getFirstJointRotation()).plus(getTurretRotation());
+      this.position = new Transform3d(linkage0, wristRotation);
     }
 
-    public List<Translation3d> generatePathBetweenTwoPoints(Translation3d start, Translation3d end) {
+    public static ArmConfiguration fromEndPosition(Translation3d endPosition, double grabberAngleRadians, double wristRotationRadians) {
+      // clamp grab angle
+      grabberAngleRadians = Functions.clampDouble(grabberAngleRadians, Math.PI / 2, 0);
+      // rotate turret to the same plane as pointToGrab
+      double angleToPoint = Math.atan(endPosition.getY() / endPosition.getX());
+
+      // convert pointToGrab to 2d space
+      Translation2d pointToGrab2d = endPosition
+        .rotateBy(new Rotation3d(0,0,-angleToPoint))
+        .rotateBy(new Rotation3d(Math.PI / 2, 0, 0))
+        .toTranslation2d()
+        .plus(new Translation2d(0, -ARM_LINKAGE_0_LENGTH))
+        .plus(new Translation2d(ARM_LINKAGE_3_LENGTH, new Rotation2d(Math.PI - grabberAngleRadians)));
+      
+      // solve the triangle with law of cosines
+      double a = ARM_LINKAGE_1_LENGTH;
+      double b = ARM_LINKAGE_2_LENGTH;
+      double c = pointToGrab2d.getNorm();
+      double alpha = Math.acos((a*a + b*b - c*c) / (2*a*b));
+      double beta  = Math.acos((b*b + c*c - a*a) / (2*b*c));
+      double gamma = Math.PI - alpha - beta;
+
+      return new ArmConfiguration(
+        angleToPoint,
+        Math.atan(pointToGrab2d.getX() / pointToGrab2d.getY()) - alpha,
+        Math.PI - gamma,
+        Math.PI - beta - (Math.PI - grabberAngleRadians - (Math.PI / 2 - alpha - (Math.atan(pointToGrab2d.getX() / pointToGrab2d.getY()) - alpha))),
+        wristRotationRadians,
+        POSITION_TYPE.ANGLE
+      );
+    }
+
+    public double getTurretPosition(POSITION_TYPE positionType) {
+      if (positionType == POSITION_TYPE.ENCODER_ROTATIONS) {
+        return turretPositionRotations;
+      }
+      return turretPositionRotations * 0; // TODO CALCULATE THIS (ROTATIONS TO ANGLE)
+    }
+
+    public double getFirstJointPosition(POSITION_TYPE positionType) {
+      if (positionType == POSITION_TYPE.ENCODER_ROTATIONS) {
+        return firstJointPositionRotations;
+      }
+      return firstJointPositionRotations * 0; // TODO CALCULATE THIS (ROTATIONS TO ANGLE)
+    }
+
+    public double getSecondJointPosition(POSITION_TYPE positionType) {
+      if (positionType == POSITION_TYPE.ENCODER_ROTATIONS) {
+        return secondJointPositionRotations;
+      }
+      return secondJointPositionRotations * 0; // TODO CALCULATE THIS (ROTATIONS TO ANGLE)
+    }
+
+    public double getThirdJointPosition(POSITION_TYPE positionType) {
+      if (positionType == POSITION_TYPE.ENCODER_ROTATIONS) {
+        return thirdJointPositionRotations;
+      }
+      return thirdJointPositionRotations * 0; // TODO CALCULATE THIS (ROTATIONS TO ANGLE)
+    }
+
+    public double getWristPosition(POSITION_TYPE positionType) {
+      if (positionType == POSITION_TYPE.ENCODER_ROTATIONS) {
+        return wristPositionRotations;
+      }
+      return wristPositionRotations * 0; // TODO CALCULATE THIS (ROTATIONS TO ANGLE)
+    }
+
+    public Rotation3d getTurretRotation() {
+      return new Rotation3d(0, 0, getTurretPosition(POSITION_TYPE.ANGLE));
+    }
+
+    public Rotation3d getFirstJointRotation() {
+      return new Rotation3d(0, getFirstJointPosition(POSITION_TYPE.ANGLE), 0);
+    }
+
+    public Rotation3d getSecondJointRotation() {
+      return new Rotation3d(0, getSecondJointPosition(POSITION_TYPE.ANGLE), 0);
+    }
+
+    public Rotation3d getThirdJointRotation() {
+      return new Rotation3d(0, getThirdJointPosition(POSITION_TYPE.ANGLE), 0);
+    }
+
+    public Rotation3d getWristRotation() {
+      return new Rotation3d(getWristPosition(POSITION_TYPE.ANGLE), 0, 0);
+    }
+
+    public Transform3d getEndPosition() {
+      return position;
+    }
+  }
+
+  /*
+   * Class that is used to store the map of possible locations for the arm
+   * to allow for movement without running into important parts of the robot.
+   */
+  public static class MovementMap {
+    private static final Set<Node<Region>> nodes = new HashSet<>();
+    // TODO ADD REGIONS TO MAP
+
+    public static List<Translation3d> generatePathBetweenTwoPoints(Translation3d start, Translation3d end) {
       Node<Region> startNode = null;
       for (Node<Region> node : nodes) {
         if (node.getData().contains(start)) {
@@ -550,7 +527,7 @@ public class Arm extends SubsystemBase {
         }
     }
 
-    private class NodeWrapper<T> {
+    private static class NodeWrapper<T> {
       private final Node<T> node;
       private double distance = Double.MAX_VALUE;
       private LinkedList<Node<T>> shortestPath = new LinkedList<>();
