@@ -1,8 +1,8 @@
 package frc.robot.commands.intake;
 
 import edu.wpi.first.wpilibj2.command.CommandBase;
-import frc.robot.subsystems.NewIntake;
-import frc.robot.subsystems.NewIntake.State;
+import frc.robot.subsystems.Intake;
+import frc.robot.subsystems.Intake.State;
 
 public class ToggleIntake extends CommandBase {
 
@@ -11,7 +11,7 @@ public class ToggleIntake extends CommandBase {
     private final double RAISE_ENCODER_THRESHOLD = 0.0;
     private final double LOWER_INTAKE_POWER = 0.0;
     private final double LOWER_ENCODER_THRESHOLD = 0.0;
-    NewIntake intake;
+    Intake intake;
     Type type;
 
     public enum Type {
@@ -27,7 +27,7 @@ public class ToggleIntake extends CommandBase {
     }
 
     // No extra arguments; toggles from current position
-    public ToggleIntake(NewIntake intake) {
+    public ToggleIntake(Intake intake) {
         this.intake = intake;
         type = Type.fromBoolean(intake.getState() != State.RAISED);
 
@@ -35,7 +35,7 @@ public class ToggleIntake extends CommandBase {
     }
 
     // From Type enum
-    public ToggleIntake(NewIntake intake, Type type) {
+    public ToggleIntake(Intake intake, Type type) {
         this.intake = intake;
         this.type = type;
 
@@ -43,7 +43,7 @@ public class ToggleIntake extends CommandBase {
     }
 
     // From boolean; true is raise
-    public ToggleIntake(NewIntake intake, boolean type) {
+    public ToggleIntake(Intake intake, boolean type) {
         this.intake = intake;
         this.type = Type.fromBoolean(type);
 

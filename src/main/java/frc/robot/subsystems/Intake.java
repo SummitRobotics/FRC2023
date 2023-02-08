@@ -1,109 +1,170 @@
-// Copyright (c) FIRST and other WPILib contributors.
-// Open Source Software; you can modify and/or share it under the terms of
-// the WPILib BSD license file in the root directory of this project.
-
 package frc.robot.subsystems;
 
 import java.util.HashMap;
-import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
-
+import java.util.function.Supplier;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
-
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj.Solenoid;
+import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.utilities.Loggable;
+import frc.robot.utilities.homing.HomeableCANSparkMax;
+import frc.robot.utilities.homing.HomeableSubsystem;
 import frc.robot.utilities.lists.Ports;
 
-public class Intake extends SubsystemBase implements Loggable{
+public class Intake extends SubsystemBase implements HomeableSubsystem, Loggable {
 
-  private final CANSparkMax intakeMotor = new CANSparkMax(Ports.Intake.INTAKE_MOTOR, MotorType.kBrushless);
-  private final RelativeEncoder intakeEncoder = intakeMotor.getEncoder();
+    private final CANSparkMax intakeMotor = new CANSparkMax(Ports.Intake.INTAKE_MOTOR, MotorType.kBrushless);
+    private final RelativeEncoder intakeEncoder = intakeMotor.getEncoder();
+    private final CANSparkMax pivotMotor = new CANSparkMax(Ports.Intake.PIVOT_MOTOR, MotorType.kBrushless);
+    private final RelativeEncoder pivotEncoder = pivotMotor.getEncoder();
+    private final Solenoid lock = new Solenoid(PneumaticsModuleType.REVPH, Ports.Intake.LOCK_SOLENOID);
+    private boolean isLocked;
+    private State state;
 
-  private final Solenoid intakePiston = new Solenoid(PneumaticsModuleType.REVPH, Ports.Intake.INTAKE_SOLENOID);
-  private IntakeState intakeState;
+    public enum State {
+        LOWERED_MOVING,
+        LOWERED_STATIONARY,
+        RAISED;
 
-  /**
-   * Enum for the intake state
-   */
-  public enum IntakeState {
-    LOWERED(false),
-    RAISED(true);
-
-    public final boolean value;
-    IntakeState(boolean value) {
-      this.value = value;
+        public String toString() {
+            if (this == LOWERED_MOVING) {
+                return "Lowered Moving";
+            } else if (this == LOWERED_STATIONARY) {
+                return "Lowered Stationary";
+            } else {
+                return "Raised";
+            }
+        }
     }
 
-    public static IntakeState fromBoolean(boolean value) {
-      return value == RAISED.value ? RAISED : LOWERED;
+    private final double INTAKE_SPEED = 0.5;
+
+    /**
+     * Creates a new Intake.
+     */
+    public Intake() {
+        state = State.RAISED;
+        isLocked = true;
     }
 
-    public IntakeState toggle() {
-      return this == RAISED ? LOWERED : RAISED;
+    /**
+     * Sets the intake motor to a certain speed.
+     * 
+     * @param speed The speed to set the motor to.
+     */
+    public void setIntakeMotor(double speed) {
+        intakeMotor.set(speed);
     }
-  }
 
-  /**
-   * Creates a new Intake.
-   */
-  public Intake() {
-    intakeState = IntakeState.fromBoolean(intakePiston.get());
-  }
+    /**
+     * Sets the pivot motor to a certain speed.
+     *
+     * @param speed The speed to set the motor to.
+     */
+    public void setPivotMotor(double speed) {
+        pivotMotor.set(speed);
+    }
 
-  /**
-   * Sets the intake motor to a certain speed.
-   * 
-   * @param speed The speed to set the motor to.
-   */
-  public void setIntakeMotor(double speed) {
-    intakeMotor.set(speed);
-  }
+    /**
+     * Sets the intake state
+     *
+     * @param state
+     */
+    public void setState(State state) {
+        this.state = state;
+    }
 
-  /**
-   * Sets the Intake Piston to a State.
-   */
-  public void setIntakeState(IntakeState state) {
-    intakePiston.set(state.value);
-    intakeState = state;
-  }
+    /*
+     * Returns the current state of the intake.
+     */
+    public State getState() {
+        return state;
+    }
 
-  /**
-   * Toggles the intake piston.
-   */
-  public void toggleIntakePiston() {
-    setIntakeState(intakeState.toggle());
-  }
+    /**
+     * Sets the lock state; true is locked.
+     *
+     * @param isLocked
+     */
+    public void setLock(boolean isLocked) {
+        this.isLocked = isLocked;
+        lock.set(isLocked);
+    }
 
-  /**
-   * Returns the current intake state.
-   */
-  public IntakeState getIntakeState() {
-    return intakeState;
-  }
+    /**
+     * Locks the pneumatic piston.
+     */
+    public void lock() {
+        setLock(true);
+    }
 
-  /*
-  Below are the methods for the Loggable interface.
-   */
-  @Override
-  public String getLogName() {
-    return "Intake";
-  }
+    /**
+     * Unlocks the pneumatic piston.
+     */
+    public void unlock() {
+        setLock(false);
+    }
 
-  @Override
-  public HashMap<String, BooleanSupplier> getBooleanLogData() {
-    HashMap<String, BooleanSupplier> out = new HashMap<>();
-    out.put("Intake Piston", () -> getIntakeState().value);
-    return out;
-  }
+    /**
+     * Toggles the pneumatic piston.
+     */
+    public void toggleLock() {
+        setLock(!isLocked);
+    }
 
-  @Override
-  public HashMap<String, DoubleSupplier> getDoubleLogData() {
-    HashMap<String, DoubleSupplier> out = new HashMap<>();
-    out.put("Intake Motor Velocity", intakeEncoder::getVelocity);
-    return out;
+    public double getPivotEncoderPos() {
+        return pivotEncoder.getPosition();
+    }
+
+    @Override
+    public HomeableCANSparkMax[] getHomeables() {
+        // TODO - check if motor power should be positive or negative, check current threshold
+        return new HomeableCANSparkMax[] {
+            new HomeableCANSparkMax(
+                intakeMotor,
+                this,
+                0.3,
+                15.0
+            )
+        };
+    }
+
+    @Override
+    public Subsystem getSubsystemObject() {
+        return this;
+    }
+
+    @Override
+    public void periodic() {
+        switch (state) {
+            case LOWERED_MOVING:
+                setIntakeMotor(INTAKE_SPEED);
+                break;
+            default:
+                setIntakeMotor(0);
+        }
+    }
+
+    @Override
+    public String getLogName() {
+        return "Intake";
+    }
+
+    @Override
+    public HashMap<String, Supplier<String>> getStringLogData() {
+        HashMap<String, Supplier<String>> out = new HashMap<>();
+        out.put("Intake Piston", getState()::toString);
+        return out;
+    }
+
+    @Override
+    public HashMap<String, DoubleSupplier> getDoubleLogData() {
+        HashMap<String, DoubleSupplier> out = new HashMap<>();
+        out.put("Intake Motor Velocity", intakeEncoder::getVelocity);
+        return out;
     }
 }
