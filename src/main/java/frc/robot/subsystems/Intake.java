@@ -27,7 +27,7 @@ public class Intake extends SubsystemBase implements HomeableSubsystem, Loggable
 
     public enum State {
         LOWERED_MOVING,
-        LOWERED_STATIONARY,
+        LOWERED_STATIONARY, // this currently isn't used
         RAISED;
 
         public String toString() {
@@ -140,13 +140,7 @@ public class Intake extends SubsystemBase implements HomeableSubsystem, Loggable
 
     @Override
     public void periodic() {
-        switch (state) {
-            case LOWERED_MOVING:
-                setIntakeMotor(INTAKE_SPEED);
-                break;
-            default:
-                setIntakeMotor(0);
-        }
+        setIntakeMotor(state == State.LOWERED_MOVING ? INTAKE_SPEED : 0);
     }
 
     @Override

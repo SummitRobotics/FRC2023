@@ -7,7 +7,9 @@ package frc.robot;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import frc.robot.commands.Home;
 import frc.robot.subsystems.Intake;
 
 public class RobotContainer {
@@ -24,7 +26,8 @@ public class RobotContainer {
     intake = new Intake();
 
     teleopInit = new SequentialCommandGroup(
-      // new Home(intake)
+      new Home(intake),
+      new InstantCommand(() -> intake.lock())
     );
 
     configureBindings();
