@@ -285,6 +285,16 @@ public class Arm extends SubsystemBase {
     setWristMotorRotations(configuration.getWristPosition(POSITION_TYPE.ENCODER_ROTATIONS));
   }
 
+  public boolean atConfiguration(ArmConfiguration configuration) {
+    return (
+      Functions.withinTolerance(getTurretEncoderPosition(), configuration.getTurretPosition(POSITION_TYPE.ENCODER_ROTATIONS), 0.1) &&
+      Functions.withinTolerance(getFirstJointEncoderPosition(), configuration.getFirstJointPosition(POSITION_TYPE.ENCODER_ROTATIONS), 0.1) &&
+      Functions.withinTolerance(getSecondJointEncoderPosition(), configuration.getSecondJointPosition(POSITION_TYPE.ENCODER_ROTATIONS), 0.1) &&
+      Functions.withinTolerance(getThirdJointEncoderPosition(), configuration.getThirdJointPosition(POSITION_TYPE.ENCODER_ROTATIONS), 0.1) &&
+      Functions.withinTolerance(getWristEncoderPosition(), configuration.getWristPosition(POSITION_TYPE.ENCODER_ROTATIONS), 0.1)
+    );
+  }
+
   /**
    * Actuates the clamp on the end of the arm
   */
@@ -468,7 +478,7 @@ public class Arm extends SubsystemBase {
         }
       }
       if (startNode == null) {
-        throw new IllegalArgumentException("Start point is not in a region");
+        return null;
       }
       
       // Do Dijkstra's algorithm to find the shortest path to a region that contains the end point
