@@ -7,7 +7,6 @@ import edu.wpi.first.util.sendable.SendableRegistry;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
-import frc.robot.oi.inputs.ShuffleboardLEDButton;
 import frc.robot.oi.shuffleboardwidgets.StatusDisplayWidget;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -20,16 +19,16 @@ import java.util.Vector;
 public class ShuffleboardDriver {
 
     private static final String[] BAD_SHUFFLE_HELL_ITEMS = {"navX", "Solenoid", "Compressor", "PID", "DigitalInput"};
-    private static NetworkTable InfoTable = NetworkTableInstance.getDefault().getTable("RobotInfo"),
-            ButtonTable = NetworkTableInstance.getDefault().getTable("Buttons");
-    public static ShuffleboardLEDButton
+    private static NetworkTable InfoTable = NetworkTableInstance.getDefault().getTable("RobotInfo");
+            // ButtonTable = NetworkTableInstance.getDefault().getTable("Buttons");
+    // public static ShuffleboardLEDButton
             //recordStart = new ShuffleboardLEDButton(ButtonTable.getEntry("record Start")),
             //intake = new ShuffleboardLEDButton(ButtonTable.getEntry("record Intake")),
             //shoot = new ShuffleboardLEDButton(ButtonTable.getEntry("record Shoot")),
             //shift = new ShuffleboardLEDButton(ButtonTable.getEntry("record Shift"));
             //finish = new ShuffleboardLEDButton(ButtonTable.getEntry("record Stop")),
             //homeTurret = new ShuffleboardLEDButton(ButtonTable.getEntry("Home Turret")),
-            homeArms = new ShuffleboardLEDButton(ButtonTable.getEntry("Home Arms"));
+            // homeArms = new ShuffleboardLEDButton(ButtonTable.getEntry("Home Arms"));
             
         // public static DoubleDisplayWidget
         //         hoodIndicator = new DoubleDisplayWidget(InfoTable.getEntry("hood")),
@@ -73,7 +72,7 @@ public class ShuffleboardDriver {
 
             // goes through and removes any sendable items that are bad (by name)
             // gets the hashmap from sendableRegistry
-            Map hm = (Map) f.get(null);
+            Map<Object, Object> hm = (Map<Object, Object>) f.get(null);
             // an array to hold all the objects to be removed (you can't remove objects form
             // an array while in a for each loop)
             Vector<Object> toRemove = new Vector<>();
