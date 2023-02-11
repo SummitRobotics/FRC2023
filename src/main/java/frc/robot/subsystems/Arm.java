@@ -5,11 +5,13 @@
 package frc.robot.subsystems;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-
+import java.util.function.DoubleSupplier;
+import java.util.function.Supplier;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkMaxPIDController;
@@ -22,18 +24,23 @@ import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.Arm.ArmConfiguration.POSITION_TYPE;
 import frc.robot.utilities.ChangeRateLimiter;
 import frc.robot.utilities.Functions;
+import frc.robot.utilities.Loggable;
 import frc.robot.utilities.Node;
 import frc.robot.utilities.Positions;
 import frc.robot.utilities.Region;
+import frc.robot.utilities.homing.HomeableCANSparkMax;
+import frc.robot.utilities.homing.HomeableSubsystem;
 import frc.robot.utilities.lists.Ports;
 
-public class Arm extends SubsystemBase {
+// TODO - override toString for ArmConfiguration
+public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
   
   public static final Transform3d ROBOT_TO_TURRET_BASE = new Transform3d(new Translation3d(0, 0, 0), new Rotation3d());
   public static final double
@@ -659,5 +666,54 @@ public class Arm extends SubsystemBase {
         this.shortestPath = path;
       }
     }
+  }
+
+  // TODO - check power and current values, check sequencing and what can be homed in parallel
+  @Override
+  public HomeableCANSparkMax[] getHomeables() {
+    return new HomeableCANSparkMax[] {
+      new HomeableCANSparkMax(turretMotor, this, 0.3, 15.0, 0),
+      new HomeableCANSparkMax(joint1Motor, this, -0.3, 15.0, 1),
+      new HomeableCANSparkMax(joint2Motor, this, 0.3, 15.0, 2),
+      new HomeableCANSparkMax(joint3Motor, this, 0.3, 15.0, 3),
+      new HomeableCANSparkMax(wristMotor, this, 0.3, 15.0, 4)
+    };
+  }
+
+  // encoder positions, grabber position, arm in sendable and loggable
+
+  @Override
+  public void initSendable(SendableBuilder builder) {
+    builder.addStringProperty("armConfiguration", getCurrentArmConfiguration()::toString, null);
+    builder.addStringProperty("grabberClamp", () -> clampSolenoidState ? "Open" : "Closed", null);
+    builder.addDoubleProperty("turretEncoder", this::getTurretEncoderPosition, null);
+    builder.addDoubleProperty("firstJointEncoder", this::getFirstJointEncoderPosition, null);
+    builder.addDoubleProperty("secondJointEncoder", this::getSecondJointEncoderPosition, null);
+    builder.addDoubleProperty("thirdJointEncoder", this::getThirdJointEncoderPosition, null);
+    builder.addDoubleProperty("wristEncoder", this::getWristEncoderPosition, null);
+  }
+
+  @Override
+  public String getLogName() {
+    return "Arm";
+  }
+
+  @Override
+  public HashMap<String, DoubleSupplier> getDoubleLogData() {
+    HashMap<String, DoubleSupplier> out = new HashMap<String, DoubleSupplier>();
+    out.put("Turret Encoder", this::getTurretEncoderPosition);
+    out.put("First Joint Encoder", this::getFirstJointEncoderPosition);
+    out.put("Second Joint Encoder", this::getSecondJointEncoderPosition);
+    out.put("Third Joint Encoder", this::getThirdJointEncoderPosition);
+    out.put("Wrist Encoder", this::getWristEncoderPosition);
+    return out;
+  }
+
+  @Override
+  public HashMap<String, Supplier<String>> getStringLogData() {
+    HashMap<String, Supplier<String>> out = new HashMap<String, Supplier<String>>();
+    out.put("Arm Configuration", getCurrentArmConfiguration()::toString);
+    out.put("Grabber Clamp", () -> clampSolenoidState ? "Open" : "Closed");
+    return out;
   }
 }

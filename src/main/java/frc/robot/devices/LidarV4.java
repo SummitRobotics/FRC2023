@@ -77,26 +77,28 @@ public class LidarV4 implements Lidar, Sendable {
             portI2C.read(0x10, 1, low);
             portI2C.read(0x11, 1, high);
 
-            int out = high[0];
+            // int out = high[0];
 
             // fixes java using signed bytes
-            if (out < 0) {
-                out = ((high[0] & 0b01111111) + 128);
-            }
+            // if (out < 0) {
+                // out = ((high[0] & 0b01111111) + 128);
+            // }
 
-            out = (out << 8);
-            int out2 = low[0];
+            // out = (out << 8);
+            // int out2 = low[0];
 
-            if (out2 < 0) {
-                out2 = ((low[0] & 0b01111111) + 128);
-            }
+            // if (out2 < 0) {
+                // out2 = ((low[0] & 0b01111111) + 128);
+            // }
 
-            out = out + out2;
+            // out = out + out2;
+
+            int out = low[0] & 0xff + ((high[0] & 0xff) << 8);
 
             // tells lidar to take another measurement
             portI2C.write(0x00, 0x04);
 
-            return out;
+            return out - 7;
         }
         return -1;
     }
