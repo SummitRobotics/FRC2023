@@ -523,6 +523,18 @@ public class Arm extends SubsystemBase {
     public Positions.Pose3d getEndPosition() {
       return position;
     }
+
+    @Override
+    public String toString() {
+      return "Turret Encoder: " + turretPositionRotations
+        + "\nFirst Joint Encoder: " + firstJointPositionRotations
+        + "\nSecond Joint Encoder: " + secondJointPositionRotations
+        + "\nThird Joint Encoder: " + thirdJointPositionRotations
+        + "\nWrist Encoder: " + wristPositionRotations
+        + "\nRobot Space X: " + position.inRobotSpace().getX()
+        + "\nRobot Space Y: " + position.inRobotSpace().getY()
+        + "\nRobot Space Z: " + position.inRobotSpace().getZ();
+    }
   }
 
   /*
