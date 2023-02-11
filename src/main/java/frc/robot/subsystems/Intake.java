@@ -8,7 +8,6 @@ import com.revrobotics.RelativeEncoder;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj.Solenoid;
-import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.utilities.Loggable;
 import frc.robot.utilities.homing.HomeableCANSparkMax;
@@ -131,11 +130,6 @@ public class Intake extends SubsystemBase implements HomeableSubsystem, Loggable
                 15.0
             )
         };
-    }
-
-    @Override
-    public Subsystem getSubsystemObject() {
-        return this;
     }
 
     @Override
