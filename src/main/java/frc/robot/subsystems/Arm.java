@@ -15,6 +15,8 @@ import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkMaxPIDController;
 import com.revrobotics.CANSparkMax.ControlType;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
+
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
@@ -24,14 +26,16 @@ import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.Arm.ArmConfiguration.POSITION_TYPE;
+import frc.robot.utilities.ChangeRateLimiter;
 import frc.robot.utilities.Functions;
 import frc.robot.utilities.Node;
+import frc.robot.utilities.Positions;
 import frc.robot.utilities.Region;
 import frc.robot.utilities.lists.Ports;
 
 public class Arm extends SubsystemBase {
   
-  public static final Translation3d ROBOT_TO_TURRET_BASE = new Translation3d(0, 0, 0);
+  public static final Transform3d ROBOT_TO_TURRET_BASE = new Transform3d(new Translation3d(0, 0, 0), new Rotation3d());
   public static final double
     TURRET_P = 0,
     TURRET_I = 0,
@@ -81,6 +85,14 @@ public class Arm extends SubsystemBase {
     joint2Encoder = joint2Motor.getEncoder(),
     joint3Encoder = joint3Motor.getEncoder(),
     wirstEncoder = wristMotor.getEncoder();
+
+  private final ChangeRateLimiter
+    turretLimiter = new ChangeRateLimiter(0.1),
+    joint1Limiter = new ChangeRateLimiter(0.1),
+    joint2Limiter = new ChangeRateLimiter(0.1),
+    joint3Limiter = new ChangeRateLimiter(0.1),
+    wristLimiter = new ChangeRateLimiter(0.1);
+
 
     // Seperate boolean to store clamp state because it is slow to get the state of the solenoid.
   private final Solenoid clampSolenoid = new Solenoid(PneumaticsModuleType.REVPH,Ports.Arm.CLAMP_SOLENOID);
@@ -141,6 +153,7 @@ public class Arm extends SubsystemBase {
   public void setTurretMotorPower(double power) {
     power = Functions.clampDouble(power, 1, -1);
     turretMotor.set(power);
+    turretLimiter.resetOld(power);
   }
 
   /**
@@ -150,6 +163,7 @@ public class Arm extends SubsystemBase {
   public void setFirstJointMotorPower(double power) {
     power = Functions.clampDouble(power, 1, -1);
     joint1Motor.set(power);
+    joint1Limiter.resetOld(power);
   }
 
   /**
@@ -159,6 +173,7 @@ public class Arm extends SubsystemBase {
   public void setSecondJointMotorPower(double power) {
     power = Functions.clampDouble(power, 1, -1);
     joint2Motor.set(power);
+    joint2Limiter.resetOld(power);
   }
 
   /**
@@ -168,6 +183,7 @@ public class Arm extends SubsystemBase {
   public void setThirdJointMotorPower(double power) {
     power = Functions.clampDouble(power, 1, -1);
     joint3Motor.set(power);
+    joint3Limiter.resetOld(power);
   }
 
   /**
@@ -177,6 +193,52 @@ public class Arm extends SubsystemBase {
   public void setWristMotorPower(double power) {
     power = Functions.clampDouble(power, 1, -1);
     wristMotor.set(power);
+    wristLimiter.resetOld(power);
+  }
+
+  /**
+   * Sets the turret motor to the given speed while being rate limited.
+   * @param speed The speed to set the motor to.
+   */
+  public void setTurretMotorPowerRateLimited(double power) {
+    power = Functions.clampDouble(power, 1, -1);
+    turretMotor.set(turretLimiter.getRateLimitedValue(power));
+  }
+
+  /**
+   * Sets the 1st joint's motor to the given speed while being rate limited.
+   * @param speed The speed to set the motor to.
+   */
+  public void setFirstJointMotorPowerRateLimited(double power) {
+    power = Functions.clampDouble(power, 1, -1);
+    joint1Motor.set(joint1Limiter.getRateLimitedValue(power));
+  }
+
+  /**
+   * Sets the 2nd joint's motor to the given speed while being rate limited.
+   * @param speed The speed to set the motor to.
+   */
+  public void setSecondJointMotorPowerRateLimited(double power) {
+    power = Functions.clampDouble(power, 1, -1);
+    joint2Motor.set(joint2Limiter.getRateLimitedValue(power));
+  }
+
+  /**
+   * Sets the 3rd joint's motor to the given speed while being rate limited.
+   * @param speed The speed to set the motor to.
+   */
+  public void setThirdJointMotorPowerRateLimited(double power) {
+    power = Functions.clampDouble(power, 1, -1);
+    joint3Motor.set(joint3Limiter.getRateLimitedValue(power));
+  }
+
+  /**
+   * Sets the wrist motor to the given speed while being rate limited.
+   * @param speed The speed to set the motor to.
+   */
+  public void setWristMotorPowerRateLimited(double power) {
+    power = Functions.clampDouble(power, 1, -1);
+    wristMotor.set(wristLimiter.getRateLimitedValue(power));
   }
 
   /**
@@ -285,6 +347,7 @@ public class Arm extends SubsystemBase {
     setWristMotorRotations(configuration.getWristPosition(POSITION_TYPE.ENCODER_ROTATIONS));
   }
 
+  //TODO Make sure thease are good tollerances
   public boolean atConfiguration(ArmConfiguration configuration) {
     return (
       Functions.withinTolerance(getTurretEncoderPosition(), configuration.getTurretPosition(POSITION_TYPE.ENCODER_ROTATIONS), 0.1) &&
@@ -336,7 +399,7 @@ public class Arm extends SubsystemBase {
       thirdJointPositionRotations,
       wristPositionRotations;
 
-    private final Transform3d position;
+    private final Positions.Pose3d position;
 
     ArmConfiguration(
       double turretPosition,
@@ -366,10 +429,11 @@ public class Arm extends SubsystemBase {
       Translation3d linkage0 = (new Translation3d(ARM_LINKAGE_0_LENGTH, getTurretRotation())).plus(linkage1.rotateBy(getTurretRotation()));
       
       Rotation3d wristRotation = getWristRotation().plus(getThirdJointRotation()).plus(getSecondJointRotation()).plus(getFirstJointRotation()).plus(getTurretRotation());
-      this.position = new Transform3d(linkage0, wristRotation);
+      this.position = Positions.Pose3d.fromOtherSpace(new Pose3d(linkage0, wristRotation), ROBOT_TO_TURRET_BASE);
     }
 
-    public static ArmConfiguration fromEndPosition(Translation3d endPosition, double grabberAngleRadians, double wristRotationRadians) {
+    public static ArmConfiguration fromEndPosition(Positions.Pose3d endPose, double grabberAngleRadians, double wristRotationRadians) {
+      Translation3d endPosition = endPose.inOtherSpace(ROBOT_TO_TURRET_BASE).getTranslation();
       // clamp grab angle
       grabberAngleRadians = Functions.clampDouble(grabberAngleRadians, Math.PI / 2, 0);
       // rotate turret to the same plane as pointToGrab
@@ -456,7 +520,7 @@ public class Arm extends SubsystemBase {
       return new Rotation3d(getWristPosition(POSITION_TYPE.ANGLE), 0, 0);
     }
 
-    public Transform3d getEndPosition() {
+    public Positions.Pose3d getEndPosition() {
       return position;
     }
   }
@@ -466,12 +530,28 @@ public class Arm extends SubsystemBase {
    * to allow for movement without running into important parts of the robot.
    */
   public static class MovementMap {
-    private static final Set<Node<Region>> nodes = new HashSet<>();
-    // TODO ADD REGIONS TO MAP
 
-    public static List<Translation3d> generatePathBetweenTwoPoints(Translation3d start, Translation3d end) {
+    private final Set<Node<Region>> mainMap = new HashSet<>();
+
+    public MovementMap() {
+      // TODO ADD REGIONS TO MAP
+      Node<Region> node1 = new Node<>(new Region(new Translation3d(0, 0, 0), new Translation3d(0, 0, 0)));
+      Node<Region> node2 = new Node<>(new Region(new Translation3d(0, 0, 0), new Translation3d(0, 0, 0)));
+      node1.addNeighboor(node2);
+      node2.addNeighboor(node1);
+      mainMap.add(node1);
+      mainMap.add(node2);
+    }
+
+    public Set<Node<Region>> getMainMap() {
+      return mainMap;
+    }
+
+    public static List<Positions.Pose3d> generatePathBetweenTwoPoints(Positions.Pose3d startPose, Positions.Pose3d endPose, Set<Node<Region>> map) {
+      Translation3d start = startPose.inOtherSpace(ROBOT_TO_TURRET_BASE).getTranslation();
+      Translation3d end = endPose.inOtherSpace(ROBOT_TO_TURRET_BASE).getTranslation();
       Node<Region> startNode = null;
-      for (Node<Region> node : nodes) {
+      for (Node<Region> node : map) {
         if (node.getData().contains(start)) {
           startNode = node;
           break;
@@ -493,9 +573,9 @@ public class Arm extends SubsystemBase {
       while (unsettledNodes.size() != 0) {
         NodeWrapper<Region> currentNode = getLowestDistanceNode(unsettledNodes);
         if (currentNode.node.getData().contains(end)){
-          List<Translation3d> path = new ArrayList<>();
+          List<Positions.Pose3d> path = new ArrayList<>();
           for (Node<Region> pathNode: currentNode.getShortestPath()) {
-            path.add(pathNode.getData().getCenter());
+            path.add(Positions.Pose3d.fromOtherSpace(new Pose3d(pathNode.getData().getCenter(), new Rotation3d()), ROBOT_TO_TURRET_BASE));
           }
           return path;
         }

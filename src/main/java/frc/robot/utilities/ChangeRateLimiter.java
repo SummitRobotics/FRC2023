@@ -66,6 +66,10 @@ public class ChangeRateLimiter {
         old = 0;
     }
 
+    public void resetOld(double newOld) {
+        old = newOld;
+    }
+
     /**
      * Resets all rate limiters.
      */
