@@ -122,14 +122,7 @@ public class Intake extends SubsystemBase implements HomeableSubsystem, Loggable
     @Override
     public HomeableCANSparkMax[] getHomeables() {
         // TODO - check if motor power should be positive or negative, check current threshold
-        return new HomeableCANSparkMax[] {
-            new HomeableCANSparkMax(
-                intakeMotor,
-                this,
-                0.3,
-                15.0
-            )
-        };
+        return new HomeableCANSparkMax[] {new HomeableCANSparkMax(intakeMotor, this, 0.3, 15.0)};
     }
 
     @Override

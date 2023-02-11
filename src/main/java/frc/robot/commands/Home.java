@@ -38,6 +38,7 @@ public class Home extends CommandBase {
     @Override
     public void execute() {
 
+        // We'll be finished if activeHoming is empty or contains only finished homeables.
         boolean areFinished = true;
         for (HomeableCANSparkMax homeable : activeHoming) {
             homeable.updateStopCondition();
@@ -48,6 +49,7 @@ public class Home extends CommandBase {
             activeHoming.clear();
             if (!homeables.isEmpty()) {
 
+                // fill activeHoming with homeables of the same priority
                 while (
                     activeHoming.isEmpty()
                     || homeables.peek().getOrder() == activeHoming.get(0).getOrder()
