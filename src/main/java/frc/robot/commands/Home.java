@@ -1,68 +1,59 @@
 package frc.robot.commands;
 
+import java.util.ArrayList;
+import java.util.PriorityQueue;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.utilities.homing.HomeableCANSparkMax;
 import frc.robot.utilities.homing.HomeableSubsystem;
 import frc.robot.utilities.homing.HomeableCANSparkMax.Type;
 
 public class Home extends CommandBase {
-    
-    private HomeableCANSparkMax[] homeables;
 
-    public Home(HomeableSubsystem subsystem) {
+    // maps priorities to maps that contain homeables and whether or not they are finished
+    private PriorityQueue<HomeableCANSparkMax> homeables = new PriorityQueue<>(HomeableCANSparkMax.ORDER_COMPARATOR);
+    private ArrayList<HomeableCANSparkMax> activeHoming = new ArrayList<HomeableCANSparkMax>();
 
-        homeables = subsystem.getHomeables();
-        addRequirements(subsystem.getSubsystemObject());
-    }
+    public Home(HomeableCANSparkMax... toHome) {
 
-    public Home(HomeableCANSparkMax... homeables) {
-
-        this.homeables = homeables;
-        for (HomeableCANSparkMax homeable : homeables) {
+        for (HomeableCANSparkMax homeable : toHome) {
+            homeables.add(homeable);
             addRequirements(homeable.getSubsystemObject());
         }
     }
 
-    @Override
-    public void initialize() {
-        for (HomeableCANSparkMax homeable : homeables) {
-            if (homeable.getType() == Type.ByCurrent) homeable.resetCurrent();
-            if (homeable.hasSoftLimits()) homeable.disableSoftLimits();
-        }
+    public Home(HomeableSubsystem subsystem) {
+        this(subsystem.getHomeables());
     }
 
     @Override
     public void execute() {
-        for (HomeableCANSparkMax homeable : homeables) {
 
+        // remove homeables from activeHoming as they finish
+        for (HomeableCANSparkMax homeable : activeHoming) {
+            homeable.updateStopCondition();
+            if (homeable.isFinished()) activeHoming.remove(homeable); homeable.end();
+        }
+
+        if (activeHoming.isEmpty() && !homeables.isEmpty()) {
+
+            // fill activeHoming with homeables of the same priority
+            while (
+                activeHoming.isEmpty()
+                || homeables.peek().getOrder() == activeHoming.get(0).getOrder()
+            ) {
+                HomeableCANSparkMax homeable = homeables.poll();
+                activeHoming.add(homeable);
+                homeable.init();
+            }
+        }
+
+        for (HomeableCANSparkMax homeable : activeHoming) {
             if (homeable.getType() == Type.ByCurrent) homeable.updateCurrent();
-            if (homeable.stopCondition()) homeable.setIsFinished();
-            if (homeable.getIsFinished()) homeable.setPower(0); else homeable.setPower();
+            if (homeable.isFinished()) homeable.setPower(0); else homeable.setPower();
         }
     }
 
-    @Override
-    public void end(final boolean interrupted) {
-        for (HomeableCANSparkMax homeable: homeables) {
-            homeable.setPower(0);
-            if (homeable.hasSoftLimits()) homeable.enableSoftLimits();
-        }
-
-        if (!interrupted) {
-            for (HomeableCANSparkMax homeable: homeables) {
-                homeable.zeroHome();
-            } 
-        }
-    }
-
-    @Override
     public boolean isFinished() {
-        boolean result = true;
-
-        for (HomeableCANSparkMax homeable : homeables) {
-            result &= homeable.getIsFinished();
-        }
-
-        return result;
+        return activeHoming.isEmpty() && homeables.isEmpty();
     }
 }

@@ -8,7 +8,6 @@ import com.revrobotics.RelativeEncoder;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj.Solenoid;
-import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.utilities.Loggable;
 import frc.robot.utilities.homing.HomeableCANSparkMax;
@@ -123,19 +122,7 @@ public class Intake extends SubsystemBase implements HomeableSubsystem, Loggable
     @Override
     public HomeableCANSparkMax[] getHomeables() {
         // TODO - check if motor power should be positive or negative, check current threshold
-        return new HomeableCANSparkMax[] {
-            new HomeableCANSparkMax(
-                intakeMotor,
-                this,
-                0.3,
-                15.0
-            )
-        };
-    }
-
-    @Override
-    public Subsystem getSubsystemObject() {
-        return this;
+        return new HomeableCANSparkMax[] {new HomeableCANSparkMax(intakeMotor, this, 0.3, 15.0)};
     }
 
     @Override

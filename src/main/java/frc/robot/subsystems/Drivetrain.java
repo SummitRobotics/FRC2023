@@ -94,7 +94,6 @@ public class Drivetrain extends SubsystemBase implements Testable, Loggable {
     private final CANSparkMax rightBack =
         new CANSparkMax(Ports.Drivetrain.RIGHT_1, MotorType.kBrushless);
 
-    // private final ArrayList<CANSparkMax> allMotors = new ArrayList<>(List.of(left, leftMiddle, leftBack, right, rightMiddle, rightBack));
     // pid controllers
     private final SparkMaxPIDController leftPID = left.getPIDController();
     private final SparkMaxPIDController leftMiddlePID = leftMiddle.getPIDController();
