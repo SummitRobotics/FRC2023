@@ -38,7 +38,7 @@ public final class Ports {
             PIVOT_MOTOR = 0,
             LOCK_SOLENOID = 0;
     }
-
+    
     public static final class LED {
         public static final int
             PORT = 0,
@@ -48,7 +48,7 @@ public final class Ports {
     public static final class Other {
         public static final int
         PRESSURE_SENSOR = 0,
-        PCM_1 = 2,
+        PCM = 2,
         PDP = 1;
     }
 }
