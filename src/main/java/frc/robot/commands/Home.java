@@ -3,8 +3,6 @@ package frc.robot.commands;
 import java.util.ArrayList;
 import java.util.PriorityQueue;
 import edu.wpi.first.wpilibj2.command.CommandBase;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.utilities.homing.HomeableCANSparkMax;
 import frc.robot.utilities.homing.HomeableSubsystem;
 import frc.robot.utilities.homing.HomeableCANSparkMax.Type;
@@ -28,36 +26,24 @@ public class Home extends CommandBase {
     }
 
     @Override
-    public void initialize() {
-        for (HomeableCANSparkMax homeable : homeables) {
-            // Is it a good idea to use triggers for this?
-            new Trigger(() -> homeable.isFinished()).onTrue(new InstantCommand(() -> homeable.end()));
-        }
-    }
-
-    @Override
     public void execute() {
 
-        // We'll be finished if activeHoming is empty or contains only finished homeables.
-        boolean areFinished = true;
+        // remove homeables from activeHoming as they finish
         for (HomeableCANSparkMax homeable : activeHoming) {
             homeable.updateStopCondition();
-            areFinished &= homeable.isFinished();
+            if (homeable.isFinished()) activeHoming.remove(homeable); homeable.end();
         }
 
-        if (areFinished) {
-            activeHoming.clear();
-            if (!homeables.isEmpty()) {
+        if (activeHoming.isEmpty() && !homeables.isEmpty()) {
 
-                // fill activeHoming with homeables of the same priority
-                while (
-                    activeHoming.isEmpty()
-                    || homeables.peek().getOrder() == activeHoming.get(0).getOrder()
-                ) {
-                    HomeableCANSparkMax homeable = homeables.poll();
-                    activeHoming.add(homeable);
-                    homeable.init();
-                }
+            // fill activeHoming with homeables of the same priority
+            while (
+                activeHoming.isEmpty()
+                || homeables.peek().getOrder() == activeHoming.get(0).getOrder()
+            ) {
+                HomeableCANSparkMax homeable = homeables.poll();
+                activeHoming.add(homeable);
+                homeable.init();
             }
         }
 
