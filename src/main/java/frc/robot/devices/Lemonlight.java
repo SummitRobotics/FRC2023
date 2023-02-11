@@ -22,7 +22,7 @@ public class Lemonlight implements Sendable {
     }
 
     private final NetworkTableEntry tv, tx, ty, ta;
-    private NetworkTableEntry camMode, pipeline, ledMode;
+    // private NetworkTableEntry camMode, pipeline, ledMode;
     private final Type type;
     private final RigidTransform3 position;
     private final double targetHeight;

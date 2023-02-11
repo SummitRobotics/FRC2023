@@ -2,7 +2,6 @@ package frc.robot.subsystems;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Optional;
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
@@ -92,7 +91,7 @@ public class Drivetrain extends SubsystemBase implements Testable, Loggable {
     private final CANSparkMax rightBack =
         new CANSparkMax(Ports.Drivetrain.RIGHT_1, MotorType.kBrushless);
 
-    private final ArrayList<CANSparkMax> allMotors = new ArrayList<>(List.of(left, leftMiddle, leftBack, right, rightMiddle, rightBack));
+    // private final ArrayList<CANSparkMax> allMotors = new ArrayList<>(List.of(left, leftMiddle, leftBack, right, rightMiddle, rightBack));
     // pid controllers
     private final SparkMaxPIDController leftPID = left.getPIDController();
     private final SparkMaxPIDController leftMiddlePID = leftMiddle.getPIDController();
@@ -495,7 +494,6 @@ public class Drivetrain extends SubsystemBase implements Testable, Loggable {
 
     /**
      * Convert distance to encoder values.
-     * TODO: STILL NEED TO TEST THIS
      *
      * @param dist the distance in meters.
      * @return The converstion to encover values.
@@ -821,8 +819,6 @@ public class Drivetrain extends SubsystemBase implements Testable, Loggable {
         return f2d;
     }
 
-    //TODO run a check so we dont update at a unnessaryly fast rate
-    //TODO CONT beacuse its being updated by periodic and followSpline
 
     /**
      * Updates odometry.
