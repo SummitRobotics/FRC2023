@@ -47,7 +47,6 @@ public class TurnByEncoderAbsolute extends CommandBase {
         double radians = (Math.PI / 180) * angle;
         double distance = ROBOT_RADIUS * radians;
 
-        // TODO test if this is accurate
         left = drivetrain.getLeftDistance() + distance;
         drivetrain.setLeftMotorTarget(drivetrain.distToEncoder(left));
 
