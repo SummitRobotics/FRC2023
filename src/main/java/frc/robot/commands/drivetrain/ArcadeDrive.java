@@ -190,10 +190,4 @@ public class ArcadeDrive extends CommandBase {
         drivetrain.stop();
         LEDs.getInstance().removeCall("reversed");
     }
-
-    // Returns true when the command should end.
-    @Override
-    public boolean isFinished() {
-        return false;
-    }
 }
