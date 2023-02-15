@@ -83,18 +83,18 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
     TURRET_HOME_ANGLE = 0, // Angle in radians where 0 is straight forward and positive is counter clockwise.
 
     ARM_JOINT_1_LEADSCREW_HOME_LENGTH = 0, // Length in meters
-    ARM_JOINT_1_PIVOT_TO_MOTOR_LENGTH = 0, // Length in meters
-    ARM_JOINT_1_PIVOT_TO_LEADSCREW_LENGTH = 0, // Length in meters
+    ARM_JOINT_1_PIVOT_TO_MOTOR_LENGTH = 0.1019, // Length in meters
+    ARM_JOINT_1_PIVOT_TO_LEADSCREW_LENGTH = 0.22606, // Length in meters
     ARM_JOINT_1_PIVOT_TO_MOTOR_HORIZONTAL_ANGLE_OFFSET = 0, // Angle in radians
     ARM_JOINT_1_MOTOR_GEAR_RATIO = 9, // Ratio Example a 9:1 gear ratio would be 9
-    ARM_JOINT_1_LEADSCREW_PITCH = 0, // Length in meters. The distance the lead screw moves per revolution
+    ARM_JOINT_1_LEADSCREW_PITCH = 0.00635, // Length in meters. The distance the lead screw moves per revolution
 
     ARM_JOINT_2_LEADSCREW_HOME_LENGTH = 0, // Length in meters
-    ARM_JOINT_2_PIVOT_TO_MOTOR_LENGTH = 0, // Length in meters
-    ARM_JOINT_2_PIVOT_TO_LEADSCREW_LENGTH = 0, // Length in meters
+    ARM_JOINT_2_PIVOT_TO_MOTOR_LENGTH = 0.33655, // Length in meters
+    ARM_JOINT_2_PIVOT_TO_LEADSCREW_LENGTH = 0.1001776, // Length in meters
     ARM_JOINT_2_PIVOT_TO_MOTOR_HORIZONTAL_ANGLE_OFFSET = 0, // Angle in radians
     ARM_JOINT_2_MOTOR_GEAR_RATIO = 5, // Ratio Example a 9:1 gear ratio would be 9
-    ARM_JOINT_2_LEADSCREW_PITCH = 0, // Length in meters. The distance the lead screw moves per revolution
+    ARM_JOINT_2_LEADSCREW_PITCH = 0.00635, // Length in meters. The distance the lead screw moves per revolution
 
     ARM_JOINT_3_GEAR_RATIO_OVERALL = 1, // Ratio Example a 9:1 would be 9
     ARM_JOINT_3_HOME_ANGLE = 0, // Angle in radians where 0 is straight forward and positive is counter clockwise.
