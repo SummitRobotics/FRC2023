@@ -24,6 +24,7 @@ import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj.Solenoid;
@@ -79,29 +80,29 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
 
     public static final double
 
-    TURRET_GEAR_RATIO_OVERALL = 1, // Ratio Example a 9:1 would be 9
+    TURRET_GEAR_RATIO_OVERALL = 225 * 3.09523809524, // Ratio Example a 9:1 would be 9
     TURRET_HOME_ANGLE = 0, // Angle in radians where 0 is straight forward and positive is counter clockwise.
 
-    ARM_JOINT_1_LEADSCREW_HOME_LENGTH = 0, // Length in meters
+    ARM_JOINT_1_LEADSCREW_HOME_LENGTH = Units.inchesToMeters(16.5), // Length in meters
     ARM_JOINT_1_PIVOT_TO_MOTOR_LENGTH = 0.1019, // Length in meters
     ARM_JOINT_1_PIVOT_TO_LEADSCREW_LENGTH = 0.22606, // Length in meters
     ARM_JOINT_1_PIVOT_TO_MOTOR_HORIZONTAL_ANGLE_OFFSET = 0, // Angle in radians
     ARM_JOINT_1_MOTOR_GEAR_RATIO = 9, // Ratio Example a 9:1 gear ratio would be 9
     ARM_JOINT_1_LEADSCREW_PITCH = 0.00635, // Length in meters. The distance the lead screw moves per revolution
 
-    ARM_JOINT_2_LEADSCREW_HOME_LENGTH = 0, // Length in meters
+    ARM_JOINT_2_LEADSCREW_HOME_LENGTH = Units.inchesToMeters(4.875), // Length in meters
     ARM_JOINT_2_PIVOT_TO_MOTOR_LENGTH = 0.33655, // Length in meters
     ARM_JOINT_2_PIVOT_TO_LEADSCREW_LENGTH = 0.1001776, // Length in meters
     ARM_JOINT_2_PIVOT_TO_MOTOR_HORIZONTAL_ANGLE_OFFSET = 0, // Angle in radians
     ARM_JOINT_2_MOTOR_GEAR_RATIO = 5, // Ratio Example a 9:1 gear ratio would be 9
     ARM_JOINT_2_LEADSCREW_PITCH = 0.00635, // Length in meters. The distance the lead screw moves per revolution
 
-    ARM_JOINT_3_GEAR_RATIO_OVERALL = 1, // Ratio Example a 9:1 would be 9
+    ARM_JOINT_3_GEAR_RATIO_OVERALL = 225, // Ratio Example a 9:1 would be 9
     ARM_JOINT_3_HOME_ANGLE = 0, // Angle in radians where 0 is straight forward and positive is counter clockwise.
 
-    WRIST_GEAR_RATIO_OVERALL = 1, // Ratio Example a 9:1 would be 9
+    WRIST_GEAR_RATIO_OVERALL = 179.069767442, // Ratio Example a 9:1 would be 9
     WRIST_HOME_ANGLE = 0; // Angle in radians where 0 is straight forward and positive is counter clockwise.
-  
+
     private final CANSparkMax
     turretMotor = new CANSparkMax(Ports.Arm.TURRET, MotorType.kBrushless),
     joint1Motor = new CANSparkMax(Ports.Arm.JOINT_1, MotorType.kBrushless),
