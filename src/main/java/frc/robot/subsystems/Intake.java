@@ -68,6 +68,11 @@ public class Intake extends SubsystemBase implements HomeableSubsystem, Loggable
         pivotMotor.set(speed);
     }
 
+    public void stop() {
+        setIntakeMotor(0);
+        setPivotMotor(0);
+    }
+
     /**
      * Sets the intake state
      *

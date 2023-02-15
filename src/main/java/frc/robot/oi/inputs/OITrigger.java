@@ -53,6 +53,15 @@ public class OITrigger {
     }
 
     /**
+     * Returns whether or not the condition is true regardless of priorities.
+     * You'll typically want to use .prioritize().get() instead.
+     * @return
+     */
+    public boolean get() {
+        return condition.getAsBoolean();
+    }
+
+    /**
      * Returns an instance of a PrioritizedTrigger from the OITrigger.
      *
      * @param priority The priority (0 is lowest priority)
@@ -87,6 +96,14 @@ public class OITrigger {
          */
         public Trigger getTrigger() {
             return new Trigger(condition).and(() -> priority >= highestPriority);
+        }
+
+        /**
+         * If currently the highest priority, returns whether or not the condition is true.
+         * @return
+         */
+        public boolean get() {
+            return condition.getAsBoolean() && priority >= highestPriority;
         }
 
         /**
