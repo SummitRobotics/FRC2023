@@ -29,7 +29,7 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.devices.AprilTagCameraWraper;
+import frc.robot.devices.AprilTagCameraWrapper;
 import frc.robot.devices.LEDs.LEDCall;
 import frc.robot.devices.LEDs.LEDRange;
 import frc.robot.utilities.Functions;
@@ -140,7 +140,7 @@ public class Drivetrain extends SubsystemBase implements Testable, Loggable {
     private final Timer odometryTime = new Timer();
 
     private final Field2d f2d;
-    private final ArrayList<AprilTagCameraWraper> visionCameras = new ArrayList<>();
+    private final ArrayList<AprilTagCameraWrapper> visionCameras = new ArrayList<>();
 
     private LEDCall lowGear = new LEDCall(LEDPriorities.LOW_GEAR, LEDRange.All).sine(Colors.RED);
     
@@ -845,7 +845,7 @@ public class Drivetrain extends SubsystemBase implements Testable, Loggable {
 
     public void updateOdometry() {
         ArrayList<EstimatedRobotPose> visionPoseEstimates = new ArrayList<>();
-        for (AprilTagCameraWraper visionCamera : visionCameras) {
+        for (AprilTagCameraWrapper visionCamera : visionCameras) {
             Optional<EstimatedRobotPose> visionRobotPose = visionCamera.getEstimatedGlobalPose(getPose());
             visionRobotPose.ifPresent(poseEstimate -> {
                 visionPoseEstimates.add(poseEstimate);
@@ -854,7 +854,7 @@ public class Drivetrain extends SubsystemBase implements Testable, Loggable {
         updateOdometry(visionPoseEstimates);
     }
 
-    public void addVisionCamera(AprilTagCameraWraper visionPoseEstimator) {
+    public void addVisionCamera(AprilTagCameraWrapper visionPoseEstimator) {
         visionCameras.add(visionPoseEstimator);
     }
 

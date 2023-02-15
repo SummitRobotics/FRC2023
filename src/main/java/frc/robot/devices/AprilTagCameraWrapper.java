@@ -36,11 +36,11 @@ import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonPoseEstimator;
 import org.photonvision.PhotonPoseEstimator.PoseStrategy;
  
-public class AprilTagCameraWraper {
+public class AprilTagCameraWrapper {
      public PhotonCamera photonCamera;
      public PhotonPoseEstimator photonPoseEstimator;
  
-     public AprilTagCameraWraper(String cameraName, Transform3d robotToCamera) throws IOException {
+     public AprilTagCameraWrapper(String cameraName, Transform3d robotToCamera) throws IOException {
          AprilTagFieldLayout atfl =
                  new AprilTagFieldLayout(AprilTagFields.k2023ChargedUp.m_resourceFile);
  

@@ -20,12 +20,12 @@ The code is divided into several packages, each responsible for a different aspe
 
 ### IntelliJ
 1. Run `./gradlew idea`
-1. Open the `FRC-2022-Public.ipr` file with IntelliJ
+1. Open the `FRC-2023-Public.ipr` file with IntelliJ
 
 ### Eclipse
 1. Run `./gradlew eclipse`
 1. Open Eclipse and go to File > Open Projects from File System...
-1. Set the import source to the `FRC-2022-Public` folder then click finish
+1. Set the import source to the `FRC-2023-Public` folder then click finish
 
 ### Basic Gradle Commands
 * Run `./gradlew deploy` to deploy to the robot in Terminal (*nix) or Powershell (Windows)
