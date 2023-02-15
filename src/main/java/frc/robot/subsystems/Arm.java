@@ -67,10 +67,18 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
     WRIST_I = 0,
     WRIST_D = 0,
     
-    ARM_LINKAGE_0_LENGTH = 0, // Length in meters
-    ARM_LINKAGE_1_LENGTH = 0, // Length in meters
-    ARM_LINKAGE_2_LENGTH = 0, // Length in meters
-    ARM_LINKAGE_3_LENGTH = 0; // Length in meters
+    ARM_LINKAGE_0_LENGTH = 8 / 39.37, // Length in meters
+    ARM_LINKAGE_1_LENGTH = 31 / 39.37, // Length in meters
+    ARM_LINKAGE_2_LENGTH = 29 / 39.37, // Length in meters
+    ARM_LINKAGE_3_LENGTH = 18 / 39.37, // Length in meters
+
+    ARM_LINKAGE_1_CG_DISTANCE = 14 / 39.37, // Distance from the pivot to the center of gravity in meters
+    ARM_LINKAGE_2_CG_DISTANCE = 19 / 39.37, // Distance from the pivot to the center of gravity in meters
+    ARM_LINKAGE_3_CG_DISTANCE = 8 / 39.37, // Distance from the pivot to the center of gravity in meters
+
+    ARM_LINKAGE_1_MASS = 12 / 2.205, // Mass in kilograms
+    ARM_LINKAGE_2_MASS = 8 / 2.205, // Mass in kilograms
+    ARM_LINKAGE_3_MASS = 7 / 2.205; // Mass in kilograms
   
     private final CANSparkMax
     turretMotor = new CANSparkMax(Ports.Arm.TURRET, MotorType.kBrushless),
@@ -406,7 +414,11 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
       thirdJointPositionRotations,
       wristPositionRotations;
 
-    private final Positions.Pose3d position;
+    private final Positions.Pose3d 
+      endPose,
+      joint1Pose,
+      joint2Pose,
+      joint3Pose;
 
     ArmConfiguration(
       double turretPosition,
@@ -436,7 +448,22 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
       Translation3d linkage0 = (new Translation3d(ARM_LINKAGE_0_LENGTH, getTurretRotation())).plus(linkage1.rotateBy(getTurretRotation()));
       
       Rotation3d wristRotation = getWristRotation().plus(getThirdJointRotation()).plus(getSecondJointRotation()).plus(getFirstJointRotation()).plus(getTurretRotation());
-      this.position = Positions.Pose3d.fromOtherSpace(new Pose3d(linkage0, wristRotation), ROBOT_TO_TURRET_BASE);
+      this.endPose = Positions.Pose3d.fromOtherSpace(new Pose3d(linkage0, wristRotation), ROBOT_TO_TURRET_BASE);
+
+      linkage2 = new Translation3d(ARM_LINKAGE_2_LENGTH, getSecondJointRotation());
+      linkage1 = (new Translation3d(ARM_LINKAGE_1_LENGTH, getFirstJointRotation())).plus(linkage2.rotateBy(getFirstJointRotation()));
+      linkage0 = (new Translation3d(ARM_LINKAGE_0_LENGTH, getTurretRotation())).plus(linkage1.rotateBy(getTurretRotation()));
+
+      this.joint3Pose = Positions.Pose3d.fromOtherSpace(linkage0, ROBOT_TO_TURRET_BASE);
+
+      linkage1 = new Translation3d(ARM_LINKAGE_1_LENGTH, getFirstJointRotation());
+      linkage0 = (new Translation3d(ARM_LINKAGE_0_LENGTH, getTurretRotation())).plus(linkage1.rotateBy(getTurretRotation()));
+
+      this.joint2Pose = Positions.Pose3d.fromOtherSpace(linkage0, ROBOT_TO_TURRET_BASE);
+
+      linkage0 = new Translation3d(ARM_LINKAGE_0_LENGTH, getTurretRotation());
+
+      this.joint1Pose = Positions.Pose3d.fromOtherSpace(linkage0, ROBOT_TO_TURRET_BASE);
     }
 
     public static ArmConfiguration fromEndPosition(Positions.Pose3d endPose, double grabberAngleRadians, double wristRotationRadians) {
@@ -528,7 +555,37 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
     }
 
     public Positions.Pose3d getEndPosition() {
-      return position;
+      return endPose;
+    }
+
+    public Positions.Pose3d getJoint1Pose() {
+      return joint1Pose;
+    }
+
+    public Positions.Pose3d getJoint2Pose() {
+      return joint2Pose;
+    }
+
+    public Positions.Pose3d getJoint3Pose() {
+      return joint3Pose;
+    }
+
+    public Positions.Pose3d getLinkage1CG() {
+      Rotation3d rotation = getTurretRotation().plus(getFirstJointRotation());
+      Pose3d pose = getJoint1Pose().inOtherSpace(ROBOT_TO_TURRET_BASE).plus(new Transform3d(new Translation3d(ARM_LINKAGE_1_CG_DISTANCE, rotation), new Rotation3d()));
+      return Positions.Pose3d.fromOtherSpace(pose, ROBOT_TO_TURRET_BASE);
+    }
+
+    public Positions.Pose3d getLinkage2CG() {
+      Rotation3d rotation = getTurretRotation().plus(getFirstJointRotation()).plus(getSecondJointRotation());
+      Pose3d pose = getJoint2Pose().inOtherSpace(ROBOT_TO_TURRET_BASE).plus(new Transform3d(new Translation3d(ARM_LINKAGE_2_CG_DISTANCE, rotation), new Rotation3d()));
+      return Positions.Pose3d.fromOtherSpace(pose, ROBOT_TO_TURRET_BASE);
+    }
+
+    public Positions.Pose3d getLinkage3CG() {
+      Rotation3d rotation = getTurretRotation().plus(getFirstJointRotation()).plus(getSecondJointRotation()).plus(getThirdJointRotation());
+      Pose3d pose = getJoint3Pose().inOtherSpace(ROBOT_TO_TURRET_BASE).plus(new Transform3d(new Translation3d(ARM_LINKAGE_3_CG_DISTANCE, rotation), new Rotation3d()));
+      return Positions.Pose3d.fromOtherSpace(pose, ROBOT_TO_TURRET_BASE);
     }
 
     @Override
@@ -538,9 +595,18 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
         + "\nSecond Joint Encoder: " + secondJointPositionRotations
         + "\nThird Joint Encoder: " + thirdJointPositionRotations
         + "\nWrist Encoder: " + wristPositionRotations
-        + "\nRobot Space X: " + position.inRobotSpace().getX()
-        + "\nRobot Space Y: " + position.inRobotSpace().getY()
-        + "\nRobot Space Z: " + position.inRobotSpace().getZ();
+        + String.format("Position (RS): (%.2f, %.2f, %.2f)", endPose.inRobotSpace().getX(), endPose.inRobotSpace().getY(), endPose.inRobotSpace().getZ())
+        + String.format("Linkage 1 CG (RS): (%.2f, %.2f, %.2f)", getLinkage1CG().inRobotSpace().getX(), getLinkage1CG().inRobotSpace().getY(), getLinkage1CG().inRobotSpace().getZ())
+        + String.format("Linkage 2 CG (RS): (%.2f, %.2f, %.2f)", getLinkage2CG().inRobotSpace().getX(), getLinkage2CG().inRobotSpace().getY(), getLinkage2CG().inRobotSpace().getZ())
+        + String.format("Linkage 3 CG (RS): (%.2f, %.2f, %.2f)", getLinkage3CG().inRobotSpace().getX(), getLinkage3CG().inRobotSpace().getY(), getLinkage3CG().inRobotSpace().getZ());
+    }
+
+    public static Positions.Pose3d addTwoCG(Positions.Pose3d cg1, Positions.Pose3d cg2, double mass1, double mass2) {
+      double totalMass = mass1 + mass2;
+      double x = (cg1.inRobotSpace().getX() * mass1 + cg2.inRobotSpace().getX() * mass2) / totalMass;
+      double y = (cg1.inRobotSpace().getY() * mass1 + cg2.inRobotSpace().getY() * mass2) / totalMass;
+      double z = (cg1.inRobotSpace().getZ() * mass1 + cg2.inRobotSpace().getZ() * mass2) / totalMass;
+      return Positions.Pose3d.fromRobotSpace(new Translation3d(x, y, z));
     }
   }
 
