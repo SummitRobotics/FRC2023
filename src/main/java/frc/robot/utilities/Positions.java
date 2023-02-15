@@ -22,6 +22,10 @@ public class Positions {
             return new Pose3d(pose.plus(fieldToRobot));
         }
 
+        public static Pose3d fromFieldSpace(edu.wpi.first.math.geometry.Pose3d pose, edu.wpi.first.math.geometry.Pose2d robotPose) {
+            return fromFieldSpace(pose, new edu.wpi.first.math.geometry.Pose3d(new Translation3d(robotPose.getX(), robotPose.getY(), 0), new Rotation3d(0,0,robotPose.getRotation().getRadians())));
+        }
+
         public static Pose3d fromOtherSpace(edu.wpi.first.math.geometry.Pose3d pose, Transform3d robotToOther) {
             Transform3d otherToRobot = robotToOther.inverse();
             return new Pose3d(pose.plus(otherToRobot));
@@ -32,6 +36,10 @@ public class Positions {
         }
 
         public static Pose3d fromFieldSpace(Translation3d pose, edu.wpi.first.math.geometry.Pose3d robotPose) {
+            return fromFieldSpace(new edu.wpi.first.math.geometry.Pose3d(pose, new Rotation3d()), robotPose);
+        }
+
+        public static Pose3d fromFieldSpace(Translation3d pose, edu.wpi.first.math.geometry.Pose2d robotPose) {
             return fromFieldSpace(new edu.wpi.first.math.geometry.Pose3d(pose, new Rotation3d()), robotPose);
         }
 
@@ -48,6 +56,11 @@ public class Positions {
             return pose.plus(fieldToRobot.inverse());
         }
 
+        public edu.wpi.first.math.geometry.Pose3d inFieldSpace(edu.wpi.first.math.geometry.Pose2d robotPose) {
+            Transform3d fieldToRobot = new Transform3d(new edu.wpi.first.math.geometry.Pose3d(), new edu.wpi.first.math.geometry.Pose3d(new Translation3d(robotPose.getX(), robotPose.getY(), 0), new Rotation3d(0,0,robotPose.getRotation().getRadians())));
+            return pose.plus(fieldToRobot.inverse());
+        }
+
         public edu.wpi.first.math.geometry.Pose3d inOtherSpace(Transform3d robotToOther) {
             return pose.transformBy(robotToOther);
         }
@@ -57,6 +70,10 @@ public class Positions {
         }
 
         public Translation3d inFieldSpaceTranslation3d(edu.wpi.first.math.geometry.Pose3d robotPose) {
+            return inFieldSpace(robotPose).getTranslation();
+        }
+
+        public Translation3d inFieldSpaceTranslation3d(edu.wpi.first.math.geometry.Pose2d robotPose) {
             return inFieldSpace(robotPose).getTranslation();
         }
 

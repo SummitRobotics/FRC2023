@@ -51,17 +51,14 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
     ARM_JOINT_1_P = 0,
     ARM_JOINT_1_I = 0,
     ARM_JOINT_1_D = 0,
-    ARM_JOINT_1_FF = 0,
 
     ARM_JOINT_2_P = 0,
     ARM_JOINT_2_I = 0,
     ARM_JOINT_2_D = 0,
-    ARM_JOINT_2_FF = 0,
     
     ARM_JOINT_3_P = 0,
     ARM_JOINT_3_I = 0,
     ARM_JOINT_3_D = 0,
-    ARM_JOINT_3_FF = 0,
 
     WRIST_P = 0,
     WRIST_I = 0,
@@ -70,7 +67,40 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
     ARM_LINKAGE_0_LENGTH = 0, // Length in meters
     ARM_LINKAGE_1_LENGTH = 0, // Length in meters
     ARM_LINKAGE_2_LENGTH = 0, // Length in meters
-    ARM_LINKAGE_3_LENGTH = 0; // Length in meters
+    ARM_LINKAGE_3_LENGTH = 0, // Length in meters
+
+    ARM_LINKAGE_1_WEIGHT = 0, // Weight in Newtons
+    ARM_LINKAGE_2_WEIGHT = 0, // Weight in Newtons
+    ARM_LINKAGE_3_WEIGHT = 0, // Weight in Newtons
+
+    ARM_LINKAGE_1_CG_DISTANCE = 0, // Distance from the pivot point to the center of gravity in meters
+    ARM_LINKAGE_2_CG_DISTANCE = 0, // Distance from the pivot point to the center of gravity in meters
+    ARM_LINKAGE_3_CG_DISTANCE = 0; // Distance from the pivot point to the center of gravity in meters
+
+    public static final double
+
+    TURRET_GEAR_RATIO_OVERALL = 1, // Ratio Example a 9:1 would be 9
+    TURRET_HOME_ANGLE = 0, // Angle in radians where 0 is straight forward and positive is counter clockwise.
+
+    ARM_JOINT_1_LEADSCREW_HOME_LENGTH = 0, // Length in meters
+    ARM_JOINT_1_PIVOT_TO_MOTOR_LENGTH = 0, // Length in meters
+    ARM_JOINT_1_PIVOT_TO_LEADSCREW_LENGTH = 0, // Length in meters
+    ARM_JOINT_1_PIVOT_TO_MOTOR_HORIZONTAL_ANGLE_OFFSET = 0, // Angle in radians
+    ARM_JOINT_1_MOTOR_GEAR_RATIO = 9, // Ratio Example a 9:1 gear ratio would be 9
+    ARM_JOINT_1_LEADSCREW_PITCH = 0, // Length in meters. The distance the lead screw moves per revolution
+
+    ARM_JOINT_2_LEADSCREW_HOME_LENGTH = 0, // Length in meters
+    ARM_JOINT_2_PIVOT_TO_MOTOR_LENGTH = 0, // Length in meters
+    ARM_JOINT_2_PIVOT_TO_LEADSCREW_LENGTH = 0, // Length in meters
+    ARM_JOINT_2_PIVOT_TO_MOTOR_HORIZONTAL_ANGLE_OFFSET = 0, // Angle in radians
+    ARM_JOINT_2_MOTOR_GEAR_RATIO = 5, // Ratio Example a 9:1 gear ratio would be 9
+    ARM_JOINT_2_LEADSCREW_PITCH = 0, // Length in meters. The distance the lead screw moves per revolution
+
+    ARM_JOINT_3_GEAR_RATIO_OVERALL = 1, // Ratio Example a 9:1 would be 9
+    ARM_JOINT_3_HOME_ANGLE = 0, // Angle in radians where 0 is straight forward and positive is counter clockwise.
+
+    WRIST_GEAR_RATIO_OVERALL = 1, // Ratio Example a 9:1 would be 9
+    WRIST_HOME_ANGLE = 0; // Angle in radians where 0 is straight forward and positive is counter clockwise.
   
     private final CANSparkMax
     turretMotor = new CANSparkMax(Ports.Arm.TURRET, MotorType.kBrushless),
@@ -115,24 +145,21 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
    * better position control as PID is not needed.
    */
   public Arm() {
-    turretPIDController.setP(TURRET_P);
-    turretPIDController.setI(TURRET_I);
-    turretPIDController.setD(TURRET_D);
+    turretPIDController.setP(TURRET_P, 0);
+    turretPIDController.setI(TURRET_I, 0);
+    turretPIDController.setD(TURRET_D, 0);
 
-    joint1PIDController.setP(ARM_JOINT_1_P);
-    joint1PIDController.setI(ARM_JOINT_1_I);
-    joint1PIDController.setD(ARM_JOINT_1_D);
-    joint1PIDController.setFF(ARM_JOINT_1_FF);
+    joint1PIDController.setP(ARM_JOINT_1_P, 0);
+    joint1PIDController.setI(ARM_JOINT_1_I, 0);
+    joint1PIDController.setD(ARM_JOINT_1_D, 0);
 
-    joint2PIDController.setP(ARM_JOINT_2_P);
-    joint2PIDController.setI(ARM_JOINT_2_I);
-    joint2PIDController.setD(ARM_JOINT_2_D);
-    joint2PIDController.setFF(ARM_JOINT_2_FF);
+    joint2PIDController.setP(ARM_JOINT_2_P, 0);
+    joint2PIDController.setI(ARM_JOINT_2_I, 0);
+    joint2PIDController.setD(ARM_JOINT_2_D, 0);
 
-    joint3PIDController.setP(ARM_JOINT_3_P);
-    joint3PIDController.setI(ARM_JOINT_3_I);
-    joint3PIDController.setD(ARM_JOINT_3_D);
-    joint3PIDController.setFF(ARM_JOINT_3_FF);
+    joint3PIDController.setP(ARM_JOINT_3_P, 0);
+    joint3PIDController.setI(ARM_JOINT_3_I, 0);
+    joint3PIDController.setD(ARM_JOINT_3_D, 0);
 
     wristPIDController.setP(WRIST_P);
     wristPIDController.setI(WRIST_I);
@@ -389,6 +416,10 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
     return clampSolenoidState;
   }
 
+  //Gets the angle the CG is from horrizontal from the pivot point for linkage 3.
+  
+  
+
   /**
    * Wrapper class for the arm position motors.
    */
@@ -408,6 +439,18 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
 
     private final Positions.Pose3d position;
 
+    private static double joint1AngleToEncoder(double angle) {
+      double theta = (Math.PI / 2) + ARM_JOINT_1_PIVOT_TO_MOTOR_HORIZONTAL_ANGLE_OFFSET - angle;
+      double c = Math.sqrt(Math.pow(ARM_JOINT_1_PIVOT_TO_LEADSCREW_LENGTH, 2) + Math.pow(ARM_JOINT_1_PIVOT_TO_MOTOR_LENGTH, 2) - (2 * ARM_JOINT_1_PIVOT_TO_LEADSCREW_LENGTH * ARM_JOINT_1_PIVOT_TO_MOTOR_LENGTH) * Math.cos(theta));
+      return -1 * (c - ARM_JOINT_1_LEADSCREW_HOME_LENGTH) * (ARM_JOINT_1_MOTOR_GEAR_RATIO / ARM_JOINT_1_LEADSCREW_PITCH);
+    } 
+
+    private static double joint2AngleToEncoder(double angle) {
+      double theta = (Math.PI / 2) + ARM_JOINT_2_PIVOT_TO_MOTOR_HORIZONTAL_ANGLE_OFFSET - angle;
+      double c = Math.sqrt(Math.pow(ARM_JOINT_2_PIVOT_TO_LEADSCREW_LENGTH, 2) + Math.pow(ARM_JOINT_2_PIVOT_TO_MOTOR_LENGTH, 2) - (2 * ARM_JOINT_2_PIVOT_TO_LEADSCREW_LENGTH * ARM_JOINT_2_PIVOT_TO_MOTOR_LENGTH) * Math.cos(theta));
+      return -1 * (c - ARM_JOINT_2_LEADSCREW_HOME_LENGTH) * (ARM_JOINT_2_MOTOR_GEAR_RATIO / ARM_JOINT_2_LEADSCREW_PITCH);
+    }
+
     ArmConfiguration(
       double turretPosition,
       double firstJointPosition,
@@ -423,11 +466,11 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
         this.thirdJointPositionRotations = thirdJointPosition;
         this.wristPositionRotations = wristPosition;
       } else {
-        this.turretPositionRotations = turretPosition * 0; // TODO CALCULATE THIS (ANGLE TO ROTATIONS)
-        this.firstJointPositionRotations = firstJointPosition * 0; // TODO CALCULATE THIS (ANGLE TO ROTATIONS)
-        this.secondJointPositionRotations = secondJointPosition * 0; // TODO CALCULATE THIS (ANGLE TO ROTATIONS)
-        this.thirdJointPositionRotations = thirdJointPosition * 0; // TODO CALCULATE THIS (ANGLE TO ROTATIONS)
-        this.wristPositionRotations = wristPosition * 0; // TODO CALCULATE THIS (ANGLE TO ROTATIONS)
+        this.turretPositionRotations = (TURRET_GEAR_RATIO_OVERALL/(-2 * Math.PI)) * (turretPosition - TURRET_HOME_ANGLE);
+        this.firstJointPositionRotations = joint1AngleToEncoder(firstJointPosition);
+        this.secondJointPositionRotations = joint2AngleToEncoder(secondJointPosition);
+        this.thirdJointPositionRotations = (ARM_JOINT_3_GEAR_RATIO_OVERALL/(-2 * Math.PI)) * (thirdJointPosition - ARM_JOINT_3_HOME_ANGLE);
+        this.wristPositionRotations = (WRIST_GEAR_RATIO_OVERALL/(-2 * Math.PI)) * (wristPosition - WRIST_HOME_ANGLE);
       }
 
       Translation3d linkage3 = new Translation3d(ARM_LINKAGE_3_LENGTH, getThirdJointRotation());
@@ -476,35 +519,41 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
       if (positionType == POSITION_TYPE.ENCODER_ROTATIONS) {
         return turretPositionRotations;
       }
-      return turretPositionRotations * 0; // TODO CALCULATE THIS (ROTATIONS TO ANGLE)
+      return (turretPositionRotations * (1/TURRET_GEAR_RATIO_OVERALL) * -2 * Math.PI) + TURRET_HOME_ANGLE;
     }
 
     public double getFirstJointPosition(POSITION_TYPE positionType) {
       if (positionType == POSITION_TYPE.ENCODER_ROTATIONS) {
         return firstJointPositionRotations;
       }
-      return firstJointPositionRotations * 0; // TODO CALCULATE THIS (ROTATIONS TO ANGLE)
+      double c = ARM_JOINT_1_LEADSCREW_HOME_LENGTH - (firstJointPositionRotations * (1/ARM_JOINT_1_MOTOR_GEAR_RATIO) * ARM_JOINT_1_LEADSCREW_PITCH);
+      double numerator = Math.pow(ARM_JOINT_1_PIVOT_TO_LEADSCREW_LENGTH, 2) +  Math.pow(ARM_JOINT_1_PIVOT_TO_MOTOR_LENGTH, 2) - Math.pow(c, 2);
+      double denominator = 2 * ARM_JOINT_1_PIVOT_TO_LEADSCREW_LENGTH * ARM_JOINT_1_PIVOT_TO_MOTOR_LENGTH;
+      return (Math.PI/2) - Math.acos(numerator / denominator) + ARM_JOINT_1_PIVOT_TO_MOTOR_HORIZONTAL_ANGLE_OFFSET;
     }
 
     public double getSecondJointPosition(POSITION_TYPE positionType) {
       if (positionType == POSITION_TYPE.ENCODER_ROTATIONS) {
         return secondJointPositionRotations;
       }
-      return secondJointPositionRotations * 0; // TODO CALCULATE THIS (ROTATIONS TO ANGLE)
+      double c = ARM_JOINT_2_LEADSCREW_HOME_LENGTH - (secondJointPositionRotations * (1/ARM_JOINT_2_MOTOR_GEAR_RATIO) * ARM_JOINT_2_LEADSCREW_PITCH);
+      double numerator = Math.pow(ARM_JOINT_2_PIVOT_TO_LEADSCREW_LENGTH, 2) + Math.pow(ARM_JOINT_2_PIVOT_TO_MOTOR_LENGTH, 2) - Math.pow(c, 2);
+      double denominator = 2 * ARM_JOINT_2_PIVOT_TO_LEADSCREW_LENGTH * ARM_JOINT_2_PIVOT_TO_MOTOR_LENGTH;
+      return (Math.PI/2) - Math.acos(numerator / denominator) + ARM_JOINT_2_PIVOT_TO_MOTOR_HORIZONTAL_ANGLE_OFFSET;
     }
 
     public double getThirdJointPosition(POSITION_TYPE positionType) {
       if (positionType == POSITION_TYPE.ENCODER_ROTATIONS) {
         return thirdJointPositionRotations;
       }
-      return thirdJointPositionRotations * 0; // TODO CALCULATE THIS (ROTATIONS TO ANGLE)
+      return (thirdJointPositionRotations * (1/ARM_JOINT_3_GEAR_RATIO_OVERALL) * -2 * Math.PI) + ARM_JOINT_3_HOME_ANGLE;
     }
 
     public double getWristPosition(POSITION_TYPE positionType) {
       if (positionType == POSITION_TYPE.ENCODER_ROTATIONS) {
         return wristPositionRotations;
       }
-      return wristPositionRotations * 0; // TODO CALCULATE THIS (ROTATIONS TO ANGLE)
+      return (wristPositionRotations * (1/WRIST_GEAR_RATIO_OVERALL) * -2 * Math.PI) + WRIST_HOME_ANGLE;
     }
 
     public Rotation3d getTurretRotation() {
