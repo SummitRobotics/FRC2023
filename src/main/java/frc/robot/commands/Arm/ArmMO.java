@@ -1,5 +1,6 @@
 package frc.robot.commands.Arm;
 
+import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.oi.drivers.ControllerDriver;
@@ -48,22 +49,37 @@ public class ArmMO extends CommandBase {
     @Override
     public void execute() {
 
-        // TODO - check if input dampening is correct
+        // TODO - check if input dampening is reasonable
         // convert from robot space, edit based on inputs, and convert back to robot space
         endPose = Positions.Pose3d.fromRobotSpace(
             new Pose3d(
-                endPose.inRobotSpace().getX() + xAxis.get() / 50,
-                endPose.inRobotSpace().getY() + yAxis.get() / 50,
-                endPose.inRobotSpace().getZ() + zAxis.get() / 50,
+                endPose.inRobotSpace().getX() + xAxis.get() / 200,
+                endPose.inRobotSpace().getY() + yAxis.get() / 200,
+                endPose.inRobotSpace().getZ() + zAxis.get() / 200,
                 endPose.inRobotSpace().getRotation() // It doesn't matter what this rotation is.
             )
         );
 
-        grabberRadians
-            = grabberRadians + (grabberUp.get() ? 0.02 : 0) - (grabberDown.get() ? 0.02 : 0);
-        wristRadians = wristRadians + wristLeft.get() / 50 - wristRight.get() / 50;
+        grabberRadians = grabberRadians + (grabberUp.get() ? 0.01 : 0) - (grabberDown.get() ? 0.01 : 0);
+        wristRadians = wristRadians + wristLeft.get() / 100 - wristRight.get() / 100;
 
         arm.setToConfiguration(
             ArmConfiguration.fromEndPosition(endPose, grabberRadians, wristRadians));
+
+        if (clampButton.getTrigger().debounce(0.1, DebounceType.kRising).getAsBoolean()) {
+            if (arm.getClampSolenoidState()) arm.unclamp(); else arm.clamp(); 
+        }
+    }
+
+    @Override
+    public void end(final boolean interrupted) {
+        xAxis.destroy();
+        yAxis.destroy();
+        zAxis.destroy();
+        clampButton.destroy();
+        grabberUp.destroy();
+        grabberDown.destroy();
+        wristLeft.destroy();
+        wristRight.destroy();
     }
 }

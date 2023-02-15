@@ -95,9 +95,4 @@ public class LogComponents extends CommandBase {
             }
         }
     }
-
-    @Override
-    public boolean isFinished() {
-        return false;
-    }
 }
