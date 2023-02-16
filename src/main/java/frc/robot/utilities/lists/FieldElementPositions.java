@@ -35,9 +35,11 @@ public final class FieldElementPositions {
         );
 
     public static final double[]
-        BLUE_X_VALUES = {1.16078, 0.7847, 0.36348},
-        BLUE_Y_VALUES = {5.05401, 4.40715, 3.8355, 3.29394, 2.73734, 2.1657, 1.63919, 1.0525, 0.42068},
-        RED_X_VALUES = {15.36162, 15.70762, 16.20405},
-        RED_Y_VALUES = {0.42068, 1.0525, 1.6091, 2.1657, 2.69221, 3.29394, 3.82046, 4.42219, 5.02392},
+        // For indices to work properly: lowest to highest x, highest to lowest y for blue
+        // highest to lowest x, lowest to highest y for red
+        BLUE_X_VALUES = {0.42068, 1.0525, 1.63919, 2.1657, 2.73734, 3.29394, 3.8355, 4.40715, 5.05401},
+        BLUE_Y_VALUES = {1.16078, 0.7847, 0.36348},
+        RED_X_VALUES = {5.02392, 4.42219, 3.82046, 3.29394, 2.69221, 2.1657, 1.6091, 1.0525, 0.42068},
+        RED_Y_VALUES = {15.36162, 15.70762, 16.20405},
         BOTH_Z_VALUES = {0, 1, 1.2954};
 }

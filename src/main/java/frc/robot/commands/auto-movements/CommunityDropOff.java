@@ -26,19 +26,19 @@ public class CommunityDropOff extends SequentialCommandGroup {
         final int value = Integer.parseInt(NetworkTableInstance.getDefault()
             .getTable("stationSelector").getEntry("id").getString("00"));
 
-        // encoding: first digit is x, second is y, 11 is top left, 00 means nothing is selected
-        final int xCoordIndex = value - value % 10;
-        final int yCoordIndex = value % 10;
+        // encoding: first digit is y, second is x, 11 is top left, 00 means nothing is selected
+        final int xCoordIndex = value % 10;
+        final int yCoordIndex = value - value % 10;
 
         final Translation3d gamePiece;
         final Pose2d drivePoint;
 
-        // xCoordIndex is used for z value because height depends on x
+        // yCoordIndex is used for z value because height depends on y
         if (DriverStation.getAlliance() == Alliance.Blue) {
             gamePiece = new Translation3d(
                 FieldElementPositions.BLUE_X_VALUES[xCoordIndex - 1],
                 FieldElementPositions.BLUE_Y_VALUES[yCoordIndex - 1],
-                FieldElementPositions.BOTH_Z_VALUES[xCoordIndex - 1]
+                FieldElementPositions.BOTH_Z_VALUES[yCoordIndex - 1]
             );
             drivePoint = new Pose2d(
                 FieldElementPositions.BLUE_X_VALUES[xCoordIndex - 1] - 0.6,
@@ -49,7 +49,7 @@ public class CommunityDropOff extends SequentialCommandGroup {
             gamePiece = new Translation3d(
                 FieldElementPositions.RED_X_VALUES[xCoordIndex - 1],
                 FieldElementPositions.RED_Y_VALUES[yCoordIndex - 1],
-                FieldElementPositions.BOTH_Z_VALUES[xCoordIndex - 1]
+                FieldElementPositions.BOTH_Z_VALUES[yCoordIndex - 1]
             );
             drivePoint = new Pose2d(
                 FieldElementPositions.RED_X_VALUES[xCoordIndex - 1] + 0.6,
