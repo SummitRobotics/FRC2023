@@ -644,7 +644,7 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
         + String.format("Linkage 3 CG (RS): (%.2f, %.2f, %.2f)", getLinkage3CG().inRobotSpace().getX(), getLinkage3CG().inRobotSpace().getY(), getLinkage3CG().inRobotSpace().getZ());
     }
 
-    public static Positions.Pose3d addTwoCG(Positions.Pose3d cg1, Positions.Pose3d cg2, double mass1, double mass2) {
+    public static Positions.Pose3d combineCG(Positions.Pose3d cg1, Positions.Pose3d cg2, double mass1, double mass2) {
       double totalMass = mass1 + mass2;
       double x = (cg1.inRobotSpace().getX() * mass1 + cg2.inRobotSpace().getX() * mass2) / totalMass;
       double y = (cg1.inRobotSpace().getY() * mass1 + cg2.inRobotSpace().getY() * mass2) / totalMass;
