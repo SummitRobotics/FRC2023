@@ -25,8 +25,8 @@ public class SubstationPickup extends SequentialCommandGroup {
 
     public SubstationPickup(Drivetrain drivetrain, Arm arm, Side side) {
 
-        Pose2d drivePoint;
-        Translation3d gamePiece;
+        final Pose2d drivePoint;
+        final Translation3d gamePiece;
 
         if (DriverStation.getAlliance() == Alliance.Blue) {
             if (side == Side.Left) {
@@ -56,6 +56,7 @@ public class SubstationPickup extends SequentialCommandGroup {
                 drivetrain.generateTrajectoryConfigHighGear(),
                 drivetrain
             ),
+            new InstantCommand(() -> arm.unclamp()),
             // TODO - adjust grabber angle and wrist rotations
             new MoveArm(
                 arm,
