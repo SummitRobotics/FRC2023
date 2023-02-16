@@ -465,6 +465,7 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
       double wristPosition,
       POSITION_TYPE positionType
       ) {
+        System.out.println(String.format("Turret: %f, First Joint: %f, Second Joint: %f, Third Joint: %f, Wrist: %f", turretPosition, firstJointPosition, secondJointPosition, thirdJointPosition, wristPosition));
       if (positionType == POSITION_TYPE.ENCODER_ROTATIONS) {
         this.turretPositionRotations = turretPosition;
         this.firstJointPositionRotations = firstJointPosition;
@@ -482,7 +483,7 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
       Translation3d linkage3 = new Translation3d(ARM_LINKAGE_3_LENGTH, getThirdJointRotation());
       Translation3d linkage2 = (new Translation3d(ARM_LINKAGE_2_LENGTH, getSecondJointRotation())).plus(linkage3.rotateBy(getSecondJointRotation()));
       Translation3d linkage1 = (new Translation3d(ARM_LINKAGE_1_LENGTH, getFirstJointRotation())).plus(linkage2.rotateBy(getFirstJointRotation()));
-      Translation3d linkage0 = (new Translation3d(ARM_LINKAGE_0_LENGTH, getTurretRotation())).plus(linkage1.rotateBy(getTurretRotation()));
+      Translation3d linkage0 = (new Translation3d(ARM_LINKAGE_0_LENGTH, getTurretRotation())).plus(linkage1.rotateBy(getTurretRotation())).rotateBy(new Rotation3d(0, Math.PI / 2, 0)).rotateBy(getTurretRotation());
       
       Rotation3d wristRotation = getWristRotation().plus(getThirdJointRotation()).plus(getSecondJointRotation()).plus(getFirstJointRotation()).plus(getTurretRotation());
       this.endPose = Positions.Pose3d.fromOtherSpace(new Pose3d(linkage0, wristRotation), ROBOT_TO_TURRET_BASE);
@@ -526,11 +527,16 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
       double beta  = Math.acos((b*b + c*c - a*a) / (2*b*c));
       double gamma = Math.PI - alpha - beta;
 
+      double j1 = (Math.PI / 2) - Math.atan(pointToGrab2d.getY() / pointToGrab2d.getX()) - gamma;
+      double j2 = Math.PI - alpha;
+
+
       return new ArmConfiguration(
         angleToPoint,
-        Math.atan(pointToGrab2d.getX() / pointToGrab2d.getY()) - alpha,
-        Math.PI - gamma,
-        Math.PI - beta - (Math.PI - grabberAngleRadians - (Math.PI / 2 - alpha - (Math.atan(pointToGrab2d.getX() / pointToGrab2d.getY()) - alpha))),
+        j1,
+        j2,
+        // Math.PI - beta - (Math.PI - grabberAngleRadians - (Math.PI / 2 - gamma - (Math.atan(pointToGrab2d.getX() / pointToGrab2d.getY()) - gamma))),
+        (Math.PI / 2) + grabberAngleRadians - j1 - j2,
         wristRotationRadians,
         POSITION_TYPE.ANGLE
       );
@@ -582,15 +588,15 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
     }
 
     public Rotation3d getFirstJointRotation() {
-      return new Rotation3d(0, getFirstJointPosition(POSITION_TYPE.ANGLE), 0);
+      return new Rotation3d(0, -getFirstJointPosition(POSITION_TYPE.ANGLE), 0);
     }
 
     public Rotation3d getSecondJointRotation() {
-      return new Rotation3d(0, getSecondJointPosition(POSITION_TYPE.ANGLE), 0);
+      return new Rotation3d(0, -getSecondJointPosition(POSITION_TYPE.ANGLE), 0);
     }
 
     public Rotation3d getThirdJointRotation() {
-      return new Rotation3d(0, getThirdJointPosition(POSITION_TYPE.ANGLE), 0);
+      return new Rotation3d(0, -getThirdJointPosition(POSITION_TYPE.ANGLE), 0);
     }
 
     public Rotation3d getWristRotation() {
@@ -638,10 +644,20 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
         + "\nSecond Joint Encoder: " + secondJointPositionRotations
         + "\nThird Joint Encoder: " + thirdJointPositionRotations
         + "\nWrist Encoder: " + wristPositionRotations
-        + String.format("Position (RS): (%.2f, %.2f, %.2f)", endPose.inRobotSpace().getX(), endPose.inRobotSpace().getY(), endPose.inRobotSpace().getZ())
-        + String.format("Linkage 1 CG (RS): (%.2f, %.2f, %.2f)", getLinkage1CG().inRobotSpace().getX(), getLinkage1CG().inRobotSpace().getY(), getLinkage1CG().inRobotSpace().getZ())
-        + String.format("Linkage 2 CG (RS): (%.2f, %.2f, %.2f)", getLinkage2CG().inRobotSpace().getX(), getLinkage2CG().inRobotSpace().getY(), getLinkage2CG().inRobotSpace().getZ())
-        + String.format("Linkage 3 CG (RS): (%.2f, %.2f, %.2f)", getLinkage3CG().inRobotSpace().getX(), getLinkage3CG().inRobotSpace().getY(), getLinkage3CG().inRobotSpace().getZ());
+        + "\nTurret Angle (rad): " + getTurretPosition(POSITION_TYPE.ANGLE)
+        + "\nFirst Joint Angle (rad): " + getFirstJointPosition(POSITION_TYPE.ANGLE)
+        + "\nSecond Joint Angle (rad): " + getSecondJointPosition(POSITION_TYPE.ANGLE)
+        + "\nThird Joint Angle (rad): " + getThirdJointPosition(POSITION_TYPE.ANGLE)
+        + "\nWrist Angle (rad): " + getWristPosition(POSITION_TYPE.ANGLE)
+        + "\nTurret Angle (deg): " + Math.toDegrees(getTurretPosition(POSITION_TYPE.ANGLE))
+        + "\nFirst Joint Angle (deg): " + Math.toDegrees(getFirstJointPosition(POSITION_TYPE.ANGLE))
+        + "\nSecond Joint Angle (deg): " + Math.toDegrees(getSecondJointPosition(POSITION_TYPE.ANGLE))
+        + "\nThird Joint Angle (deg): " + Math.toDegrees(getThirdJointPosition(POSITION_TYPE.ANGLE))
+        + "\nWrist Angle (deg): " + Math.toDegrees(getWristPosition(POSITION_TYPE.ANGLE))
+        + String.format("\nPosition (RS): (%.2f, %.2f, %.2f)", endPose.inRobotSpace().getX(), endPose.inRobotSpace().getY(), endPose.inRobotSpace().getZ())
+        + String.format("\nLinkage 1 CG (RS): (%.2f, %.2f, %.2f)", getLinkage1CG().inRobotSpace().getX(), getLinkage1CG().inRobotSpace().getY(), getLinkage1CG().inRobotSpace().getZ())
+        + String.format("\nLinkage 2 CG (RS): (%.2f, %.2f, %.2f)", getLinkage2CG().inRobotSpace().getX(), getLinkage2CG().inRobotSpace().getY(), getLinkage2CG().inRobotSpace().getZ())
+        + String.format("\nLinkage 3 CG (RS): (%.2f, %.2f, %.2f)", getLinkage3CG().inRobotSpace().getX(), getLinkage3CG().inRobotSpace().getY(), getLinkage3CG().inRobotSpace().getZ());
     }
 
     public static Positions.Pose3d addTwoCG(Positions.Pose3d cg1, Positions.Pose3d cg2, double mass1, double mass2) {

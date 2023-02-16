@@ -17,20 +17,20 @@ public class RobotContainer {
   private CommandScheduler scheduler;
   private Command teleopInit;
 
-  private Intake intake;
+  // private Intake intake;
 
   public RobotContainer() {
 
-    scheduler = CommandScheduler.getInstance();
+    // scheduler = CommandScheduler.getInstance();
 
-    intake = new Intake();
+    // intake = new Intake();
 
-    teleopInit = new SequentialCommandGroup(
-      new Home(intake),
-      new InstantCommand(() -> intake.lock())
-    );
+    // teleopInit = new SequentialCommandGroup(
+    //   new Home(intake),
+    //   new InstantCommand(() -> intake.lock())
+    // );
 
-    configureBindings();
+    // configureBindings();
   }
 
   private void configureBindings() {}
