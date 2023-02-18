@@ -1,4 +1,4 @@
-package frc.robot.commands.Arm;
+package frc.robot.commands.arm;
 
 import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.math.geometry.Pose3d;
