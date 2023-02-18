@@ -18,7 +18,6 @@ import com.revrobotics.SparkMaxPIDController;
 import com.revrobotics.CANSparkMax.ControlType;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
-import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
@@ -416,8 +415,8 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
     double joint1CGAngle = Math.atan((joint1Pose3d.getZ() - pastJ1CG.inRobotSpace().getZ()) / Math.sqrt(Math.pow(joint1Pose3d.getX() - pastJ1CG.inRobotSpace().getX(), 2) + Math.pow(joint1Pose3d.getY() - pastJ1CG.inRobotSpace().getY(), 2)));
 
     double joint1ArbFF = joint1FF.calculate(configuration.getFirstJointPosition(POSITION_TYPE.ENCODER_ROTATIONS), joint1CGDistance, joint1CGAngle, configuration.getFirstJointGearRatio());
-    double joint2ArbFF = joint1FF.calculate(configuration.getFirstJointPosition(POSITION_TYPE.ENCODER_ROTATIONS), joint2CGDistance, joint2CGAngle, configuration.getSecondJointGearRatio());
-    double joint3ArbFF = joint1FF.calculate(configuration.getFirstJointPosition(POSITION_TYPE.ENCODER_ROTATIONS), joint3CGDistance, joint3CGAngle, configuration.getThirdJointGearRatio());
+    double joint2ArbFF = joint2FF.calculate(configuration.getFirstJointPosition(POSITION_TYPE.ENCODER_ROTATIONS), joint2CGDistance, joint2CGAngle, configuration.getSecondJointGearRatio());
+    double joint3ArbFF = joint3FF.calculate(configuration.getFirstJointPosition(POSITION_TYPE.ENCODER_ROTATIONS), joint3CGDistance, joint3CGAngle, configuration.getThirdJointGearRatio());
 
 
     setTurretMotorRotations(configuration.getTurretPosition(POSITION_TYPE.ENCODER_ROTATIONS));
