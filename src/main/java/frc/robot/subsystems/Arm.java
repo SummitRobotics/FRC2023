@@ -392,14 +392,14 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
     Pose3d joint2Pose3d = configuration.getJoint2Pose().inOtherSpace(ROBOT_TO_TURRET_BASE);
     Pose3d joint3Pose3d = configuration.getJoint3Pose().inOtherSpace(ROBOT_TO_TURRET_BASE);
 
-    Positions.Pose3d pastJ2CG = ArmConfiguration.addTwoCG(
+    Positions.Pose3d pastJ2CG = ArmConfiguration.combineCG(
       Positions.Pose3d.fromRobotSpace(linkage2CG),
       Positions.Pose3d.fromRobotSpace(linkage3CG),
       ARM_LINKAGE_2_MASS,
       ARM_LINKAGE_3_MASS
     );
 
-    Positions.Pose3d pastJ1CG = ArmConfiguration.addTwoCG(
+    Positions.Pose3d pastJ1CG = ArmConfiguration.combineCG(
       pastJ2CG,
       Positions.Pose3d.fromRobotSpace(linkage1CG),
       ARM_LINKAGE_3_MASS + ARM_LINKAGE_2_MASS,
