@@ -10,7 +10,8 @@ import java.util.List;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
-import frc.robot.subsystems.Arm;
+import frc.robot.subsystems.arm.Arm;
+import frc.robot.subsystems.arm.MovementMap;
 import frc.robot.utilities.Positions;
 
 public class MoveArm extends CommandBase {
@@ -35,8 +36,8 @@ public class MoveArm extends CommandBase {
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
-    Arm.MovementMap movementMap = new Arm.MovementMap();
-    path = Arm.MovementMap.generatePathBetweenTwoPoints(arm.getCurrentArmConfiguration().getEndPosition(), endPosition, movementMap.getMainMap());
+    MovementMap movementMap = new MovementMap();
+    path = MovementMap.generatePathBetweenTwoPoints(arm.getCurrentArmConfiguration().getEndPosition(), endPosition, movementMap.getMainMap());
 
     if (path != null) {
       List<Command> commands = new ArrayList<>();

@@ -1,7 +1,5 @@
 package frc.robot.utilities;
 
-import java.util.function.Supplier;
-
 public class FancyArmFeedForward {
     public final double kS;
     public final double kV;
@@ -36,5 +34,25 @@ public class FancyArmFeedForward {
 
     public double calculate(double position, double CGDistance, double CGAngle, double gearRatio) {
         return calculate(position, 0, 0, CGDistance, CGAngle, gearRatio);
+    }
+
+    public double calculate(double position, double velocityRotPerSec, FFData data) {
+        return calculate(position, velocityRotPerSec, data.distance, data.angle, data.gearRatio);
+    }
+
+    public double calculate(double position, FFData data) {
+        return calculate(position, 0, data);
+    }
+
+    public static class FFData {
+        public final double distance;
+        public final double angle;
+        public final double gearRatio;
+
+        public FFData(double distance, double angle, double gearRatio) {
+            this.distance = distance;
+            this.angle = angle;
+            this.gearRatio = gearRatio;
+        }
     }
 }
