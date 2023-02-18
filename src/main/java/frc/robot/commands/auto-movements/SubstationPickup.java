@@ -23,24 +23,24 @@ public class SubstationPickup extends SequentialCommandGroup {
 
     public SubstationPickup(Drivetrain drivetrain, Arm arm, Side side) {
 
-        Pose2d drivePoint;
-        Translation3d gamePiece;
+        final Translation3d substation;
+        final Pose2d drivePoint;
 
         if (DriverStation.getAlliance() == Alliance.Blue) {
             if (side == Side.Left) {
+                substation = FieldElementPositions.BLUE_LEFT_SUBSTATION;
                 drivePoint = FieldElementPositions.BLUE_LEFT_DRIVE_POINT;
-                gamePiece = FieldElementPositions.BLUE_LEFT_GAME_PIECE;
             } else {
+                substation = FieldElementPositions.BLUE_RIGHT_SUBSTATION;
                 drivePoint = FieldElementPositions.BLUE_RIGHT_DRIVE_POINT;
-                gamePiece = FieldElementPositions.BLUE_RIGHT_GAME_PIECE;
             }
         } else {
             if (side == Side.Left) {
+                substation = FieldElementPositions.RED_LEFT_SUBSTATION;
                 drivePoint = FieldElementPositions.RED_LEFT_DRIVE_POINT;
-                gamePiece = FieldElementPositions.RED_LEFT_GAME_PIECE;
             } else {
+                substation = FieldElementPositions.RED_RIGHT_SUBSTATION;
                 drivePoint = FieldElementPositions.RED_RIGHT_DRIVE_POINT;
-                gamePiece = FieldElementPositions.RED_RIGHT_GAME_PIECE;
             }
         }
 
@@ -54,12 +54,11 @@ public class SubstationPickup extends SequentialCommandGroup {
                 drivetrain.generateTrajectoryConfigHighGear(),
                 drivetrain
             ),
+            new InstantCommand(() -> arm.unclamp()),
             // TODO - adjust grabber angle and wrist rotations
             new MoveArm(
                 arm,
-                Positions.Pose3d.fromFieldSpace(
-                    gamePiece
-                ),
+                Positions.Pose3d.fromFieldSpace(substation),
                 0.0,
                 0.0
             ),
