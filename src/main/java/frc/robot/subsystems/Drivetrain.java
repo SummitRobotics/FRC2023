@@ -44,6 +44,19 @@ import frc.robot.utilities.lists.Ports;
  */
 public class Drivetrain extends SubsystemBase implements Testable, Loggable {
 
+    private static Drivetrain instance;
+
+    public static Drivetrain getInstance() {
+        return instance;
+    }
+
+    public static Drivetrain init(AHRS gyro, Pose2d initPose2d) {
+        if (instance == null) {
+            instance = new Drivetrain(gyro, initPose2d);
+        }
+        return instance;
+    }
+
     // TODO re tune/calculate all these
     public static final double 
         LOW_P = 0.0,
@@ -150,7 +163,7 @@ public class Drivetrain extends SubsystemBase implements Testable, Loggable {
      * @param gyro       odimetry is bads
      * @param initialPose the initial pose of the robot
      */
-    public Drivetrain(AHRS gyro, Pose2d initialPose) {
+    private Drivetrain(AHRS gyro, Pose2d initialPose) {
         this.gyro = gyro;
 
         shift = new Solenoid(Ports.Other.PCM, PneumaticsModuleType.REVPH, Ports.Drivetrain.SHIFT_SOLENOID);

@@ -19,6 +19,9 @@ import frc.robot.subsystems.arm.Arm;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.utilities.lists.AxisPriorities;
 import frc.robot.utilities.lists.Ports;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+import frc.robot.commands.LogComponents;
 
 public class RobotContainer {
 
@@ -33,19 +36,22 @@ public class RobotContainer {
   // private Intake intake;
   private AHRS gyro;
 
-
   public RobotContainer() {
-
     scheduler = CommandScheduler.getInstance();
+    
+    // OI
     driverXBox = new ControllerDriver(Ports.OI.DRIVER_XBOX_PORT);
     gunnerXBox = new ControllerDriver(Ports.OI.GUNNER_XBOX_PORT);
     launchpad = new LaunchpadDriver(Ports.OI.LAUNCHPAD_PORT);
-    gyro = new AHRS();
-    drivetrain = new Drivetrain(gyro);
-    arm = new Arm();
-    // intake = new Intake();
 
+    // Devices
+    navx = new AHRS();
+
+    // Subsystems
+    drivetrain = Drivetrain.init(navx, new Pose2d());
+    arm = new Arm();
     
+    // Commands
     arcadeDrive = new ArcadeDrive(
       drivetrain,
       driverXBox.rightTrigger,
@@ -53,15 +59,12 @@ public class RobotContainer {
       driverXBox.leftX,
       driverXBox.dPadAny
     );
-    
 
-    teleopInit = new SequentialCommandGroup(
-      // new Home(intake),
-      // new InstantCommand(() -> intake.lock())
-    );
-
-    setDefaultCommands();
+    // Configure the bindings
     configureBindings();
+
+    // Init Logging and Telemetry
+    initLogging();
     initTelemetry();
   }
 
@@ -89,6 +92,15 @@ public class RobotContainer {
 
   private void setDefaultCommands() {
     drivetrain.setDefaultCommand(arcadeDrive);
+  }
+
+  private void initLogging() {
+    scheduler.schedule(new LogComponents(drivetrain, arm));
+  }
+
+  private void initTelemetry() {
+    Shuffleboard.getTab("Telemetry").add(arm);
+    Shuffleboard.getTab("Telemetry").add(drivetrain);
   }
 
   public Command getAutonomousCommand() {
