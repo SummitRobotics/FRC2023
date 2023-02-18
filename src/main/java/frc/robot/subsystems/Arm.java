@@ -396,8 +396,8 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
     Positions.Pose3d pastJ2CG = ArmConfiguration.addTwoCG(
       Positions.Pose3d.fromRobotSpace(linkage2CG),
       Positions.Pose3d.fromRobotSpace(linkage3CG),
-      ARM_LINKAGE_1_MASS,
-      ARM_LINKAGE_2_MASS
+      ARM_LINKAGE_2_MASS,
+      ARM_LINKAGE_3_MASS
     );
 
     Positions.Pose3d pastJ1CG = ArmConfiguration.addTwoCG(
