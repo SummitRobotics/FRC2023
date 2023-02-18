@@ -16,7 +16,8 @@ public final class Ports {
 
     public static final class OI {
         public static final int
-            XBOX_PORT = 0,
+            DRIVER_XBOX_PORT = 0,
+            GUNNER_XBOX_PORT = 0,
             LAUNCHPAD_PORT = 1,
             JOYSTICK_PORT = 2;
     }
