@@ -1,11 +1,13 @@
 package frc.robot.subsystems.arm;
 
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import frc.robot.utilities.Functions;
 import frc.robot.utilities.Positions;
+import frc.robot.utilities.FancyArmFeedForward.FFData;
 
 public class ArmConfiguration {
 
@@ -233,6 +235,63 @@ public Positions.Pose3d getLinkage3CG() {
     Translation2d linkage1 = new Translation2d(Arm.ARM_LINKAGE_1_LENGTH, Rotation2d.fromRadians((Math.PI / 2) - getFirstJointPosition(POSITION_TYPE.ANGLE))).plus(linkage2.rotateBy(Rotation2d.fromRadians(-getFirstJointPosition(POSITION_TYPE.ANGLE))));
     Translation3d endPose = new Translation3d(linkage1.getX(), 0, linkage1.getY()).rotateBy(getTurretRotation()).plus(new Translation3d(0,0,Arm.ARM_LINKAGE_0_LENGTH));
     return Positions.Pose3d.fromOtherSpace(endPose, Arm.ROBOT_TO_TURRET_BASE);
+}
+
+public FFData getJoint1FFData() {
+    Pose3d linkage1CG = getLinkage1CG().inOtherSpace(Arm.ROBOT_TO_TURRET_BASE);
+    Pose3d linkage2CG = getLinkage2CG().inOtherSpace(Arm.ROBOT_TO_TURRET_BASE);
+    Pose3d linkage3CG = getLinkage3CG().inOtherSpace(Arm.ROBOT_TO_TURRET_BASE);
+
+    Pose3d joint1Pose3d = getJoint1Pose().inOtherSpace(Arm.ROBOT_TO_TURRET_BASE);
+
+    Positions.Pose3d pastJ2CG = ArmConfiguration.combineCG(
+      Positions.Pose3d.fromRobotSpace(linkage2CG),
+      Positions.Pose3d.fromRobotSpace(linkage3CG),
+      Arm.ARM_LINKAGE_2_MASS,
+      Arm.ARM_LINKAGE_3_MASS
+    );
+
+    Positions.Pose3d pastJ1CG = ArmConfiguration.combineCG(
+      pastJ2CG,
+      Positions.Pose3d.fromRobotSpace(linkage1CG),
+      Arm.ARM_LINKAGE_3_MASS + Arm.ARM_LINKAGE_2_MASS,
+      Arm.ARM_LINKAGE_1_MASS
+    );
+
+    double joint1CGDistance = joint1Pose3d.minus(pastJ1CG.inRobotSpace()).getTranslation().getNorm();
+    double joint1CGAngle = Math.atan((joint1Pose3d.getZ() - pastJ1CG.inRobotSpace().getZ()) / Math.sqrt(Math.pow(joint1Pose3d.getX() - pastJ1CG.inRobotSpace().getX(), 2) + Math.pow(joint1Pose3d.getY() - pastJ1CG.inRobotSpace().getY(), 2)));
+
+    return new FFData(joint1CGDistance, joint1CGAngle, getFirstJointGearRatio());
+}
+
+public FFData getJoint2FFData() {
+    Pose3d linkage2CG = getLinkage2CG().inOtherSpace(Arm.ROBOT_TO_TURRET_BASE);
+    Pose3d linkage3CG = getLinkage3CG().inOtherSpace(Arm.ROBOT_TO_TURRET_BASE);
+
+    Pose3d joint2Pose3d = getJoint2Pose().inOtherSpace(Arm.ROBOT_TO_TURRET_BASE);
+
+    Positions.Pose3d pastJ2CG = ArmConfiguration.combineCG(
+      Positions.Pose3d.fromRobotSpace(linkage2CG),
+      Positions.Pose3d.fromRobotSpace(linkage3CG),
+      Arm.ARM_LINKAGE_2_MASS,
+      Arm.ARM_LINKAGE_3_MASS
+    );
+
+    double joint2CGDistance = joint2Pose3d.minus(pastJ2CG.inRobotSpace()).getTranslation().getNorm();
+    double joint2CGAngle = Math.atan((joint2Pose3d.getZ() - pastJ2CG.inRobotSpace().getZ()) / Math.sqrt(Math.pow(joint2Pose3d.getX() - pastJ2CG.inRobotSpace().getX(), 2) + Math.pow(joint2Pose3d.getY() - pastJ2CG.inRobotSpace().getY(), 2)));
+
+    return new FFData(joint2CGDistance, joint2CGAngle, getSecondJointGearRatio());
+}
+
+public FFData getJoint3FFData() {
+    Pose3d linkage3CG = getLinkage3CG().inOtherSpace(Arm.ROBOT_TO_TURRET_BASE);
+
+    Pose3d joint3Pose3d = getJoint3Pose().inOtherSpace(Arm.ROBOT_TO_TURRET_BASE);
+
+    double joint3CGDistance = joint3Pose3d.minus(linkage3CG).getTranslation().getNorm();
+    double joint3CGAngle = Math.atan((joint3Pose3d.getZ() - linkage3CG.getZ()) / Math.sqrt(Math.pow(joint3Pose3d.getX() - linkage3CG.getX(), 2) + Math.pow(joint3Pose3d.getY() - linkage3CG.getY(), 2)));
+
+    return new FFData(joint3CGDistance, joint3CGAngle, getThirdJointGearRatio());
 }
 
 @Override

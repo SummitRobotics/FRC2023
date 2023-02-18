@@ -13,7 +13,6 @@ import com.revrobotics.SparkMaxPIDController;
 import com.revrobotics.CANSparkMax.ControlType;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
-import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
@@ -26,7 +25,6 @@ import frc.robot.subsystems.arm.ArmConfiguration.POSITION_TYPE;
 import frc.robot.utilities.FancyArmFeedForward;
 import frc.robot.utilities.Functions;
 import frc.robot.utilities.Loggable;
-import frc.robot.utilities.Positions;
 import frc.robot.utilities.homing.HomeableCANSparkMax;
 import frc.robot.utilities.homing.HomeableSubsystem;
 import frc.robot.utilities.lists.Ports;
@@ -317,39 +315,9 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
    */
   public void setToConfiguration(ArmConfiguration configuration) {
 
-    Pose3d linkage1CG = configuration.getLinkage1CG().inOtherSpace(ROBOT_TO_TURRET_BASE);
-    Pose3d linkage2CG = configuration.getLinkage2CG().inOtherSpace(ROBOT_TO_TURRET_BASE);
-    Pose3d linkage3CG = configuration.getLinkage3CG().inOtherSpace(ROBOT_TO_TURRET_BASE);
-
-    Pose3d joint1Pose3d = configuration.getJoint1Pose().inOtherSpace(ROBOT_TO_TURRET_BASE);
-    Pose3d joint2Pose3d = configuration.getJoint2Pose().inOtherSpace(ROBOT_TO_TURRET_BASE);
-    Pose3d joint3Pose3d = configuration.getJoint3Pose().inOtherSpace(ROBOT_TO_TURRET_BASE);
-
-    Positions.Pose3d pastJ2CG = ArmConfiguration.combineCG(
-      Positions.Pose3d.fromRobotSpace(linkage2CG),
-      Positions.Pose3d.fromRobotSpace(linkage3CG),
-      ARM_LINKAGE_2_MASS,
-      ARM_LINKAGE_3_MASS
-    );
-
-    Positions.Pose3d pastJ1CG = ArmConfiguration.combineCG(
-      pastJ2CG,
-      Positions.Pose3d.fromRobotSpace(linkage1CG),
-      ARM_LINKAGE_3_MASS + ARM_LINKAGE_2_MASS,
-      ARM_LINKAGE_1_MASS
-    );
-
-    double joint3CGDistance = joint3Pose3d.minus(linkage3CG).getTranslation().getNorm();
-    double joint2CGDistance = joint2Pose3d.minus(pastJ2CG.inRobotSpace()).getTranslation().getNorm();
-    double joint1CGDistance = joint1Pose3d.minus(pastJ1CG.inRobotSpace()).getTranslation().getNorm();
-
-    double joint3CGAngle = Math.atan((joint3Pose3d.getZ() - linkage3CG.getZ()) / Math.sqrt(Math.pow(joint3Pose3d.getX() - linkage3CG.getX(), 2) + Math.pow(joint3Pose3d.getY() - linkage3CG.getY(), 2)));
-    double joint2CGAngle = Math.atan((joint2Pose3d.getZ() - pastJ2CG.inRobotSpace().getZ()) / Math.sqrt(Math.pow(joint2Pose3d.getX() - pastJ2CG.inRobotSpace().getX(), 2) + Math.pow(joint2Pose3d.getY() - pastJ2CG.inRobotSpace().getY(), 2)));
-    double joint1CGAngle = Math.atan((joint1Pose3d.getZ() - pastJ1CG.inRobotSpace().getZ()) / Math.sqrt(Math.pow(joint1Pose3d.getX() - pastJ1CG.inRobotSpace().getX(), 2) + Math.pow(joint1Pose3d.getY() - pastJ1CG.inRobotSpace().getY(), 2)));
-
-    double joint1ArbFF = joint1FF.calculate(configuration.getFirstJointPosition(POSITION_TYPE.ENCODER_ROTATIONS), joint1CGDistance, joint1CGAngle, configuration.getFirstJointGearRatio());
-    double joint2ArbFF = joint2FF.calculate(configuration.getFirstJointPosition(POSITION_TYPE.ENCODER_ROTATIONS), joint2CGDistance, joint2CGAngle, configuration.getSecondJointGearRatio());
-    double joint3ArbFF = joint3FF.calculate(configuration.getFirstJointPosition(POSITION_TYPE.ENCODER_ROTATIONS), joint3CGDistance, joint3CGAngle, configuration.getThirdJointGearRatio());
+    double joint1ArbFF = joint1FF.calculate(configuration.getFirstJointPosition(POSITION_TYPE.ENCODER_ROTATIONS), configuration.getJoint1FFData());
+    double joint2ArbFF = joint2FF.calculate(configuration.getFirstJointPosition(POSITION_TYPE.ENCODER_ROTATIONS), configuration.getJoint2FFData());
+    double joint3ArbFF = joint3FF.calculate(configuration.getFirstJointPosition(POSITION_TYPE.ENCODER_ROTATIONS), configuration.getJoint3FFData());
 
 
     setTurretMotorRotations(configuration.getTurretPosition(POSITION_TYPE.ENCODER_ROTATIONS));
