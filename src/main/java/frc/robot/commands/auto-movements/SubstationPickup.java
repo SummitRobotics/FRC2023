@@ -11,7 +11,7 @@ import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import frc.robot.commands.arm.MoveArm;
 import frc.robot.commands.arm.MoveArmHome;
 import frc.robot.commands.drivetrain.FollowDynamicTrajectoryThreaded;
-import frc.robot.subsystems.Arm;
+import frc.robot.subsystems.arm.Arm;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.utilities.Positions;
 import frc.robot.utilities.lists.FieldElementPositions;
