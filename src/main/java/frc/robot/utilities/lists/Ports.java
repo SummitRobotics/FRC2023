@@ -24,29 +24,29 @@ public final class Ports {
 
     public static final class Drivetrain {
         public static final int
-            LEFT_1 = 10,
-            LEFT_2 = 11,
-            LEFT_3 = 12,
-            RIGHT_1 = 13,
-            RIGHT_2 = 14,
-            RIGHT_3 = 15,
+            LEFT_1 = 11,
+            LEFT_2 = 12,
+            LEFT_3 = 13,
+            RIGHT_1 = 14,
+            RIGHT_2 = 15,
+            RIGHT_3 = 16,
             SHIFT_SOLENOID = 4;
     }
 
     public static final class Arm {
         public static final int
-            TURRET = 0,
-            JOINT_1 = 0,
-            JOINT_2 = 0,
-            JOINT_3 = 0,
-            WRIST = 0,
+            TURRET = 20,
+            JOINT_1 = 21,
+            JOINT_2 = 22,
+            JOINT_3 = 23,
+            WRIST = 24,
             CLAMP_SOLENOID = 0;
     }
     
     public static final class Intake {
         public static final int
-            INTAKE_MOTOR = 0,
-            PIVOT_MOTOR = 0,
+            INTAKE_MOTOR = 30,
+            PIVOT_MOTOR = 31,
             LOCK_SOLENOID = 0;
     }
     

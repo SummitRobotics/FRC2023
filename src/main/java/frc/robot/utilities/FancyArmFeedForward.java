@@ -54,5 +54,10 @@ public class FancyArmFeedForward {
             this.angle = angle;
             this.gearRatio = gearRatio;
         }
+
+        @Override
+        public String toString() {
+            return String.format("FFData{Distance: %.2f, Angle: %.2f, Gear Ratio: %.2f}", distance, angle, gearRatio);
+        }
     }
 }

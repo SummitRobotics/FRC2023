@@ -5,6 +5,12 @@
 package frc.robot;
 
 import com.kauailabs.navx.frc.AHRS;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.Publisher;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -24,19 +30,23 @@ import frc.robot.commands.LogComponents;
 public class RobotContainer {
 
   private CommandScheduler scheduler;
+  private NetworkTableInstance networktable;
+
   private ControllerDriver driverXBox;
   private ControllerDriver gunnerXBox;
   private LaunchpadDriver launchpad;
+
   private Command teleopInit;
   private ArcadeDrive arcadeDrive;
   private Drivetrain drivetrain;
   private Arm arm;
-  // private Intake intake;
+  
   private AHRS navx;
 
   public RobotContainer() {
     scheduler = CommandScheduler.getInstance();
-    
+    networktable = NetworkTableInstance.getDefault();
+
     // OI
     driverXBox = new ControllerDriver(Ports.OI.DRIVER_XBOX_PORT);
     gunnerXBox = new ControllerDriver(Ports.OI.GUNNER_XBOX_PORT);
@@ -95,8 +105,8 @@ public class RobotContainer {
   }
 
   private void initTelemetry() {
-    Shuffleboard.getTab("Telemetry").add(arm);
-    Shuffleboard.getTab("Telemetry").add(drivetrain);
+    SmartDashboard.putData("Arm", arm);
+    SmartDashboard.putData("Drivetrain", drivetrain);
   }
 
   public Command getAutonomousCommand() {

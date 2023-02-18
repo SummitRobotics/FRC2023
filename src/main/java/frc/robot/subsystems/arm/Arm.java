@@ -375,7 +375,7 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
 
   @Override
   public void initSendable(SendableBuilder builder) {
-    builder.addStringProperty("armConfiguration", getCurrentArmConfiguration()::toString, null);
+    // builder.addStringProperty("armConfiguration", getCurrentArmConfiguration()::toString, null);
     builder.addStringProperty("grabberClamp", () -> clampSolenoidState ? "Open" : "Closed", null);
     builder.addDoubleProperty("turretEncoder", this::getTurretEncoderPosition, null);
     builder.addDoubleProperty("firstJointEncoder", this::getFirstJointEncoderPosition, null);
