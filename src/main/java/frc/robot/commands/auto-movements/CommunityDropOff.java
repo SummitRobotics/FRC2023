@@ -1,9 +1,7 @@
 import java.util.ArrayList;
 
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.networktables.NetworkTableInstance;
@@ -14,7 +12,7 @@ import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import frc.robot.commands.arm.MoveArm;
 import frc.robot.commands.arm.MoveArmHome;
 import frc.robot.commands.drivetrain.FollowDynamicTrajectoryThreaded;
-import frc.robot.subsystems.Arm;
+import frc.robot.subsystems.arm.Arm;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.utilities.Positions;
 import frc.robot.utilities.lists.FieldElementPositions;
@@ -73,15 +71,7 @@ public class CommunityDropOff extends SequentialCommandGroup {
                 // TODO - adjust grabber angle and wrist rotations
                 new MoveArm(
                     arm,
-                    Positions.Pose3d.fromFieldSpace(
-                        node,
-                        new Pose3d( // drivetrain pose in 3d
-                            drivetrain.getPose().getX(),
-                            drivetrain.getPose().getY(),
-                            0,
-                            new Rotation3d(0, 0, drivetrain.getPose().getRotation().getRadians())
-                        )
-                    ),
+                    Positions.Pose3d.fromFieldSpace(node),
                     0.0,
                     0.0
                 ),
