@@ -7,18 +7,21 @@ declare const window: any;
 /* TODO
 * [ ] move definitions of primitives to a table/object
 * [ ] generic binding to ncclient keys
-* [ ] add field rendering
 * [ ] get build flow improved
 * [ ] update readme
 */
 
 const inchesToMeters = (inches: number) => {
     return inches * 0.0254;
-}
+};
+
+const feetToMeters = (feet: number) => {
+    return feet * 0.3048;
+};
 
 const degToRad = (deg: number) => {
     return deg * Math.PI / 180.0;
-}
+};
 
 // Create Scene and Renderer
 const scene = new THREE.Scene();
@@ -31,17 +34,24 @@ const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerH
 camera.position.z = 2;
 const controls = new OrbitControls(camera, renderer.domElement);
 
+// Create helpers
+const loader = new THREE.TextureLoader();
+
 // Add a grid to the scene
-const size = 10;
-const divisions = 20;
+const size = 20;
+const divisions = 40;
 const gridHelper = new THREE.GridHelper(size, divisions);
 scene.add(gridHelper);
 
 const finalizeObject = (geometry: THREE.BufferGeometry, options: any = {}) => {
-    const material = new THREE.MeshBasicMaterial({
+    const materialOptions = {
         color: options.color ?? 0x00ff00,
         wireframe: options.wireframe ?? true,
-    });
+    } as any;
+    if (options.texture) {
+        materialOptions.map = loader.load(options.texture);
+    }
+    const material = new THREE.MeshBasicMaterial(materialOptions);
     const obj = new THREE.Mesh(geometry, material);
     obj.add(new THREE.AxesHelper(0.1));
     return obj;
@@ -61,7 +71,6 @@ const createCylinder = (radius: number, height: number, options: any = {}) => {
  * Hierarchy of joints. +X forward, +Y right, +Z up. Default pose has arm
  * segments vertical. Turret is back from robot base to accommodate the forward
  * intake.
- *
  *  base \
  *      turret \
  *          arm1 \
@@ -69,6 +78,14 @@ const createCylinder = (radius: number, height: number, options: any = {}) => {
  *                  arm3: \
  *                      grabber
  */
+
+// Field: 54.27083 x 26.2916 ft ((TODO: offset correctly per .json config)
+const field = createBox(feetToMeters(54.27083), 0, feetToMeters(26.2916), {
+    texture: '../assets/2023-field.png',
+    wireframe: false,
+    color: 0xffffff,
+});
+scene.add(field);
 
 // Base: 32x32x9" origin at center bottom
 const base = createBox(inchesToMeters(32), inchesToMeters(6), inchesToMeters(32));
@@ -151,22 +168,37 @@ const controller = {
     },
 };
 
+const actionsFolder = gui.addFolder('Actions');
+actionsFolder.add(gridHelper, 'visible').name('Toggle Grid');
+actionsFolder.add(controller, 'reset').name('Reset');
+actionsFolder.open();
+
 // Configure interprocess hooks
 window.electronAPI.onUpdate((_: any, key: string, value: any, valueType: string, type: string, id: number, flags: number) => {
     // TODO: Get proper keys and bind to appropriate controls
-    if (key === '/FMSInfo/MatchType') {
-        turret.rotation.y = degToRad(value * 10);
-        arm1.rotation.z = degToRad(value * 10);
-        arm2.rotation.z = degToRad(value * 10);
-        arm3.rotation.z = degToRad(value * 10);
+    let handled = true;
+    if (key === '/SmartDashboard/Arm/turretAngle') {
+        turret.rotation.y = -value;
+    } else if (key === '/SmartDashboard/Arm/firstJointAngle') {
+        arm1.rotation.z = -value;
+    } else if (key === '/SmartDashboard/Arm/secondJointAngle') {
+        arm2.rotation.z = -value;
+    } else if (key === '/SmartDashboard/Arm/thirdJointAngle') {
+        arm3.rotation.z = -value;
+    } else if (key === '/SmartDashboard/Arm/wristAngle') {
+        // TODO
+    } else if (key === '/SmartDashboard/Arm/grabberClamp') {
+        // TODO
+    } else {
+        handled = false;
+    }
+    if (handled) {
         updateGuiControllers();
     }
     console.log(`update: ${key} - ${value} - ${valueType} - ${type} - ${id} - ${flags}`);
 });
 
-const actionsFolder = gui.addFolder('Actions');
-actionsFolder.add(controller, 'reset').name('Reset');
-actionsFolder.open();
+
 
 // Handle window resize event
 window.addEventListener('resize', onWindowResize, false);
