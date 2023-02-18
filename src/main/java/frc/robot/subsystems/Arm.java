@@ -31,6 +31,7 @@ import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.Arm.ArmConfiguration.POSITION_TYPE;
 import frc.robot.utilities.ChangeRateLimiter;
+import frc.robot.utilities.FancyArmFeedForward;
 import frc.robot.utilities.Functions;
 import frc.robot.utilities.Loggable;
 import frc.robot.utilities.Node;
@@ -76,25 +77,27 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
 
     ARM_LINKAGE_1_MASS = 12 / 2.205, // Mass in kilograms
     ARM_LINKAGE_2_MASS = 8 / 2.205, // Mass in kilograms
-    ARM_LINKAGE_3_MASS = 7 / 2.205; // Mass in kilograms
+    ARM_LINKAGE_3_MASS = 7 / 2.205, // Mass in kilograms
     
+    KG_TO_NEWTONS = 9.80665;
+
     public static final double
 
-    TURRET_GEAR_RATIO_OVERALL = 225 * 3.09523809524, // Ratio Example a 9:1 would be 9
+    TURRET_GEAR_RATIO_OVERALL = 27 * 3.09523809524, // Ratio Example a 9:1 would be 9
     TURRET_HOME_ANGLE = 0, // Angle in radians where 0 is straight forward and positive is counter clockwise.
 
     ARM_JOINT_1_LEADSCREW_HOME_LENGTH = Units.inchesToMeters(16.5), // Length in meters
     ARM_JOINT_1_PIVOT_TO_MOTOR_LENGTH = 0.1019, // Length in meters
     ARM_JOINT_1_PIVOT_TO_LEADSCREW_LENGTH = 0.22606, // Length in meters
-    ARM_JOINT_1_PIVOT_TO_MOTOR_HORIZONTAL_ANGLE_OFFSET = 0, // Angle in radians
+    ARM_JOINT_1_PIVOT_TO_MOTOR_HORIZONTAL_ANGLE_OFFSET = Math.toRadians(14), // Angle in radians
     ARM_JOINT_1_MOTOR_GEAR_RATIO = 9, // Ratio Example a 9:1 gear ratio would be 9
     ARM_JOINT_1_LEADSCREW_PITCH = 0.00635, // Length in meters. The distance the lead screw moves per revolution
 
     ARM_JOINT_2_LEADSCREW_HOME_LENGTH = Units.inchesToMeters(4.875), // Length in meters
     ARM_JOINT_2_PIVOT_TO_MOTOR_LENGTH = 0.33655, // Length in meters
     ARM_JOINT_2_PIVOT_TO_LEADSCREW_LENGTH = 0.1001776, // Length in meters
-    ARM_JOINT_2_PIVOT_TO_MOTOR_HORIZONTAL_ANGLE_OFFSET = 0, // Angle in radians
-    ARM_JOINT_2_MOTOR_GEAR_RATIO = 5, // Ratio Example a 9:1 gear ratio would be 9
+    ARM_JOINT_2_PIVOT_TO_MOTOR_HORIZONTAL_ANGLE_OFFSET = Math.toRadians(90 - 16.3), // Angle in radians
+    ARM_JOINT_2_MOTOR_GEAR_RATIO = 9, // Ratio Example a 9:1 gear ratio would be 9
     ARM_JOINT_2_LEADSCREW_PITCH = 0.00635, // Length in meters. The distance the lead screw moves per revolution
 
     ARM_JOINT_3_GEAR_RATIO_OVERALL = 225, // Ratio Example a 9:1 would be 9
@@ -104,7 +107,7 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
     WRIST_HOME_ANGLE = 0; // Angle in radians where 0 is straight forward and positive is counter clockwise.
 
   
-    private final CANSparkMax
+  private final CANSparkMax
     turretMotor = new CANSparkMax(Ports.Arm.TURRET, MotorType.kBrushless),
     joint1Motor = new CANSparkMax(Ports.Arm.JOINT_1, MotorType.kBrushless),
     joint2Motor = new CANSparkMax(Ports.Arm.JOINT_2, MotorType.kBrushless),
@@ -117,6 +120,11 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
     joint2PIDController = joint2Motor.getPIDController(),
     joint3PIDController = joint3Motor.getPIDController(),
     wristPIDController = wristMotor.getPIDController();
+
+  private FancyArmFeedForward
+    joint1FF = new FancyArmFeedForward(0,0,0,(ARM_LINKAGE_1_MASS + ARM_LINKAGE_2_MASS + ARM_LINKAGE_3_MASS) * KG_TO_NEWTONS,2.6),
+    joint2FF = new FancyArmFeedForward(0,0,0,(ARM_LINKAGE_2_MASS + ARM_LINKAGE_3_MASS) * KG_TO_NEWTONS,2.6),
+    joint3FF = new FancyArmFeedForward(0,0,0,(ARM_LINKAGE_3_MASS) * KG_TO_NEWTONS,0.97);
 
   private final RelativeEncoder
     turretEncoder = turretMotor.getEncoder(),
@@ -131,7 +139,6 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
     joint2Limiter = new ChangeRateLimiter(0.1),
     joint3Limiter = new ChangeRateLimiter(0.1),
     wristLimiter = new ChangeRateLimiter(0.1);
-
 
     // Seperate boolean to store clamp state because it is slow to get the state of the solenoid.
   private final Solenoid clampSolenoid = new Solenoid(PneumaticsModuleType.REVPH,Ports.Arm.CLAMP_SOLENOID);
@@ -282,31 +289,31 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
    * @param position The position to set the motor to in rotations.
    */
   public void setTurretMotorRotations(double motorRotations) {
-    turretPIDController.setReference(motorRotations, ControlType.kPosition);
+    turretPIDController.setReference(motorRotations, ControlType.kPosition, 0);
   }
 
   /**
    * Sets the 1st joint's motor to the given position.
    * @param position The position to set the motor to in rotations.
    */
-  public void setFirstJointMotorRotations(double motorRotations) {
-    joint1PIDController.setReference(motorRotations, ControlType.kPosition);
+  public void setFirstJointMotorRotations(double motorRotations, double feedForward) {
+    joint1PIDController.setReference(motorRotations, ControlType.kPosition, 0, feedForward);
   }
 
   /**
    * Sets the 2nd joint's motor to the given position.
    * @param position The position to set the motor to in rotations.
    */
-  public void setSecondJointMotorRotations(double motorRotations) {
-    joint2PIDController.setReference(motorRotations, ControlType.kPosition);
+  public void setSecondJointMotorRotations(double motorRotations, double feedForward) {
+    joint2PIDController.setReference(motorRotations, ControlType.kPosition, 0, feedForward);
   }
 
   /**
    * Sets the 3rd joint's motor to the given position.
    * @param position The position to set the motor to in rotations.
    */
-  public void setThirdJointMotorRotations(double motorRotations) {
-    joint3PIDController.setReference(motorRotations, ControlType.kPosition);
+  public void setThirdJointMotorRotations(double motorRotations, double feedForward) {
+    joint3PIDController.setReference(motorRotations, ControlType.kPosition, 0, feedForward);
   }
 
   /**
@@ -314,7 +321,7 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
    * @param position The position to set the motor to in rotations.
    */
   public void setWristMotorRotations(double motorRotations) {
-    wristPIDController.setReference(motorRotations, ControlType.kPosition);
+    wristPIDController.setReference(motorRotations, ControlType.kPosition, 0);
   }
 
   /**
@@ -376,10 +383,46 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
    * Sets the arm to a specific configuration.
    */
   public void setToConfiguration(ArmConfiguration configuration) {
+
+    Pose3d linkage1CG = configuration.getLinkage1CG().inOtherSpace(ROBOT_TO_TURRET_BASE);
+    Pose3d linkage2CG = configuration.getLinkage2CG().inOtherSpace(ROBOT_TO_TURRET_BASE);
+    Pose3d linkage3CG = configuration.getLinkage3CG().inOtherSpace(ROBOT_TO_TURRET_BASE);
+
+    Pose3d joint1Pose3d = configuration.getJoint1Pose().inOtherSpace(ROBOT_TO_TURRET_BASE);
+    Pose3d joint2Pose3d = configuration.getJoint2Pose().inOtherSpace(ROBOT_TO_TURRET_BASE);
+    Pose3d joint3Pose3d = configuration.getJoint3Pose().inOtherSpace(ROBOT_TO_TURRET_BASE);
+
+    Positions.Pose3d pastJ2CG = ArmConfiguration.addTwoCG(
+      Positions.Pose3d.fromRobotSpace(linkage2CG),
+      Positions.Pose3d.fromRobotSpace(linkage3CG),
+      ARM_LINKAGE_2_MASS,
+      ARM_LINKAGE_3_MASS
+    );
+
+    Positions.Pose3d pastJ1CG = ArmConfiguration.addTwoCG(
+      pastJ2CG,
+      Positions.Pose3d.fromRobotSpace(linkage1CG),
+      ARM_LINKAGE_3_MASS + ARM_LINKAGE_2_MASS,
+      ARM_LINKAGE_1_MASS
+    );
+
+    double joint3CGDistance = joint3Pose3d.minus(linkage3CG).getTranslation().getNorm();
+    double joint2CGDistance = joint2Pose3d.minus(pastJ2CG.inRobotSpace()).getTranslation().getNorm();
+    double joint1CGDistance = joint1Pose3d.minus(pastJ1CG.inRobotSpace()).getTranslation().getNorm();
+
+    double joint3CGAngle = Math.atan((joint3Pose3d.getZ() - linkage3CG.getZ()) / Math.sqrt(Math.pow(joint3Pose3d.getX() - linkage3CG.getX(), 2) + Math.pow(joint3Pose3d.getY() - linkage3CG.getY(), 2)));
+    double joint2CGAngle = Math.atan((joint2Pose3d.getZ() - pastJ2CG.inRobotSpace().getZ()) / Math.sqrt(Math.pow(joint2Pose3d.getX() - pastJ2CG.inRobotSpace().getX(), 2) + Math.pow(joint2Pose3d.getY() - pastJ2CG.inRobotSpace().getY(), 2)));
+    double joint1CGAngle = Math.atan((joint1Pose3d.getZ() - pastJ1CG.inRobotSpace().getZ()) / Math.sqrt(Math.pow(joint1Pose3d.getX() - pastJ1CG.inRobotSpace().getX(), 2) + Math.pow(joint1Pose3d.getY() - pastJ1CG.inRobotSpace().getY(), 2)));
+
+    double joint1ArbFF = joint1FF.calculate(configuration.getFirstJointPosition(POSITION_TYPE.ENCODER_ROTATIONS), joint1CGDistance, joint1CGAngle, configuration.getFirstJointGearRatio());
+    double joint2ArbFF = joint2FF.calculate(configuration.getFirstJointPosition(POSITION_TYPE.ENCODER_ROTATIONS), joint2CGDistance, joint2CGAngle, configuration.getSecondJointGearRatio());
+    double joint3ArbFF = joint3FF.calculate(configuration.getFirstJointPosition(POSITION_TYPE.ENCODER_ROTATIONS), joint3CGDistance, joint3CGAngle, configuration.getThirdJointGearRatio());
+
+
     setTurretMotorRotations(configuration.getTurretPosition(POSITION_TYPE.ENCODER_ROTATIONS));
-    setFirstJointMotorRotations(configuration.getFirstJointPosition(POSITION_TYPE.ENCODER_ROTATIONS));
-    setSecondJointMotorRotations(configuration.getSecondJointPosition(POSITION_TYPE.ENCODER_ROTATIONS));
-    setThirdJointMotorRotations(configuration.getThirdJointPosition(POSITION_TYPE.ENCODER_ROTATIONS));
+    setFirstJointMotorRotations(configuration.getFirstJointPosition(POSITION_TYPE.ENCODER_ROTATIONS), joint1ArbFF);
+    setSecondJointMotorRotations(configuration.getSecondJointPosition(POSITION_TYPE.ENCODER_ROTATIONS), joint2ArbFF);
+    setThirdJointMotorRotations(configuration.getThirdJointPosition(POSITION_TYPE.ENCODER_ROTATIONS), joint3ArbFF);
     setWristMotorRotations(configuration.getWristPosition(POSITION_TYPE.ENCODER_ROTATIONS));
   }
 
@@ -439,11 +482,7 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
       thirdJointPositionRotations,
       wristPositionRotations;
 
-    private final Positions.Pose3d 
-      endPose,
-      joint1Pose,
-      joint2Pose,
-      joint3Pose;
+    private final Positions.Pose3d endPose;
 
     private static double joint1AngleToEncoder(double angle) {
       double theta = (Math.PI / 2) + ARM_JOINT_1_PIVOT_TO_MOTOR_HORIZONTAL_ANGLE_OFFSET - angle;
@@ -465,6 +504,7 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
       double wristPosition,
       POSITION_TYPE positionType
       ) {
+        System.out.println(String.format("Turret: %f, First Joint: %f, Second Joint: %f, Third Joint: %f, Wrist: %f", turretPosition, firstJointPosition, secondJointPosition, thirdJointPosition, wristPosition));
       if (positionType == POSITION_TYPE.ENCODER_ROTATIONS) {
         this.turretPositionRotations = turretPosition;
         this.firstJointPositionRotations = firstJointPosition;
@@ -479,28 +519,12 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
         this.wristPositionRotations = (WRIST_GEAR_RATIO_OVERALL/(-2 * Math.PI)) * (wristPosition - WRIST_HOME_ANGLE);
       }
 
-      Translation3d linkage3 = new Translation3d(ARM_LINKAGE_3_LENGTH, getThirdJointRotation());
-      Translation3d linkage2 = (new Translation3d(ARM_LINKAGE_2_LENGTH, getSecondJointRotation())).plus(linkage3.rotateBy(getSecondJointRotation()));
-      Translation3d linkage1 = (new Translation3d(ARM_LINKAGE_1_LENGTH, getFirstJointRotation())).plus(linkage2.rotateBy(getFirstJointRotation()));
-      Translation3d linkage0 = (new Translation3d(ARM_LINKAGE_0_LENGTH, getTurretRotation())).plus(linkage1.rotateBy(getTurretRotation()));
-      
-      Rotation3d wristRotation = getWristRotation().plus(getThirdJointRotation()).plus(getSecondJointRotation()).plus(getFirstJointRotation()).plus(getTurretRotation());
-      this.endPose = Positions.Pose3d.fromOtherSpace(new Pose3d(linkage0, wristRotation), ROBOT_TO_TURRET_BASE);
+      Translation2d linkage3 = new Translation2d(ARM_LINKAGE_3_LENGTH, Rotation2d.fromRadians((Math.PI / 2) - getThirdJointPosition(POSITION_TYPE.ANGLE)));
+      Translation2d linkage2 = new Translation2d(ARM_LINKAGE_2_LENGTH, Rotation2d.fromRadians((Math.PI / 2) - getSecondJointPosition(POSITION_TYPE.ANGLE))).plus(linkage3.rotateBy(Rotation2d.fromRadians(-getSecondJointPosition(POSITION_TYPE.ANGLE))));
+      Translation2d linkage1 = new Translation2d(ARM_LINKAGE_1_LENGTH, Rotation2d.fromRadians((Math.PI / 2) - getFirstJointPosition(POSITION_TYPE.ANGLE))).plus(linkage2.rotateBy(Rotation2d.fromRadians(-getFirstJointPosition(POSITION_TYPE.ANGLE))));
+      Translation3d endPose = new Translation3d(linkage1.getX(), 0, linkage1.getY()).rotateBy(getTurretRotation()).plus(new Translation3d(0,0,ARM_LINKAGE_0_LENGTH));
 
-      linkage2 = new Translation3d(ARM_LINKAGE_2_LENGTH, getSecondJointRotation());
-      linkage1 = (new Translation3d(ARM_LINKAGE_1_LENGTH, getFirstJointRotation())).plus(linkage2.rotateBy(getFirstJointRotation()));
-      linkage0 = (new Translation3d(ARM_LINKAGE_0_LENGTH, getTurretRotation())).plus(linkage1.rotateBy(getTurretRotation()));
-
-      this.joint3Pose = Positions.Pose3d.fromOtherSpace(linkage0, ROBOT_TO_TURRET_BASE);
-
-      linkage1 = new Translation3d(ARM_LINKAGE_1_LENGTH, getFirstJointRotation());
-      linkage0 = (new Translation3d(ARM_LINKAGE_0_LENGTH, getTurretRotation())).plus(linkage1.rotateBy(getTurretRotation()));
-
-      this.joint2Pose = Positions.Pose3d.fromOtherSpace(linkage0, ROBOT_TO_TURRET_BASE);
-
-      linkage0 = new Translation3d(ARM_LINKAGE_0_LENGTH, getTurretRotation());
-
-      this.joint1Pose = Positions.Pose3d.fromOtherSpace(linkage0, ROBOT_TO_TURRET_BASE);
+      this.endPose = Positions.Pose3d.fromOtherSpace(endPose, ROBOT_TO_TURRET_BASE);
     }
 
     public static ArmConfiguration fromEndPosition(Positions.Pose3d endPose, double grabberAngleRadians, double wristRotationRadians) {
@@ -513,7 +537,7 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
       // convert pointToGrab to 2d space
       Translation2d pointToGrab2d = endPosition
         .rotateBy(new Rotation3d(0,0,-angleToPoint))
-        .rotateBy(new Rotation3d(Math.PI / 2, 0, 0))
+        .rotateBy(new Rotation3d(-Math.PI / 2, 0, 0))
         .toTranslation2d()
         .plus(new Translation2d(0, -ARM_LINKAGE_0_LENGTH))
         .plus(new Translation2d(ARM_LINKAGE_3_LENGTH, new Rotation2d(Math.PI - grabberAngleRadians)));
@@ -526,75 +550,109 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
       double beta  = Math.acos((b*b + c*c - a*a) / (2*b*c));
       double gamma = Math.PI - alpha - beta;
 
+      double j1 = (Math.PI / 2) - Math.atan(pointToGrab2d.getY() / pointToGrab2d.getX()) - gamma;
+      double j2 = Math.PI - alpha;
+
+
       return new ArmConfiguration(
         angleToPoint,
-        Math.atan(pointToGrab2d.getX() / pointToGrab2d.getY()) - alpha,
-        Math.PI - gamma,
-        Math.PI - beta - (Math.PI - grabberAngleRadians - (Math.PI / 2 - alpha - (Math.atan(pointToGrab2d.getX() / pointToGrab2d.getY()) - alpha))),
+        j1,
+        j2,
+        // Math.PI - beta - (Math.PI - grabberAngleRadians - (Math.PI / 2 - gamma - (Math.atan(pointToGrab2d.getX() / pointToGrab2d.getY()) - gamma))),
+        (Math.PI / 2) + grabberAngleRadians - j1 - j2,
         wristRotationRadians,
         POSITION_TYPE.ANGLE
       );
+    }
+
+    public static double turretRotationsToAngle(double rotations) {
+      return (rotations * (1/TURRET_GEAR_RATIO_OVERALL) * -2 * Math.PI) + TURRET_HOME_ANGLE;
     }
 
     public double getTurretPosition(POSITION_TYPE positionType) {
       if (positionType == POSITION_TYPE.ENCODER_ROTATIONS) {
         return turretPositionRotations;
       }
-      return (turretPositionRotations * (1/TURRET_GEAR_RATIO_OVERALL) * -2 * Math.PI) + TURRET_HOME_ANGLE;
+      return turretRotationsToAngle(turretPositionRotations);
+    }
+
+    public static double joint1EncoderToAngle(double rotations) {
+      double c = ARM_JOINT_1_LEADSCREW_HOME_LENGTH - (rotations * (1/ARM_JOINT_1_MOTOR_GEAR_RATIO) * ARM_JOINT_1_LEADSCREW_PITCH);
+      double numerator = Math.pow(ARM_JOINT_1_PIVOT_TO_LEADSCREW_LENGTH, 2) +  Math.pow(ARM_JOINT_1_PIVOT_TO_MOTOR_LENGTH, 2) - Math.pow(c, 2);
+      double denominator = 2 * ARM_JOINT_1_PIVOT_TO_LEADSCREW_LENGTH * ARM_JOINT_1_PIVOT_TO_MOTOR_LENGTH;
+      return (Math.PI/2) - Math.acos(numerator / denominator) + ARM_JOINT_1_PIVOT_TO_MOTOR_HORIZONTAL_ANGLE_OFFSET;
     }
 
     public double getFirstJointPosition(POSITION_TYPE positionType) {
       if (positionType == POSITION_TYPE.ENCODER_ROTATIONS) {
         return firstJointPositionRotations;
       }
-      double c = ARM_JOINT_1_LEADSCREW_HOME_LENGTH - (firstJointPositionRotations * (1/ARM_JOINT_1_MOTOR_GEAR_RATIO) * ARM_JOINT_1_LEADSCREW_PITCH);
-      double numerator = Math.pow(ARM_JOINT_1_PIVOT_TO_LEADSCREW_LENGTH, 2) +  Math.pow(ARM_JOINT_1_PIVOT_TO_MOTOR_LENGTH, 2) - Math.pow(c, 2);
-      double denominator = 2 * ARM_JOINT_1_PIVOT_TO_LEADSCREW_LENGTH * ARM_JOINT_1_PIVOT_TO_MOTOR_LENGTH;
-      return (Math.PI/2) - Math.acos(numerator / denominator) + ARM_JOINT_1_PIVOT_TO_MOTOR_HORIZONTAL_ANGLE_OFFSET;
+      return joint1EncoderToAngle(firstJointPositionRotations);
+    }
+
+    public static double joint2EncoderToAngle(double rotations) {
+      double c = ARM_JOINT_2_LEADSCREW_HOME_LENGTH - (rotations * (1/ARM_JOINT_2_MOTOR_GEAR_RATIO) * ARM_JOINT_2_LEADSCREW_PITCH);
+      double numerator = Math.pow(ARM_JOINT_2_PIVOT_TO_LEADSCREW_LENGTH, 2) + Math.pow(ARM_JOINT_2_PIVOT_TO_MOTOR_LENGTH, 2) - Math.pow(c, 2);
+      double denominator = 2 * ARM_JOINT_2_PIVOT_TO_LEADSCREW_LENGTH * ARM_JOINT_2_PIVOT_TO_MOTOR_LENGTH;
+      return (Math.PI/2) - Math.acos(numerator / denominator) + ARM_JOINT_2_PIVOT_TO_MOTOR_HORIZONTAL_ANGLE_OFFSET;
     }
 
     public double getSecondJointPosition(POSITION_TYPE positionType) {
       if (positionType == POSITION_TYPE.ENCODER_ROTATIONS) {
         return secondJointPositionRotations;
       }
-      double c = ARM_JOINT_2_LEADSCREW_HOME_LENGTH - (secondJointPositionRotations * (1/ARM_JOINT_2_MOTOR_GEAR_RATIO) * ARM_JOINT_2_LEADSCREW_PITCH);
-      double numerator = Math.pow(ARM_JOINT_2_PIVOT_TO_LEADSCREW_LENGTH, 2) + Math.pow(ARM_JOINT_2_PIVOT_TO_MOTOR_LENGTH, 2) - Math.pow(c, 2);
-      double denominator = 2 * ARM_JOINT_2_PIVOT_TO_LEADSCREW_LENGTH * ARM_JOINT_2_PIVOT_TO_MOTOR_LENGTH;
-      return (Math.PI/2) - Math.acos(numerator / denominator) + ARM_JOINT_2_PIVOT_TO_MOTOR_HORIZONTAL_ANGLE_OFFSET;
+      return joint2EncoderToAngle(secondJointPositionRotations);
+    }
+
+    public static double joint3EncoderToAngle(double rotations) {
+      return (rotations * (1/ARM_JOINT_3_GEAR_RATIO_OVERALL) * -2 * Math.PI) + ARM_JOINT_3_HOME_ANGLE;
     }
 
     public double getThirdJointPosition(POSITION_TYPE positionType) {
       if (positionType == POSITION_TYPE.ENCODER_ROTATIONS) {
         return thirdJointPositionRotations;
       }
-      return (thirdJointPositionRotations * (1/ARM_JOINT_3_GEAR_RATIO_OVERALL) * -2 * Math.PI) + ARM_JOINT_3_HOME_ANGLE;
+      return joint3EncoderToAngle(thirdJointPositionRotations);
+    }
+
+    public static double wristEncoderToAngle(double rotations) {
+      return (rotations * (1/WRIST_GEAR_RATIO_OVERALL) * -2 * Math.PI) + WRIST_HOME_ANGLE;
     }
 
     public double getWristPosition(POSITION_TYPE positionType) {
       if (positionType == POSITION_TYPE.ENCODER_ROTATIONS) {
         return wristPositionRotations;
       }
-      return (wristPositionRotations * (1/WRIST_GEAR_RATIO_OVERALL) * -2 * Math.PI) + WRIST_HOME_ANGLE;
+      return wristEncoderToAngle(wristPositionRotations);
     }
 
     public Rotation3d getTurretRotation() {
       return new Rotation3d(0, 0, getTurretPosition(POSITION_TYPE.ANGLE));
     }
 
-    public Rotation3d getFirstJointRotation() {
-      return new Rotation3d(0, getFirstJointPosition(POSITION_TYPE.ANGLE), 0);
+    public double getTurretGearRatio() {
+      double dAngle = (turretRotationsToAngle(turretPositionRotations - 1) - turretRotationsToAngle(turretPositionRotations + 1));
+      return ((2 * Math.PI)/dAngle) * 2;
     }
 
-    public Rotation3d getSecondJointRotation() {
-      return new Rotation3d(0, getSecondJointPosition(POSITION_TYPE.ANGLE), 0);
+    public double getFirstJointGearRatio() {
+      double dAngle = (joint1EncoderToAngle(firstJointPositionRotations - 1) - joint1EncoderToAngle(firstJointPositionRotations + 1));
+      return ((2 * Math.PI)/dAngle) * 2;
     }
 
-    public Rotation3d getThirdJointRotation() {
-      return new Rotation3d(0, getThirdJointPosition(POSITION_TYPE.ANGLE), 0);
+    public double getSecondJointGearRatio() {
+      double dAngle = (joint2EncoderToAngle(secondJointPositionRotations - 1) - joint2EncoderToAngle(secondJointPositionRotations + 1));
+      return ((2 * Math.PI)/dAngle) * 2;
     }
 
-    public Rotation3d getWristRotation() {
-      return new Rotation3d(getWristPosition(POSITION_TYPE.ANGLE), 0, 0);
+    public double getThirdJointGearRatio() {
+      double dAngle = (joint3EncoderToAngle(thirdJointPositionRotations - 1) - joint3EncoderToAngle(thirdJointPositionRotations + 1));
+      return ((2 * Math.PI)/dAngle) * 2;
+    }
+
+    public double getWristGearRatio() {
+      double dAngle = (wristEncoderToAngle(wristPositionRotations - 1) - wristEncoderToAngle(wristPositionRotations + 1));
+      return ((2 * Math.PI)/dAngle) * 2;
     }
 
     public Positions.Pose3d getEndPosition() {
@@ -602,33 +660,40 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
     }
 
     public Positions.Pose3d getJoint1Pose() {
-      return joint1Pose;
+      return Positions.Pose3d.fromOtherSpace(new Translation3d(0,0,ARM_LINKAGE_0_LENGTH), ROBOT_TO_TURRET_BASE);
     }
 
     public Positions.Pose3d getJoint2Pose() {
-      return joint2Pose;
-    }
+      Translation2d linkage1 = new Translation2d(ARM_LINKAGE_1_LENGTH, Rotation2d.fromRadians((Math.PI / 2) - getFirstJointPosition(POSITION_TYPE.ANGLE)));
+      Translation3d endPose = new Translation3d(linkage1.getX(), 0, linkage1.getY()).rotateBy(getTurretRotation()).plus(new Translation3d(0,0,ARM_LINKAGE_0_LENGTH));
+      return Positions.Pose3d.fromOtherSpace(endPose, ROBOT_TO_TURRET_BASE);    }
 
     public Positions.Pose3d getJoint3Pose() {
-      return joint3Pose;
+      Translation2d linkage2 = new Translation2d(ARM_LINKAGE_2_LENGTH, Rotation2d.fromRadians((Math.PI / 2) - getSecondJointPosition(POSITION_TYPE.ANGLE)));
+      Translation2d linkage1 = new Translation2d(ARM_LINKAGE_1_LENGTH, Rotation2d.fromRadians((Math.PI / 2) - getFirstJointPosition(POSITION_TYPE.ANGLE))).plus(linkage2.rotateBy(Rotation2d.fromRadians(-getFirstJointPosition(POSITION_TYPE.ANGLE))));
+      Translation3d endPose = new Translation3d(linkage1.getX(), 0, linkage1.getY()).rotateBy(getTurretRotation()).plus(new Translation3d(0,0,ARM_LINKAGE_0_LENGTH));
+      return Positions.Pose3d.fromOtherSpace(endPose, ROBOT_TO_TURRET_BASE);
     }
 
     public Positions.Pose3d getLinkage1CG() {
-      Rotation3d rotation = getTurretRotation().plus(getFirstJointRotation());
-      Pose3d pose = getJoint1Pose().inOtherSpace(ROBOT_TO_TURRET_BASE).plus(new Transform3d(new Translation3d(ARM_LINKAGE_1_CG_DISTANCE, rotation), new Rotation3d()));
-      return Positions.Pose3d.fromOtherSpace(pose, ROBOT_TO_TURRET_BASE);
+      Translation2d linkage1 = new Translation2d(ARM_LINKAGE_1_CG_DISTANCE, Rotation2d.fromRadians((Math.PI / 2) - getFirstJointPosition(POSITION_TYPE.ANGLE)));
+      Translation3d endPose = new Translation3d(linkage1.getX(), 0, linkage1.getY()).rotateBy(getTurretRotation()).plus(new Translation3d(0,0,ARM_LINKAGE_0_LENGTH));
+      return Positions.Pose3d.fromOtherSpace(endPose, ROBOT_TO_TURRET_BASE);
     }
 
     public Positions.Pose3d getLinkage2CG() {
-      Rotation3d rotation = getTurretRotation().plus(getFirstJointRotation()).plus(getSecondJointRotation());
-      Pose3d pose = getJoint2Pose().inOtherSpace(ROBOT_TO_TURRET_BASE).plus(new Transform3d(new Translation3d(ARM_LINKAGE_2_CG_DISTANCE, rotation), new Rotation3d()));
-      return Positions.Pose3d.fromOtherSpace(pose, ROBOT_TO_TURRET_BASE);
+      Translation2d linkage2 = new Translation2d(ARM_LINKAGE_2_CG_DISTANCE, Rotation2d.fromRadians((Math.PI / 2) - getSecondJointPosition(POSITION_TYPE.ANGLE)));
+      Translation2d linkage1 = new Translation2d(ARM_LINKAGE_1_LENGTH, Rotation2d.fromRadians((Math.PI / 2) - getFirstJointPosition(POSITION_TYPE.ANGLE))).plus(linkage2.rotateBy(Rotation2d.fromRadians(-getFirstJointPosition(POSITION_TYPE.ANGLE))));
+      Translation3d endPose = new Translation3d(linkage1.getX(), 0, linkage1.getY()).rotateBy(getTurretRotation()).plus(new Translation3d(0,0,ARM_LINKAGE_0_LENGTH));
+      return Positions.Pose3d.fromOtherSpace(endPose, ROBOT_TO_TURRET_BASE);
     }
 
     public Positions.Pose3d getLinkage3CG() {
-      Rotation3d rotation = getTurretRotation().plus(getFirstJointRotation()).plus(getSecondJointRotation()).plus(getThirdJointRotation());
-      Pose3d pose = getJoint3Pose().inOtherSpace(ROBOT_TO_TURRET_BASE).plus(new Transform3d(new Translation3d(ARM_LINKAGE_3_CG_DISTANCE, rotation), new Rotation3d()));
-      return Positions.Pose3d.fromOtherSpace(pose, ROBOT_TO_TURRET_BASE);
+      Translation2d linkage3 = new Translation2d(ARM_LINKAGE_3_CG_DISTANCE, Rotation2d.fromRadians((Math.PI / 2) - getThirdJointPosition(POSITION_TYPE.ANGLE)));
+      Translation2d linkage2 = new Translation2d(ARM_LINKAGE_2_LENGTH, Rotation2d.fromRadians((Math.PI / 2) - getSecondJointPosition(POSITION_TYPE.ANGLE))).plus(linkage3.rotateBy(Rotation2d.fromRadians(-getSecondJointPosition(POSITION_TYPE.ANGLE))));
+      Translation2d linkage1 = new Translation2d(ARM_LINKAGE_1_LENGTH, Rotation2d.fromRadians((Math.PI / 2) - getFirstJointPosition(POSITION_TYPE.ANGLE))).plus(linkage2.rotateBy(Rotation2d.fromRadians(-getFirstJointPosition(POSITION_TYPE.ANGLE))));
+      Translation3d endPose = new Translation3d(linkage1.getX(), 0, linkage1.getY()).rotateBy(getTurretRotation()).plus(new Translation3d(0,0,ARM_LINKAGE_0_LENGTH));
+      return Positions.Pose3d.fromOtherSpace(endPose, ROBOT_TO_TURRET_BASE);
     }
 
     @Override
@@ -638,10 +703,23 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
         + "\nSecond Joint Encoder: " + secondJointPositionRotations
         + "\nThird Joint Encoder: " + thirdJointPositionRotations
         + "\nWrist Encoder: " + wristPositionRotations
-        + String.format("Position (RS): (%.2f, %.2f, %.2f)", endPose.inRobotSpace().getX(), endPose.inRobotSpace().getY(), endPose.inRobotSpace().getZ())
-        + String.format("Linkage 1 CG (RS): (%.2f, %.2f, %.2f)", getLinkage1CG().inRobotSpace().getX(), getLinkage1CG().inRobotSpace().getY(), getLinkage1CG().inRobotSpace().getZ())
-        + String.format("Linkage 2 CG (RS): (%.2f, %.2f, %.2f)", getLinkage2CG().inRobotSpace().getX(), getLinkage2CG().inRobotSpace().getY(), getLinkage2CG().inRobotSpace().getZ())
-        + String.format("Linkage 3 CG (RS): (%.2f, %.2f, %.2f)", getLinkage3CG().inRobotSpace().getX(), getLinkage3CG().inRobotSpace().getY(), getLinkage3CG().inRobotSpace().getZ());
+        + "\nTurret Angle (rad): " + getTurretPosition(POSITION_TYPE.ANGLE)
+        + "\nFirst Joint Angle (rad): " + getFirstJointPosition(POSITION_TYPE.ANGLE)
+        + "\nSecond Joint Angle (rad): " + getSecondJointPosition(POSITION_TYPE.ANGLE)
+        + "\nThird Joint Angle (rad): " + getThirdJointPosition(POSITION_TYPE.ANGLE)
+        + "\nWrist Angle (rad): " + getWristPosition(POSITION_TYPE.ANGLE)
+        + "\nTurret Angle (deg): " + Math.toDegrees(getTurretPosition(POSITION_TYPE.ANGLE))
+        + "\nFirst Joint Angle (deg): " + Math.toDegrees(getFirstJointPosition(POSITION_TYPE.ANGLE))
+        + "\nSecond Joint Angle (deg): " + Math.toDegrees(getSecondJointPosition(POSITION_TYPE.ANGLE))
+        + "\nThird Joint Angle (deg): " + Math.toDegrees(getThirdJointPosition(POSITION_TYPE.ANGLE))
+        + "\nWrist Angle (deg): " + Math.toDegrees(getWristPosition(POSITION_TYPE.ANGLE))
+        + String.format("\nPosition (RS): (%.2f, %.2f, %.2f)", endPose.inRobotSpace().getX(), endPose.inRobotSpace().getY(), endPose.inRobotSpace().getZ())
+        + String.format("\nJoint 1 Pos (RS): (%.2f, %.2f, %.2f)", getJoint1Pose().inRobotSpace().getX(), getJoint1Pose().inRobotSpace().getY(), getJoint1Pose().inRobotSpace().getZ())
+        + String.format("\nJoint 2 Pos (RS): (%.2f, %.2f, %.2f)", getJoint2Pose().inRobotSpace().getX(), getJoint2Pose().inRobotSpace().getY(), getJoint2Pose().inRobotSpace().getZ())
+        + String.format("\nJoint 3 Pos (RS): (%.2f, %.2f, %.2f)", getJoint3Pose().inRobotSpace().getX(), getJoint3Pose().inRobotSpace().getY(), getJoint3Pose().inRobotSpace().getZ())
+        + String.format("\nLinkage 1 CG (RS): (%.2f, %.2f, %.2f)", getLinkage1CG().inRobotSpace().getX(), getLinkage1CG().inRobotSpace().getY(), getLinkage1CG().inRobotSpace().getZ())
+        + String.format("\nLinkage 2 CG (RS): (%.2f, %.2f, %.2f)", getLinkage2CG().inRobotSpace().getX(), getLinkage2CG().inRobotSpace().getY(), getLinkage2CG().inRobotSpace().getZ())
+        + String.format("\nLinkage 3 CG (RS): (%.2f, %.2f, %.2f)", getLinkage3CG().inRobotSpace().getX(), getLinkage3CG().inRobotSpace().getY(), getLinkage3CG().inRobotSpace().getZ());
     }
 
     public static Positions.Pose3d combineCG(Positions.Pose3d cg1, Positions.Pose3d cg2, double mass1, double mass2) {
