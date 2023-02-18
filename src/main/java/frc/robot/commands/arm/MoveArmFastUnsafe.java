@@ -54,11 +54,11 @@ public class MoveArmFastUnsafe extends CommandBase {
     double thirdJointSpeedPercent = dThirdJoint / maxDelta;
     double wristSpeedPercent = dWrist / maxDelta;
 
-    arm.setTurretMotorPower(turretSpeedPercent * FAST_SPEED);
-    arm.setFirstJointMotorPower(firstJointSpeedPercent * FAST_SPEED);
-    arm.setSecondJointMotorPower(secondJointSpeedPercent * FAST_SPEED);
-    arm.setThirdJointMotorPower(thirdJointSpeedPercent * FAST_SPEED);
-    arm.setWristMotorPower(wristSpeedPercent * FAST_SPEED);
+    arm.setTurretMotorVoltage(turretSpeedPercent * FAST_SPEED);
+    arm.setJoint1MotorVoltage(firstJointSpeedPercent * FAST_SPEED);
+    arm.setJoint2MotorVoltage(secondJointSpeedPercent * FAST_SPEED);
+    arm.setJoint3MotorVoltage(thirdJointSpeedPercent * FAST_SPEED);
+    arm.setWristMotorVoltage(wristSpeedPercent * FAST_SPEED);
   }
 
   // Called every time the scheduler runs while the command is scheduled.
@@ -81,28 +81,28 @@ public class MoveArmFastUnsafe extends CommandBase {
     double wristSpeedPercent = dWrist / maxDelta;
 
     if (minDelta < CLOSE_DISTANCE) {
-      arm.setTurretMotorPower(turretSpeedPercent * SLOW_SPEED);
-      arm.setFirstJointMotorPower(firstJointSpeedPercent * SLOW_SPEED);
-      arm.setSecondJointMotorPower(secondJointSpeedPercent * SLOW_SPEED);
-      arm.setThirdJointMotorPower(thirdJointSpeedPercent * SLOW_SPEED);
-      arm.setWristMotorPower(wristSpeedPercent * SLOW_SPEED);
+      arm.setTurretMotorVoltage(turretSpeedPercent * SLOW_SPEED);
+      arm.setJoint1MotorVoltage(firstJointSpeedPercent * SLOW_SPEED);
+      arm.setJoint2MotorVoltage(secondJointSpeedPercent * SLOW_SPEED);
+      arm.setJoint3MotorVoltage(thirdJointSpeedPercent * SLOW_SPEED);
+      arm.setWristMotorVoltage(wristSpeedPercent * SLOW_SPEED);
     } else {
-      arm.setTurretMotorPower(turretSpeedPercent * FAST_SPEED);
-      arm.setFirstJointMotorPower(firstJointSpeedPercent * FAST_SPEED);
-      arm.setSecondJointMotorPower(secondJointSpeedPercent * FAST_SPEED);
-      arm.setThirdJointMotorPower(thirdJointSpeedPercent * FAST_SPEED);
-      arm.setWristMotorPower(wristSpeedPercent * FAST_SPEED);
+      arm.setTurretMotorVoltage(turretSpeedPercent * FAST_SPEED);
+      arm.setJoint1MotorVoltage(firstJointSpeedPercent * FAST_SPEED);
+      arm.setJoint2MotorVoltage(secondJointSpeedPercent * FAST_SPEED);
+      arm.setJoint3MotorVoltage(thirdJointSpeedPercent * FAST_SPEED);
+      arm.setWristMotorVoltage(wristSpeedPercent * FAST_SPEED);
     }
   }
 
   // Called once the command ends or is interrupted.
   @Override
   public void end(boolean interrupted) {
-    arm.setTurretMotorPower(0);
-    arm.setFirstJointMotorPower(0);
-    arm.setSecondJointMotorPower(0);
-    arm.setThirdJointMotorPower(0);
-    arm.setWristMotorPower(0);
+    arm.setTurretMotorVoltage(0);
+    arm.setJoint1MotorVoltage(0);
+    arm.setJoint2MotorVoltage(0);
+    arm.setJoint3MotorVoltage(0);
+    arm.setWristMotorVoltage(0);
   }
 
   // Returns true when the command should end.

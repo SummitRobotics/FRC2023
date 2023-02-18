@@ -68,6 +68,10 @@ ArmConfiguration(
     this.endPose = Positions.Pose3d.fromOtherSpace(endPose, Arm.ROBOT_TO_TURRET_BASE);
 }
 
+ArmConfiguration() {
+    this(0, 0, 0, 0, 0, POSITION_TYPE.ENCODER_ROTATIONS);
+}
+
 public static ArmConfiguration fromEndPosition(Positions.Pose3d endPose, double grabberAngleRadians, double wristRotationRadians) {
     Translation3d endPosition = endPose.inOtherSpace(Arm.ROBOT_TO_TURRET_BASE).getTranslation();
     // clamp grab angle

@@ -109,7 +109,7 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
     joint3PIDController = joint3Motor.getPIDController(),
     wristPIDController = wristMotor.getPIDController();
 
-  private FancyArmFeedForward
+  public static FancyArmFeedForward
     joint1FF = new FancyArmFeedForward(0,0,0,(ARM_LINKAGE_1_MASS + ARM_LINKAGE_2_MASS + ARM_LINKAGE_3_MASS) * KG_TO_NEWTONS,2.6),
     joint2FF = new FancyArmFeedForward(0,0,0,(ARM_LINKAGE_2_MASS + ARM_LINKAGE_3_MASS) * KG_TO_NEWTONS,2.6),
     joint3FF = new FancyArmFeedForward(0,0,0,(ARM_LINKAGE_3_MASS) * KG_TO_NEWTONS,0.97);
@@ -120,6 +120,8 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
     joint2Encoder = joint2Motor.getEncoder(),
     joint3Encoder = joint3Motor.getEncoder(),
     wirstEncoder = wristMotor.getEncoder();
+
+  private ArmConfiguration armConfiguration = new ArmConfiguration();
 
     // Seperate boolean to store clamp state because it is slow to get the state of the solenoid.
   private final Solenoid clampSolenoid = new Solenoid(PneumaticsModuleType.REVPH,Ports.Arm.CLAMP_SOLENOID);
@@ -171,48 +173,48 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
   }
 
   /**
-   * Sets the turret motor to the given speed.
+   * Sets the turret motor to the given voltage.
    * @param speed The speed to set the motor to.
    */
-  public void setTurretMotorPower(double power) {
-    power = Functions.clampDouble(power, 1, -1);
-    turretMotor.set(power);
+  public void setTurretMotorVoltage(double power) {
+    power = Functions.clampDouble(power, 12, -12);
+    turretMotor.setVoltage(power);
   }
 
   /**
-   * Sets the 1st joint's motor to the given speed.
+   * Sets the joint 1 motor to the given voltage.
    * @param speed The speed to set the motor to.
    */
-  public void setFirstJointMotorPower(double power) {
-    power = Functions.clampDouble(power, 1, -1);
-    joint1Motor.set(power);
+  public void setJoint1MotorVoltage(double power) {
+    power = Functions.clampDouble(power, 12, -12);
+    joint1Motor.setVoltage(power);
   }
 
   /**
-   * Sets the 2nd joint's motor to the given speed.
+   * Sets the joint 2 motor to the given voltage.
    * @param speed The speed to set the motor to.
    */
-  public void setSecondJointMotorPower(double power) {
-    power = Functions.clampDouble(power, 1, -1);
-    joint2Motor.set(power);
+  public void setJoint2MotorVoltage(double power) {
+    power = Functions.clampDouble(power, 12, -12);
+    joint2Motor.setVoltage(power);
   }
 
   /**
-   * Sets the 3rd joint's motor to the given speed.
+   * Sets the joint 3 motor to the given voltage.
    * @param speed The speed to set the motor to.
    */
-  public void setThirdJointMotorPower(double power) {
-    power = Functions.clampDouble(power, 1, -1);
-    joint3Motor.set(power);
+  public void setJoint3MotorVoltage(double power) {
+    power = Functions.clampDouble(power, 12, -12);
+    joint3Motor.setVoltage(power);
   }
 
   /**
-   * Sets the wrist motor to the given speed.
+   * Sets the wrist motor to the given voltage.
    * @param speed The speed to set the motor to.
    */
-  public void setWristMotorPower(double power) {
-    power = Functions.clampDouble(power, 1, -1);
-    wristMotor.set(power);
+  public void setWristMotorVoltage(double power) {
+    power = Functions.clampDouble(power, 12, -12);
+    wristMotor.setVoltage(power);
   }
 
   /**
@@ -300,14 +302,7 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
    * @return The current configuration of the arm.
    */
   public ArmConfiguration getCurrentArmConfiguration() {
-    return new ArmConfiguration(
-      getTurretEncoderPosition(),
-      getFirstJointEncoderPosition(),
-      getSecondJointEncoderPosition(),
-      getThirdJointEncoderPosition(),
-      getWristEncoderPosition(),
-      POSITION_TYPE.ENCODER_ROTATIONS
-    );
+    return armConfiguration;
   }
 
   /**
@@ -387,6 +382,13 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
     builder.addDoubleProperty("secondJointEncoder", this::getSecondJointEncoderPosition, null);
     builder.addDoubleProperty("thirdJointEncoder", this::getThirdJointEncoderPosition, null);
     builder.addDoubleProperty("wristEncoder", this::getWristEncoderPosition, null);
+
+    builder.addDoubleProperty("turretAngle", () -> this.getCurrentArmConfiguration().getTurretPosition(POSITION_TYPE.ANGLE), null);
+    builder.addDoubleProperty("firstJointAngle", () -> this.getCurrentArmConfiguration().getFirstJointPosition(POSITION_TYPE.ANGLE), null);
+    builder.addDoubleProperty("secondJointAngle", () -> this.getCurrentArmConfiguration().getSecondJointPosition(POSITION_TYPE.ANGLE), null);
+    builder.addDoubleProperty("thirdJointAngle", () -> this.getCurrentArmConfiguration().getThirdJointPosition(POSITION_TYPE.ANGLE), null);
+    builder.addDoubleProperty("wristAngle", () -> this.getCurrentArmConfiguration().getWristPosition(POSITION_TYPE.ANGLE), null);
+
   }
 
   @Override
@@ -411,5 +413,18 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
     out.put("Arm Configuration", getCurrentArmConfiguration()::toString);
     out.put("Grabber Clamp", () -> clampSolenoidState ? "Open" : "Closed");
     return out;
+  }
+
+  @Override
+  public void periodic() {
+    this.armConfiguration = 
+      new ArmConfiguration(
+        getTurretEncoderPosition(),
+        getFirstJointEncoderPosition(),
+        getSecondJointEncoderPosition(),
+        getThirdJointEncoderPosition(),
+        getWristEncoderPosition(),
+        POSITION_TYPE.ENCODER_ROTATIONS
+      );
   }
 }
