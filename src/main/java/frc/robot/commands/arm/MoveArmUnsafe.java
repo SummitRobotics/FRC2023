@@ -5,17 +5,18 @@
 package frc.robot.commands.arm;
 
 import edu.wpi.first.wpilibj2.command.CommandBase;
-import frc.robot.subsystems.Arm;
+import frc.robot.subsystems.arm.Arm;
+import frc.robot.subsystems.arm.ArmConfiguration;
 import frc.robot.utilities.Positions;
 
 public class MoveArmUnsafe extends CommandBase {
 
   private final Arm arm;
-  private final Arm.ArmConfiguration armConfiguration;
+  private final ArmConfiguration armConfiguration;
 
   public MoveArmUnsafe(Arm arm, Positions.Pose3d endPosition, double grabberAngleRadians, double wristRotationRadians) {
     this.arm = arm;
-    this.armConfiguration = Arm.ArmConfiguration.fromEndPosition(endPosition, grabberAngleRadians, wristRotationRadians);
+    this.armConfiguration = ArmConfiguration.fromEndPosition(endPosition, grabberAngleRadians, wristRotationRadians);
     addRequirements(arm);
   }
 

@@ -56,9 +56,4 @@ public class ChargeStationBalance extends CommandBase {
     public void end(final boolean interrupted) {
         drivetrain.stop();
     }
-
-    @Override
-    public boolean isFinished() {
-        return false;
-    }
 }

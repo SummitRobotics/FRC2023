@@ -4,36 +4,57 @@
 
 package frc.robot;
 
+import com.kauailabs.navx.frc.AHRS;
+
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
-import frc.robot.commands.Home;
-import frc.robot.subsystems.Intake;
+import frc.robot.commands.LogComponents;
+import frc.robot.subsystems.Drivetrain;
+import frc.robot.subsystems.arm.Arm;
 
 public class RobotContainer {
 
   private CommandScheduler scheduler;
   private Command teleopInit;
 
-  private Intake intake;
+  // Devices
+  private AHRS navx;
+
+  // Subsystems
+  private Drivetrain drivetrain;
+  private Arm arm;
 
   public RobotContainer() {
-
     scheduler = CommandScheduler.getInstance();
 
-    intake = new Intake();
+    // Devices.
+    navx = new AHRS();
 
-    teleopInit = new SequentialCommandGroup(
-      new Home(intake),
-      new InstantCommand(() -> intake.lock())
-    );
+    // Sybsystems
+    drivetrain = Drivetrain.init(navx, new Pose2d());
+    arm = new Arm();
 
+    // Configure the bindings
     configureBindings();
+
+    // Init Logging and Telemetry
+    initLogging();
+    initTelemetry();
   }
 
   private void configureBindings() {}
+
+  private void initLogging() {
+    scheduler.schedule(new LogComponents(drivetrain, arm));
+  }
+
+  private void initTelemetry() {
+    Shuffleboard.getTab("Telemetry").add(arm);
+    Shuffleboard.getTab("Telemetry").add(drivetrain);
+  }
 
   public Command getAutonomousCommand() {
     return Commands.print("No autonomous command configured");

@@ -5,9 +5,9 @@
 package frc.robot.commands.arm;
 
 import edu.wpi.first.wpilibj2.command.CommandBase;
-import frc.robot.subsystems.Arm;
-import frc.robot.subsystems.Arm.ArmConfiguration;
-import frc.robot.subsystems.Arm.ArmConfiguration.POSITION_TYPE;
+import frc.robot.subsystems.arm.Arm;
+import frc.robot.subsystems.arm.ArmConfiguration;
+import frc.robot.subsystems.arm.ArmConfiguration.POSITION_TYPE;
 import frc.robot.utilities.Positions;
 
 public class MoveArmFastUnsafe extends CommandBase {
@@ -23,7 +23,7 @@ public class MoveArmFastUnsafe extends CommandBase {
 
   public MoveArmFastUnsafe(Arm arm, Positions.Pose3d endPosition, double grabberAngleRadians, double wristRotationRadians) {
     this.arm = arm;
-    this.endConfiguration = Arm.ArmConfiguration.fromEndPosition(endPosition, grabberAngleRadians, wristRotationRadians);
+    this.endConfiguration = ArmConfiguration.fromEndPosition(endPosition, grabberAngleRadians, wristRotationRadians);
 
     addRequirements(arm);
   }
@@ -54,17 +54,17 @@ public class MoveArmFastUnsafe extends CommandBase {
     double thirdJointSpeedPercent = dThirdJoint / maxDelta;
     double wristSpeedPercent = dWrist / maxDelta;
 
-    arm.setTurretMotorPowerRateLimited(turretSpeedPercent * FAST_SPEED);
-    arm.setFirstJointMotorPowerRateLimited(firstJointSpeedPercent * FAST_SPEED);
-    arm.setSecondJointMotorPowerRateLimited(secondJointSpeedPercent * FAST_SPEED);
-    arm.setThirdJointMotorPowerRateLimited(thirdJointSpeedPercent * FAST_SPEED);
-    arm.setWristMotorPowerRateLimited(wristSpeedPercent * FAST_SPEED);
+    arm.setTurretMotorVoltage(turretSpeedPercent * FAST_SPEED);
+    arm.setJoint1MotorVoltage(firstJointSpeedPercent * FAST_SPEED);
+    arm.setJoint2MotorVoltage(secondJointSpeedPercent * FAST_SPEED);
+    arm.setJoint3MotorVoltage(thirdJointSpeedPercent * FAST_SPEED);
+    arm.setWristMotorVoltage(wristSpeedPercent * FAST_SPEED);
   }
 
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    Arm.ArmConfiguration currentConfiguration = arm.getCurrentArmConfiguration();
+    ArmConfiguration currentConfiguration = arm.getCurrentArmConfiguration();
     double dTurret = endConfiguration.getTurretPosition(POSITION_TYPE.ENCODER_ROTATIONS) - currentConfiguration.getTurretPosition(POSITION_TYPE.ENCODER_ROTATIONS);
     double dFirstJoint = endConfiguration.getFirstJointPosition(POSITION_TYPE.ENCODER_ROTATIONS) - currentConfiguration.getFirstJointPosition(POSITION_TYPE.ENCODER_ROTATIONS);
     double dSecondJoint = endConfiguration.getSecondJointPosition(POSITION_TYPE.ENCODER_ROTATIONS) - currentConfiguration.getSecondJointPosition(POSITION_TYPE.ENCODER_ROTATIONS);
@@ -81,34 +81,34 @@ public class MoveArmFastUnsafe extends CommandBase {
     double wristSpeedPercent = dWrist / maxDelta;
 
     if (minDelta < CLOSE_DISTANCE) {
-      arm.setTurretMotorPowerRateLimited(turretSpeedPercent * SLOW_SPEED);
-      arm.setFirstJointMotorPowerRateLimited(firstJointSpeedPercent * SLOW_SPEED);
-      arm.setSecondJointMotorPowerRateLimited(secondJointSpeedPercent * SLOW_SPEED);
-      arm.setThirdJointMotorPowerRateLimited(thirdJointSpeedPercent * SLOW_SPEED);
-      arm.setWristMotorPowerRateLimited(wristSpeedPercent * SLOW_SPEED);
+      arm.setTurretMotorVoltage(turretSpeedPercent * SLOW_SPEED);
+      arm.setJoint1MotorVoltage(firstJointSpeedPercent * SLOW_SPEED);
+      arm.setJoint2MotorVoltage(secondJointSpeedPercent * SLOW_SPEED);
+      arm.setJoint3MotorVoltage(thirdJointSpeedPercent * SLOW_SPEED);
+      arm.setWristMotorVoltage(wristSpeedPercent * SLOW_SPEED);
     } else {
-      arm.setTurretMotorPowerRateLimited(turretSpeedPercent * FAST_SPEED);
-      arm.setFirstJointMotorPowerRateLimited(firstJointSpeedPercent * FAST_SPEED);
-      arm.setSecondJointMotorPowerRateLimited(secondJointSpeedPercent * FAST_SPEED);
-      arm.setThirdJointMotorPowerRateLimited(thirdJointSpeedPercent * FAST_SPEED);
-      arm.setWristMotorPowerRateLimited(wristSpeedPercent * FAST_SPEED);
+      arm.setTurretMotorVoltage(turretSpeedPercent * FAST_SPEED);
+      arm.setJoint1MotorVoltage(firstJointSpeedPercent * FAST_SPEED);
+      arm.setJoint2MotorVoltage(secondJointSpeedPercent * FAST_SPEED);
+      arm.setJoint3MotorVoltage(thirdJointSpeedPercent * FAST_SPEED);
+      arm.setWristMotorVoltage(wristSpeedPercent * FAST_SPEED);
     }
   }
 
   // Called once the command ends or is interrupted.
   @Override
   public void end(boolean interrupted) {
-    arm.setTurretMotorPower(0);
-    arm.setFirstJointMotorPower(0);
-    arm.setSecondJointMotorPower(0);
-    arm.setThirdJointMotorPower(0);
-    arm.setWristMotorPower(0);
+    arm.setTurretMotorVoltage(0);
+    arm.setJoint1MotorVoltage(0);
+    arm.setJoint2MotorVoltage(0);
+    arm.setJoint3MotorVoltage(0);
+    arm.setWristMotorVoltage(0);
   }
 
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    Arm.ArmConfiguration currentConfiguration = arm.getCurrentArmConfiguration();
+    ArmConfiguration currentConfiguration = arm.getCurrentArmConfiguration();
     double dTurret = endConfiguration.getTurretPosition(POSITION_TYPE.ENCODER_ROTATIONS) - currentConfiguration.getTurretPosition(POSITION_TYPE.ENCODER_ROTATIONS);
     double dFirstJoint = endConfiguration.getFirstJointPosition(POSITION_TYPE.ENCODER_ROTATIONS) - currentConfiguration.getFirstJointPosition(POSITION_TYPE.ENCODER_ROTATIONS);
     double dSecondJoint = endConfiguration.getSecondJointPosition(POSITION_TYPE.ENCODER_ROTATIONS) - currentConfiguration.getSecondJointPosition(POSITION_TYPE.ENCODER_ROTATIONS);
