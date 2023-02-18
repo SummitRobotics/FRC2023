@@ -68,9 +68,8 @@ public class Robot extends TimedRobot {
   @Override
   public void testInit() {
     CommandScheduler.getInstance().cancelAll();
-    System.out.println(Arm.ArmConfiguration.fromEndPosition(Positions.Pose3d.fromRobotSpace(new Translation3d(1, 0.6, 0)), 0, 0));
+    System.out.println(Arm.ArmConfiguration.fromEndPosition(Positions.Pose3d.fromRobotSpace(new Translation3d(0.6, 0.2, 0.4)), 0, 0));
   }
-
   @Override
   public void testPeriodic() {}
 
