@@ -1,14 +1,15 @@
-import * as THREE from 'three'
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
-import { GUI } from 'dat.gui'
+import * as THREE from 'three';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import { GUI } from 'dat.gui';
+
+declare const window: any;
 
 /* TODO
 * [ ] move definitions of primitives to a table/object
-* [ ] check this into git
-* [ ] get network tables working
-* [ ] get encoder to angle going
-* [ ] add simulation (limit encoder / second)
-* [ ] hookup a joystick 
+* [ ] generic binding to ncclient keys
+* [ ] add field rendering
+* [ ] get build flow improved
+* [ ] update readme
 */
 
 const inchesToMeters = (inches: number) => {
@@ -53,7 +54,7 @@ const createBox = (width: number, height: number, depth: number, options: any = 
 
 const createCylinder = (radius: number, height: number, options: any = {}) => {
     const cylinder = new THREE.CylinderGeometry(radius, radius, height, options.segments ?? 20);
-    return finalizeObject(cylinder, options); 
+    return finalizeObject(cylinder, options);
 }
 
 /**
@@ -103,7 +104,7 @@ arm2.add(arm3);
 
 // Create GUI for viewing/tweaking values
 const gui = new GUI();
-gui.close();    
+gui.close();
 
 const baseFolder = gui.addFolder('Base');
 baseFolder.add(base.rotation, 'y', -Math.PI, Math.PI, 0.01).name('Rotation');
@@ -125,6 +126,17 @@ const arm3Folder = gui.addFolder('Arm3');
 arm3Folder.add(arm3.rotation, 'z', -Math.PI, Math.PI, 0.01).name('Angle');
 arm3Folder.open();
 
+const updateGuiControllers = () => {
+    // Force update of all GUI controllers
+    for (let i = 0; i < Object.keys(gui.__folders).length; i++) {
+        const key = Object.keys(gui.__folders)[i];
+        for (let j = 0; j < gui.__folders[key].__controllers.length; j++) {
+            gui.__folders[key].__controllers[j].updateDisplay();
+        }
+    }
+};
+
+let resetCount = 0;
 const controller = {
     reset: () => {
         base.rotation.y = 0;
@@ -132,15 +144,25 @@ const controller = {
         arm1.rotation.z = 0;
         arm2.rotation.z = 0;
         arm3.rotation.z = 0;
-        // Force update of all GUI controllers
-        for (let i = 0; i < Object.keys(gui.__folders).length; i++) {
-            const key = Object.keys(gui.__folders)[i];
-            for (let j = 0; j < gui.__folders[key].__controllers.length; j++) {
-                gui.__folders[key].__controllers[j].updateDisplay();
-            }
-        }
+        updateGuiControllers();
+
+        // Send to main/ntClient (example)
+        window.electronAPI.set('resetCount', resetCount++);
     },
 };
+
+// Configure interprocess hooks
+window.electronAPI.onUpdate((_: any, key: string, value: any, valueType: string, type: string, id: number, flags: number) => {
+    // TODO: Get proper keys and bind to appropriate controls
+    if (key === '/FMSInfo/MatchType') {
+        turret.rotation.y = degToRad(value * 10);
+        arm1.rotation.z = degToRad(value * 10);
+        arm2.rotation.z = degToRad(value * 10);
+        arm3.rotation.z = degToRad(value * 10);
+        updateGuiControllers();
+    }
+    console.log(`update: ${key} - ${value} - ${valueType} - ${type} - ${id} - ${flags}`);
+});
 
 const actionsFolder = gui.addFolder('Actions');
 actionsFolder.add(controller, 'reset').name('Reset');
