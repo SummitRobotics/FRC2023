@@ -26,35 +26,36 @@ public class CommunityDropOff extends SequentialCommandGroup {
         final int value = Integer.parseInt(NetworkTableInstance.getDefault()
             .getTable("stationSelector").getEntry("id").getString("00"));
 
-        // encoding: first digit is y, second is x, 11 is top left, 00 means nothing is selected
-        final int xCoordIndex = value % 10;
-        final int yCoordIndex = value - value % 10;
+        // Encoding: first digit is x, second is y, 11 is top left from driver's perspective.
+        // 00 means nothing is selected or we couldn't read the table data.
+        final int xCoordIndex = value - value % 10;
+        final int yCoordIndex = value % 10;
 
-        final Translation3d gamePiece;
+        final Translation3d node;
         final Pose2d drivePoint;
 
-        // yCoordIndex is used for z value because height depends on y
+        // xCoordIndex is used for z value because height depends on x
         if (DriverStation.getAlliance() == Alliance.Blue) {
-            gamePiece = new Translation3d(
+            node = new Translation3d(
                 FieldElementPositions.BLUE_X_VALUES[xCoordIndex - 1],
                 FieldElementPositions.BLUE_Y_VALUES[yCoordIndex - 1],
-                FieldElementPositions.BOTH_Z_VALUES[yCoordIndex - 1]
+                FieldElementPositions.BLUE_Z_VALUES[xCoordIndex - 1]
             );
             drivePoint = new Pose2d(
-                FieldElementPositions.BLUE_X_VALUES[xCoordIndex - 1] - 0.6,
-                FieldElementPositions.BLUE_Y_VALUES[yCoordIndex - 1] - 0.6,
-                new Rotation2d(4, 0)
+                FieldElementPositions.BLUE_X_VALUES[xCoordIndex - 1] + 0.6,
+                FieldElementPositions.BLUE_Y_VALUES[yCoordIndex - 1],
+                new Rotation2d(-4, 0)
             );
         } else {
-            gamePiece = new Translation3d(
+            node = new Translation3d(
                 FieldElementPositions.RED_X_VALUES[xCoordIndex - 1],
                 FieldElementPositions.RED_Y_VALUES[yCoordIndex - 1],
-                FieldElementPositions.BOTH_Z_VALUES[yCoordIndex - 1]
+                FieldElementPositions.RED_Z_VALUES[xCoordIndex - 1]
             );
             drivePoint = new Pose2d(
-                FieldElementPositions.RED_X_VALUES[xCoordIndex - 1] + 0.6,
-                FieldElementPositions.RED_Y_VALUES[yCoordIndex - 1] + 0.6,
-                new Rotation2d(-4, 0)
+                FieldElementPositions.RED_X_VALUES[xCoordIndex - 1] - 0.6,
+                FieldElementPositions.RED_Y_VALUES[yCoordIndex - 1],
+                new Rotation2d(4, 0)
             );
         }
 
@@ -73,8 +74,8 @@ public class CommunityDropOff extends SequentialCommandGroup {
                 new MoveArm(
                     arm,
                     Positions.Pose3d.fromFieldSpace(
-                        gamePiece,
-                        new Pose3d(
+                        node,
+                        new Pose3d( // drivetrain pose in 3d
                             drivetrain.getPose().getX(),
                             drivetrain.getPose().getY(),
                             0,

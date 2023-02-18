@@ -5,41 +5,46 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 
 public final class FieldElementPositions {
-    // we only use the double substation
+
+    // values of game elements placed at double substations
     public static final Translation3d
-        BLUE_LEFT_GAME_PIECE = new Translation3d(16.38457, 7.32554, 1.07),
-        BLUE_RIGHT_GAME_PIECE = new Translation3d(16.38457, 6.21234, 1.07),
-        RED_LEFT_GAME_PIECE = new Translation3d(0.15288, 6.13712, 1.07),
-        RED_RIGHT_GAME_PIECE = new Translation3d(0.15288, 7.47597, 1.07);
-    
+        BLUE_LEFT_SUBSTATION = new Translation3d(15.95, 7.34, 1.07),
+        BLUE_RIGHT_SUBSTATION = new Translation3d(15.95, 5.99, 1.07),
+        RED_LEFT_SUBSTATION = new Translation3d(0.55, 6.14, 1.07),
+        RED_RIGHT_SUBSTATION = new Translation3d(0.55, 7.47, 1.07);
+
+    // points to drive to for accessing double substation
     public static final Pose2d
         BLUE_LEFT_DRIVE_POINT = new Pose2d(
-            BLUE_LEFT_GAME_PIECE.getX() - 0.6,
-            BLUE_LEFT_GAME_PIECE.getY(),
+            BLUE_LEFT_SUBSTATION.getX() - 0.6,
+            BLUE_LEFT_SUBSTATION.getY(),
             new Rotation2d(4, 0)
         ),
         BLUE_RIGHT_DRIVE_POINT = new Pose2d(
-            BLUE_RIGHT_GAME_PIECE.getX() - 0.6,
-            BLUE_RIGHT_GAME_PIECE.getY(),
+            BLUE_RIGHT_SUBSTATION.getX() - 0.6,
+            BLUE_RIGHT_SUBSTATION.getY(),
             new Rotation2d(4, 0)
         ),
         RED_LEFT_DRIVE_POINT = new Pose2d(
-            RED_LEFT_GAME_PIECE.getX() + 0.6,
-            RED_LEFT_GAME_PIECE.getY(),
+            RED_LEFT_SUBSTATION.getX() + 0.6,
+            RED_LEFT_SUBSTATION.getY(),
             new Rotation2d(-4, 0)
         ),
         RED_RIGHT_DRIVE_POINT = new Pose2d(
-            RED_RIGHT_GAME_PIECE.getX() + 0.6,
-            RED_RIGHT_GAME_PIECE.getY(),
+            RED_RIGHT_SUBSTATION.getX() + 0.6,
+            RED_RIGHT_SUBSTATION.getY(),
             new Rotation2d(-4, 0)
         );
-
+    
     public static final double[]
-        // For indices to work properly: lowest to highest x, highest to lowest y for blue
-        // highest to lowest x, lowest to highest y for red
-        BLUE_X_VALUES = {0.42068, 1.0525, 1.63919, 2.1657, 2.73734, 3.29394, 3.8355, 4.40715, 5.05401},
-        BLUE_Y_VALUES = {1.16078, 0.7847, 0.36348},
-        RED_X_VALUES = {5.02392, 4.42219, 3.82046, 3.29394, 2.69221, 2.1657, 1.6091, 1.0525, 0.42068},
-        RED_Y_VALUES = {15.36162, 15.70762, 16.20405},
-        BOTH_Z_VALUES = {0, 1, 1.2954};
+        // Arrays to calculate coordinates of nodes.
+        // Ordering is important here to correctly convert from node id to coordinates.
+        // Blue x and y coordinates increase from low to high numbering, red x and y decrease.
+        // Z coordinates increase with numbering for blue, decrease for red.
+        BLUE_X_VALUES = {1.15, 0.81, 0.37},
+        BLUE_Y_VALUES = {4.98, 4.42, 3.86, 3.3, 2.75, 2.19, 1.62, 1.06, 0.51},
+        BLUE_Z_VALUES = {0, 1, 1.3},
+        RED_X_VALUES = {15.38, 15.73, 16.18},
+        RED_Y_VALUES = {0.51, 1.06, 1.62, 2.19, 2.75, 3.3, 3.86, 4.42, 4.98},
+        RED_Z_VALUES = {1.3, 1, 0};
 }

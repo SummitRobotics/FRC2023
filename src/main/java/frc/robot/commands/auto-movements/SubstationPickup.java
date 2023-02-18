@@ -25,24 +25,24 @@ public class SubstationPickup extends SequentialCommandGroup {
 
     public SubstationPickup(Drivetrain drivetrain, Arm arm, Side side) {
 
+        final Translation3d substation;
         final Pose2d drivePoint;
-        final Translation3d gamePiece;
 
         if (DriverStation.getAlliance() == Alliance.Blue) {
             if (side == Side.Left) {
+                substation = FieldElementPositions.BLUE_LEFT_SUBSTATION;
                 drivePoint = FieldElementPositions.BLUE_LEFT_DRIVE_POINT;
-                gamePiece = FieldElementPositions.BLUE_LEFT_GAME_PIECE;
             } else {
+                substation = FieldElementPositions.BLUE_RIGHT_SUBSTATION;
                 drivePoint = FieldElementPositions.BLUE_RIGHT_DRIVE_POINT;
-                gamePiece = FieldElementPositions.BLUE_RIGHT_GAME_PIECE;
             }
         } else {
             if (side == Side.Left) {
+                substation = FieldElementPositions.RED_LEFT_SUBSTATION;
                 drivePoint = FieldElementPositions.RED_LEFT_DRIVE_POINT;
-                gamePiece = FieldElementPositions.RED_LEFT_GAME_PIECE;
             } else {
+                substation = FieldElementPositions.RED_RIGHT_SUBSTATION;
                 drivePoint = FieldElementPositions.RED_RIGHT_DRIVE_POINT;
-                gamePiece = FieldElementPositions.RED_RIGHT_GAME_PIECE;
             }
         }
 
@@ -61,8 +61,8 @@ public class SubstationPickup extends SequentialCommandGroup {
             new MoveArm(
                 arm,
                 Positions.Pose3d.fromFieldSpace(
-                    gamePiece,
-                    new Pose3d(
+                    substation,
+                    new Pose3d( // drivetrain pose in 3d
                         drivetrain.getPose().getX(),
                         drivetrain.getPose().getY(),
                         0,
