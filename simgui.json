@@ -2,12 +2,32 @@
   "NTProvider": {
     "types": {
       "/FMSInfo": "FMSInfo",
-      "/LiveWindow/Ungrouped/Scheduler": "Scheduler"
+      "/LiveWindow/Ungrouped/Scheduler": "Scheduler",
+      "/SmartDashboard/Field": "Field2d"
     }
   },
   "NetworkTables": {
     "Persistent Values": {
       "open": false
+    },
+    "transitory": {
+      "Shuffleboard": {
+        "Telemetry": {
+          "Arm": {
+            "open": true
+          },
+          "open": true
+        }
+      },
+      "SmartDashboard": {
+        "Arm": {
+          "open": true
+        },
+        "Field": {
+          "open": true
+        },
+        "open": true
+      }
     }
   }
 }

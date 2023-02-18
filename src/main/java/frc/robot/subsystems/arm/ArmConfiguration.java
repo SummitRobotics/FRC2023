@@ -45,7 +45,6 @@ ArmConfiguration(
     double wristPosition,
     POSITION_TYPE positionType
     ) {
-    System.out.println(String.format("Turret: %f, First Joint: %f, Second Joint: %f, Third Joint: %f, Wrist: %f", turretPosition, firstJointPosition, secondJointPosition, thirdJointPosition, wristPosition));
     if (positionType == POSITION_TYPE.ENCODER_ROTATIONS) {
     this.turretPositionRotations = turretPosition;
     this.firstJointPositionRotations = firstJointPosition;
@@ -315,6 +314,14 @@ public String toString() {
     + "\nSecond Joint Angle (deg): " + Math.toDegrees(getSecondJointPosition(POSITION_TYPE.ANGLE))
     + "\nThird Joint Angle (deg): " + Math.toDegrees(getThirdJointPosition(POSITION_TYPE.ANGLE))
     + "\nWrist Angle (deg): " + Math.toDegrees(getWristPosition(POSITION_TYPE.ANGLE))
+    + "\n Turret Instantaneous Gear Ratio" + getTurretGearRatio()
+    + "\n First Joint Instantaneous Gear Ratio" + getFirstJointGearRatio()
+    + "\n Second Joint Instantaneous Gear Ratio" + getSecondJointGearRatio()
+    + "\n Third Joint Instantaneous Gear Ratio" + getThirdJointGearRatio()
+    + "\n Wrist Instantaneous Gear Ratio" + getWristGearRatio()
+    + "\n First Joint FF Data: " + getJoint1FFData()
+    + "\n Second Joint FF Data: " + getJoint2FFData()
+    + "\n Third Joint FF Data: " + getJoint3FFData()
     + String.format("\nPosition (RS): (%.2f, %.2f, %.2f)", endPose.inRobotSpace().getX(), endPose.inRobotSpace().getY(), endPose.inRobotSpace().getZ())
     + String.format("\nJoint 1 Pos (RS): (%.2f, %.2f, %.2f)", getJoint1Pose().inRobotSpace().getX(), getJoint1Pose().inRobotSpace().getY(), getJoint1Pose().inRobotSpace().getZ())
     + String.format("\nJoint 2 Pos (RS): (%.2f, %.2f, %.2f)", getJoint2Pose().inRobotSpace().getX(), getJoint2Pose().inRobotSpace().getY(), getJoint2Pose().inRobotSpace().getZ())

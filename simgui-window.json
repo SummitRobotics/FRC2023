@@ -10,6 +10,13 @@
       "ypos": "60"
     }
   },
+  "Table": {
+    "0x542B5671,2": {
+      "Column 0  Width": "525",
+      "Column 1  Width": "734",
+      "RefScale": "25"
+    }
+  },
   "Window": {
     "###FMS": {
       "Collapsed": "0",
@@ -23,8 +30,8 @@
     },
     "###NetworkTables": {
       "Collapsed": "0",
-      "Pos": "500,554",
-      "Size": "1500,370"
+      "Pos": "366,399",
+      "Size": "1500,847"
     },
     "###Other Devices": {
       "Collapsed": "0",
@@ -39,7 +46,7 @@
     "###Timing": {
       "Collapsed": "0",
       "Pos": "10,300",
-      "Size": "241,187"
+      "Size": "241,222"
     },
     "Debug##Default": {
       "Collapsed": "0",
