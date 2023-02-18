@@ -8,7 +8,7 @@ import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import frc.robot.subsystems.Arm;
+import frc.robot.subsystems.arm.ArmConfiguration;
 import frc.robot.utilities.Positions;
 
 public class Robot extends TimedRobot {
@@ -68,7 +68,7 @@ public class Robot extends TimedRobot {
   @Override
   public void testInit() {
     CommandScheduler.getInstance().cancelAll();
-    System.out.println(Arm.ArmConfiguration.fromEndPosition(Positions.Pose3d.fromRobotSpace(new Translation3d(0.6, 0.2, 0.4)), 0, 0));
+    System.out.println(ArmConfiguration.fromEndPosition(Positions.Pose3d.fromRobotSpace(new Translation3d(0.6, 0.2, 0.4)), 0, 0));
   }
   @Override
   public void testPeriodic() {}

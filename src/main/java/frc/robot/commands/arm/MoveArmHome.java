@@ -6,7 +6,7 @@ package frc.robot.commands.arm;
 
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
-import frc.robot.subsystems.Arm;
+import frc.robot.subsystems.arm.Arm;
 import frc.robot.utilities.Positions;
 
 public class MoveArmHome extends SequentialCommandGroup {

@@ -6,9 +6,9 @@ import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.oi.drivers.ControllerDriver;
 import frc.robot.oi.inputs.OIAxis.PrioritizedAxis;
 import frc.robot.oi.inputs.OITrigger.PrioritizedTrigger;
-import frc.robot.subsystems.Arm;
-import frc.robot.subsystems.Arm.ArmConfiguration;
-import frc.robot.subsystems.Arm.ArmConfiguration.POSITION_TYPE;
+import frc.robot.subsystems.arm.Arm;
+import frc.robot.subsystems.arm.ArmConfiguration;
+import frc.robot.subsystems.arm.ArmConfiguration.POSITION_TYPE;
 import frc.robot.utilities.Positions;
 import frc.robot.utilities.lists.AxisPriorities;
 
