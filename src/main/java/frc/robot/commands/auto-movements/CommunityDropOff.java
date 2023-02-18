@@ -34,32 +34,32 @@ public class CommunityDropOff extends SequentialCommandGroup {
         final Translation3d node;
         final Pose2d drivePoint;
 
-        // xCoordIndex is used for z value because height depends on x
-        if (DriverStation.getAlliance() == Alliance.Blue) {
-            node = new Translation3d(
-                FieldElementPositions.BLUE_X_VALUES[xCoordIndex - 1],
-                FieldElementPositions.BLUE_Y_VALUES[yCoordIndex - 1],
-                FieldElementPositions.BLUE_Z_VALUES[xCoordIndex - 1]
-            );
-            drivePoint = new Pose2d(
-                FieldElementPositions.BLUE_X_VALUES[xCoordIndex - 1] + 0.6,
-                FieldElementPositions.BLUE_Y_VALUES[yCoordIndex - 1],
-                new Rotation2d(-4, 0)
-            );
-        } else {
-            node = new Translation3d(
-                FieldElementPositions.RED_X_VALUES[xCoordIndex - 1],
-                FieldElementPositions.RED_Y_VALUES[yCoordIndex - 1],
-                FieldElementPositions.RED_Z_VALUES[xCoordIndex - 1]
-            );
-            drivePoint = new Pose2d(
-                FieldElementPositions.RED_X_VALUES[xCoordIndex - 1] - 0.6,
-                FieldElementPositions.RED_Y_VALUES[yCoordIndex - 1],
-                new Rotation2d(4, 0)
-            );
-        }
-
         if (xCoordIndex != 0 && yCoordIndex != 0) {
+            // xCoordIndex is used for z value because height depends on x
+            if (DriverStation.getAlliance() == Alliance.Blue) {
+                node = new Translation3d(
+                    FieldElementPositions.BLUE_X_VALUES[xCoordIndex - 1],
+                    FieldElementPositions.BLUE_Y_VALUES[yCoordIndex - 1],
+                    FieldElementPositions.BLUE_Z_VALUES[xCoordIndex - 1]
+                );
+                drivePoint = new Pose2d(
+                    FieldElementPositions.BLUE_X_VALUES[xCoordIndex - 1] + 0.6,
+                    FieldElementPositions.BLUE_Y_VALUES[yCoordIndex - 1],
+                    new Rotation2d(-4, 0)
+                );
+            } else {
+                node = new Translation3d(
+                    FieldElementPositions.RED_X_VALUES[xCoordIndex - 1],
+                    FieldElementPositions.RED_Y_VALUES[yCoordIndex - 1],
+                    FieldElementPositions.RED_Z_VALUES[xCoordIndex - 1]
+                );
+                drivePoint = new Pose2d(
+                    FieldElementPositions.RED_X_VALUES[xCoordIndex - 1] - 0.6,
+                    FieldElementPositions.RED_Y_VALUES[yCoordIndex - 1],
+                    new Rotation2d(4, 0)
+                );
+            }
+
             addCommands(
                 new MoveArmHome(arm),
                 new InstantCommand(() -> drivetrain.highGear()),
