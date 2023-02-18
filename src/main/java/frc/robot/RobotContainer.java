@@ -37,11 +37,11 @@ public class RobotContainer {
   private LaunchpadDriver launchpad;
 
   private Command teleopInit;
-  private ArcadeDrive arcadeDrive;
-  private Drivetrain drivetrain;
+  // private ArcadeDrive arcadeDrive;
+  // private Drivetrain drivetrain;
   private Arm arm;
   
-  private AHRS navx;
+  // private AHRS navx;
 
   public RobotContainer() {
     scheduler = CommandScheduler.getInstance();
@@ -53,20 +53,20 @@ public class RobotContainer {
     launchpad = new LaunchpadDriver(Ports.OI.LAUNCHPAD_PORT);
 
     // Devices
-    navx = new AHRS();
+    // navx = new AHRS();
 
     // Subsystems
-    drivetrain = Drivetrain.init(navx, new Pose2d());
+    // drivetrain = Drivetrain.init(navx, new Pose2d());
     arm = new Arm();
     
     // Commands
-    arcadeDrive = new ArcadeDrive(
-      drivetrain,
-      driverXBox.rightTrigger,
-      driverXBox.leftTrigger,
-      driverXBox.leftX,
-      driverXBox.dPadAny
-    );
+    // arcadeDrive = new ArcadeDrive(
+    //   drivetrain,
+    //   driverXBox.rightTrigger,
+    //   driverXBox.leftTrigger,
+    //   driverXBox.leftX,
+    //   driverXBox.dPadAny
+    // );
 
     setDefaultCommands();
 
@@ -79,10 +79,10 @@ public class RobotContainer {
   }
 
   private void configureBindings() {
-    driverXBox.rightBumper.prioritize(AxisPriorities.DRIVE).getTrigger()
-      .onTrue(new InstantCommand(drivetrain::highGear));
-    driverXBox.leftBumper.prioritize(AxisPriorities.DRIVE).getTrigger()
-      .onTrue(new InstantCommand(drivetrain::lowGear));
+    // driverXBox.rightBumper.prioritize(AxisPriorities.DRIVE).getTrigger()
+    //   .onTrue(new InstantCommand(drivetrain::highGear));
+    // driverXBox.leftBumper.prioritize(AxisPriorities.DRIVE).getTrigger()
+    //   .onTrue(new InstantCommand(drivetrain::lowGear));
     launchpad.buttonC.getTrigger()
       .toggleOnTrue(new FullManualArm(arm, FullManualArm.Type.TURRET, gunnerXBox));
     launchpad.buttonB.getTrigger()
@@ -97,16 +97,18 @@ public class RobotContainer {
   }
 
   private void setDefaultCommands() {
-    drivetrain.setDefaultCommand(arcadeDrive);
+    // drivetrain.setDefaultCommand(arcadeDrive);
   }
 
   private void initLogging() {
-    scheduler.schedule(new LogComponents(drivetrain, arm));
+    scheduler.schedule(new LogComponents(arm));
+    // scheduler.schedule(new LogComponents(drivetrain, arm));
+
   }
 
   private void initTelemetry() {
     SmartDashboard.putData("Arm", arm);
-    SmartDashboard.putData("Drivetrain", drivetrain);
+    // SmartDashboard.putData("Drivetrain", drivetrain);
   }
 
   public Command getAutonomousCommand() {
