@@ -8,7 +8,6 @@ declare const window: any;
 
 /* TODO
 * [ ] move definitions of primitives to a table/object
-* [ ] get field properly scaled (see assets/2023-chargedup.json)
 * [ ] generic binding to ncclient keys
 * [ ] get build flow improved
 * [ ] update readme
@@ -56,9 +55,10 @@ const finalizeObject = (geometry: THREE.BufferGeometry, options: any = {}) => {
     const materialOptions = {
         color: options.color ?? 0x00ff00,
         wireframe: DEBUG ? true : options.wireframe ?? false,
+        side: options.side ?? THREE.FrontSide,
     } as any;
     if (options.texture) {
-        materialOptions.map = loader.load(options.texture);
+        materialOptions.map = options.texture;
     }
     const material = new THREE.MeshPhongMaterial(materialOptions);
     const obj = new THREE.Mesh(geometry, material);
@@ -101,6 +101,74 @@ dirLight.shadow.camera.far = 500;
 scene.add(dirLight);
 
 /**
+ * Field.
+ */
+import fieldConfig from '../assets/2023-chargedup.json' assert {type: 'json'};
+loader.load(`../assets/${fieldConfig['field-image']}`, (texture) => {
+
+    const [left, top] = fieldConfig['field-corners']['top-left'];
+    const [right, bottom] = fieldConfig['field-corners']['bottom-right'];
+
+    // check assumption that corners are centered in image
+    if ((top !== (texture.image.naturalHeight - bottom)) ||
+        (left !== (texture.image.naturalWidth - right))) {
+        throw new Error('Field not centered in image')
+    }
+
+    let [fieldWidth, fieldHeight] = fieldConfig['field-size'];
+    fieldWidth = feetToMeters(fieldWidth);
+    fieldHeight = feetToMeters(fieldHeight);
+
+    const field = createPlane(fieldWidth, fieldHeight, {
+        texture: texture,
+        wireframe: false,
+        color: 0xffffff,
+        castShadows: false,
+        receiveShadows: true,
+    });
+
+    // Scale field (dimensions are play area only)
+    field.geometry.scale(texture.image.naturalWidth / (texture.image.naturalWidth - 2 * left),
+        texture.image.naturalHeight / (texture.image.naturalHeight - 2 * top), 1);
+    field.geometry.rotateX(-Math.PI / 2);
+    scene.add(field);
+
+    // Create edges of play area
+    const edgeHeight = feetToMeters(0.5);
+    const edgeColor = 0xff00ff;
+
+    let edge = createPlane(fieldWidth, edgeHeight, { color: edgeColor, side: THREE.DoubleSide, });
+    edge.geometry.translate(0, edgeHeight / 2, fieldHeight * 0.5);
+    scene.add(edge);
+
+    edge = createPlane(fieldWidth, edgeHeight, { color: edgeColor, side: THREE.DoubleSide, });
+    edge.geometry.translate(0, edgeHeight / 2, -fieldHeight * 0.5);
+    scene.add(edge);
+
+    edge = createPlane(fieldHeight, edgeHeight, { color: edgeColor, side: THREE.DoubleSide, });
+    edge.geometry.translate(0, edgeHeight / 2, fieldWidth * 0.5);
+    edge.geometry.rotateY(Math.PI / 2);
+    scene.add(edge);
+
+    edge = createPlane(fieldHeight, edgeHeight, { color: edgeColor, side: THREE.DoubleSide, });
+    edge.geometry.translate(0, edgeHeight / 2, fieldWidth * 0.5);
+    edge.geometry.rotateY(-Math.PI / 2);
+    scene.add(edge);
+
+    // const points = [];
+    // points.push(new THREE.Vector3(-fieldWidth * 0.5, -fieldHeight * 0.5, 0));
+    // points.push(new THREE.Vector3(fieldWidth * 0.5, -fieldHeight * 0.5, 0));
+    // points.push(new THREE.Vector3(fieldWidth * 0.5, fieldHeight * 0.5, 0));
+    // points.push(new THREE.Vector3(-fieldWidth * 0.5, fieldHeight * 0.5, 0));
+    // points.push(new THREE.Vector3(-fieldWidth * 0.5, -fieldHeight * 0.5, 0));
+    // const geometry = new THREE.BufferGeometry().setFromPoints(points);
+    // const material = new THREE.LineBasicMaterial({ color: 0x0000ff });
+    // const playEdge = new THREE.Line(geometry, material);
+    // playEdge.geometry.rotateX(-Math.PI / 2);
+    // scene.add(playEdge);
+});
+
+/**
  * Hierarchy of joints. +X forward, +Y right, +Z up. Default pose has arm
  * segments vertical. Turret is back from robot base to accommodate the forward
  * intake.
@@ -111,17 +179,6 @@ scene.add(dirLight);
  *                  arm3: \
  *                      grabber
  */
-
-// Field: 54.27083 x 26.2916 ft (TODO: offset correctly per .json config)
-const field = createPlane(feetToMeters(54.27083), feetToMeters(26.2916), {
-    texture: '../assets/2023-field.png',
-    wireframe: false,
-    color: 0xffffff,
-    castShadows: true,
-    receiveShadows: true,
-});
-field.geometry.rotateX(-Math.PI / 2);
-scene.add(field);
 
 // Base: 32x32x9" origin at center bottom
 const base = createBox(inchesToMeters(32), inchesToMeters(6), inchesToMeters(32));
@@ -209,7 +266,6 @@ const controller = {
 
 const actionsFolder = gui.addFolder('Actions');
 actionsFolder.add(gridHelper, 'visible').name('Toggle Grid');
-actionsFolder.add(field, 'visible').name('Toggle Field');
 actionsFolder.add(controller, 'reset').name('Reset');
 actionsFolder.open();
 
