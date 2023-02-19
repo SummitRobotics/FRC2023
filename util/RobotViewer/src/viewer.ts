@@ -6,9 +6,11 @@ declare const window: any;
 
 /* TODO
 * [ ] move definitions of primitives to a table/object
+* [ ] get field properly scaled (see assets/2023-chargedup.json)
 * [ ] generic binding to ncclient keys
 * [ ] get build flow improved
 * [ ] update readme
+* [ ] get proper bindings to networktable controls
 */
 
 const inchesToMeters = (inches: number) => {
@@ -27,6 +29,7 @@ const degToRad = (deg: number) => {
 const scene = new THREE.Scene();
 const renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.shadowMap.enabled = true;
 document.body.appendChild(renderer.domElement);
 
 // Create Camera / Controls
@@ -46,15 +49,22 @@ scene.add(gridHelper);
 const finalizeObject = (geometry: THREE.BufferGeometry, options: any = {}) => {
     const materialOptions = {
         color: options.color ?? 0x00ff00,
-        wireframe: options.wireframe ?? true,
+        wireframe: options.wireframe ?? false,
     } as any;
     if (options.texture) {
         materialOptions.map = loader.load(options.texture);
     }
-    const material = new THREE.MeshBasicMaterial(materialOptions);
+    const material = new THREE.MeshPhongMaterial(materialOptions);
     const obj = new THREE.Mesh(geometry, material);
+    obj.receiveShadow = options.receiveShadow ?? true;
+    obj.castShadow = options.castShadow ?? true;
     obj.add(new THREE.AxesHelper(0.1));
     return obj;
+}
+
+const createPlane = (width: number, height: number, options: any = {}) => {
+    const plane = new THREE.PlaneGeometry(width, height, options.widthSegments ?? 32, options.heightSegments ?? 32);
+    return finalizeObject(plane, options);
 }
 
 const createBox = (width: number, height: number, depth: number, options: any = {}) => {
@@ -66,6 +76,21 @@ const createCylinder = (radius: number, height: number, options: any = {}) => {
     const cylinder = new THREE.CylinderGeometry(radius, radius, height, options.segments ?? 20);
     return finalizeObject(cylinder, options);
 }
+
+// Add some lighting to the scene
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+scene.add(ambientLight);
+
+const dirLight = new THREE.DirectionalLight(0xffffff, 0.6);
+dirLight.position.set(10, 20, 0);
+dirLight.castShadow = true;
+
+// Set up shadow properties for the light (all defaults)
+dirLight.shadow.mapSize.width = 512;
+dirLight.shadow.mapSize.height = 512;
+dirLight.shadow.camera.near = 0.5;
+dirLight.shadow.camera.far = 500;
+scene.add(dirLight);
 
 /**
  * Hierarchy of joints. +X forward, +Y right, +Z up. Default pose has arm
@@ -80,11 +105,14 @@ const createCylinder = (radius: number, height: number, options: any = {}) => {
  */
 
 // Field: 54.27083 x 26.2916 ft ((TODO: offset correctly per .json config)
-const field = createBox(feetToMeters(54.27083), 0, feetToMeters(26.2916), {
+const field = createPlane(feetToMeters(54.27083), feetToMeters(26.2916), {
     texture: '../assets/2023-field.png',
     wireframe: false,
     color: 0xffffff,
+    castShadows: true,
+    receiveShadows: true,
 });
+field.geometry.rotateX(-Math.PI / 2);
 scene.add(field);
 
 // Base: 32x32x9" origin at center bottom
@@ -93,7 +121,7 @@ base.geometry.translate(0, inchesToMeters(3), 0);
 scene.add(base);
 
 // Turret: 8x2" origin at center bottom, offset forward
-const turret = createCylinder(inchesToMeters(8), inchesToMeters(2));
+const turret = createCylinder(inchesToMeters(8), inchesToMeters(2), { color: 0xffff00 });
 turret.geometry.translate(0, inchesToMeters(-1), 0);
 turret.position.set(inchesToMeters(-8), inchesToMeters(8), 0);
 base.add(turret);
@@ -170,12 +198,16 @@ const controller = {
 
 const actionsFolder = gui.addFolder('Actions');
 actionsFolder.add(gridHelper, 'visible').name('Toggle Grid');
+actionsFolder.add(field, 'visible').name('Toggle Field');
 actionsFolder.add(controller, 'reset').name('Reset');
 actionsFolder.open();
 
 // Configure interprocess hooks
 window.electronAPI.onUpdate((_: any, key: string, value: any, valueType: string, type: string, id: number, flags: number) => {
-    // TODO: Get proper keys and bind to appropriate controls
+    // Coerce NaN value to zero
+    if (value !== value) {
+        value = 0;
+    }
     let handled = true;
     if (key === '/SmartDashboard/Arm/turretAngle') {
         turret.rotation.y = -value;
@@ -195,7 +227,7 @@ window.electronAPI.onUpdate((_: any, key: string, value: any, valueType: string,
     if (handled) {
         updateGuiControllers();
     }
-    console.log(`update: ${key} - ${value} - ${valueType} - ${type} - ${id} - ${flags}`);
+    //console.log(`update: ${key} - ${value} - ${valueType} - ${type} - ${id} - ${flags}`);
 });
 
 
