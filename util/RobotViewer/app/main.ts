@@ -39,7 +39,8 @@ const createWindow = (): BrowserWindow => {
 }
 
 async function main() {
-    const ntClient = createNtClient('127.0.0.1');
+    // const ntClient = createNtClient('127.0.0.1');
+    const ntClient = createNtClient('10.54.68.2');
 
     await app.whenReady();
     const win = createWindow();
@@ -51,7 +52,7 @@ async function main() {
     });
     ntClient.addListener((key: string, value: any, valueType: string, type: string, id: number, flags: number) => {
         win.webContents.send('update', key, value, valueType, type, id, flags);
-        console.log(`update: ${key} - ${value} - ${valueType} - ${type} - ${id} - ${flags}`);
+        //console.log(`update: ${key} - ${value} - ${valueType} - ${type} - ${id} - ${flags}`);
     });
 
     app.on('window-all-closed', () => {
