@@ -2,6 +2,8 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { GUI } from 'dat.gui';
 
+const DEBUG = false;
+
 declare const window: any;
 
 /* TODO
@@ -11,6 +13,9 @@ declare const window: any;
 * [ ] get build flow improved
 * [ ] update readme
 * [ ] get proper bindings to networktable controls
+
+- https://threejs.org/docs/index.html#api/en/geometries/CircleGeometry
+- https://threejs.org/docs/index.html#api/en/geometries/RingGeometry
 */
 
 const inchesToMeters = (inches: number) => {
@@ -36,6 +41,7 @@ document.body.appendChild(renderer.domElement);
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 camera.position.z = 2;
 const controls = new OrbitControls(camera, renderer.domElement);
+controls.maxPolarAngle = Math.PI / 2;
 
 // Create helpers
 const loader = new THREE.TextureLoader();
@@ -49,7 +55,7 @@ scene.add(gridHelper);
 const finalizeObject = (geometry: THREE.BufferGeometry, options: any = {}) => {
     const materialOptions = {
         color: options.color ?? 0x00ff00,
-        wireframe: options.wireframe ?? false,
+        wireframe: DEBUG ? true : options.wireframe ?? false,
     } as any;
     if (options.texture) {
         materialOptions.map = loader.load(options.texture);
@@ -58,7 +64,9 @@ const finalizeObject = (geometry: THREE.BufferGeometry, options: any = {}) => {
     const obj = new THREE.Mesh(geometry, material);
     obj.receiveShadow = options.receiveShadow ?? true;
     obj.castShadow = options.castShadow ?? true;
-    obj.add(new THREE.AxesHelper(0.1));
+    if (DEBUG) {
+        obj.add(new THREE.AxesHelper(0.1));
+    }
     return obj;
 }
 
@@ -104,7 +112,7 @@ scene.add(dirLight);
  *                      grabber
  */
 
-// Field: 54.27083 x 26.2916 ft ((TODO: offset correctly per .json config)
+// Field: 54.27083 x 26.2916 ft (TODO: offset correctly per .json config)
 const field = createPlane(feetToMeters(54.27083), feetToMeters(26.2916), {
     texture: '../assets/2023-field.png',
     wireframe: false,
@@ -139,13 +147,12 @@ arm2.geometry.translate(0, inchesToMeters(14.5), 0);
 arm2.position.set(0, inchesToMeters(31), 0);
 arm1.add(arm2);
 
-// Arm3: 18" long, origin at pivot with Arm2 (63deg up, ~90deg down)
+// Arm3: 18" long, origin at pivot with Arm2 (range of motion: 63deg up, ~90deg down)
 const arm3 = createBox(inchesToMeters(18), inchesToMeters(4), inchesToMeters(4))
 arm3.geometry.rotateZ(Math.PI / 2);
 arm3.geometry.translate(0, inchesToMeters(9), 0);
 arm3.position.set(0, inchesToMeters(29), 0);
 arm2.add(arm3);
-
 
 // Create GUI for viewing/tweaking values
 const gui = new GUI();
@@ -156,20 +163,24 @@ baseFolder.add(base.rotation, 'y', -Math.PI, Math.PI, 0.01).name('Rotation');
 baseFolder.open();
 
 const turretFolder = gui.addFolder('Turret');
-turretFolder.add(turret.rotation, 'y', -Math.PI, Math.PI, 0.01).name('Rotation');
+turretFolder.add(turret.rotation, 'y', degToRad(-135), degToRad(135), 0.01).name('Rotation');
 turretFolder.open();
 
 const arm1Folder = gui.addFolder('Arm1');
-arm1Folder.add(arm1.rotation, 'z', -Math.PI, Math.PI, 0.01).name('Angle');
+arm1Folder.add(arm1.rotation, 'z', degToRad(-60), degToRad(10), 0.01).name('Angle');
 arm1Folder.open();
 
 const arm2Folder = gui.addFolder('Arm2');
-arm2Folder.add(arm2.rotation, 'z', -Math.PI, Math.PI, 0.01).name('Angle');
+arm2Folder.add(arm2.rotation, 'z', degToRad(-60), degToRad(10), 0.01).name('Angle');
 arm2Folder.open();
 
 const arm3Folder = gui.addFolder('Arm3');
-arm3Folder.add(arm3.rotation, 'z', -Math.PI, Math.PI, 0.01).name('Angle');
+arm3Folder.add(arm3.rotation, 'z', degToRad(-60), degToRad(10), 0.01).name('Angle');
 arm3Folder.open();
+
+// Default camera to look at our bot
+camera.position.set(3, 3, 3);
+camera.lookAt(base.position);
 
 const updateGuiControllers = () => {
     // Force update of all GUI controllers
@@ -227,10 +238,10 @@ window.electronAPI.onUpdate((_: any, key: string, value: any, valueType: string,
     if (handled) {
         updateGuiControllers();
     }
-    //console.log(`update: ${key} - ${value} - ${valueType} - ${type} - ${id} - ${flags}`);
+    if (DEBUG) {
+        console.log(`update: ${key} - ${value} - ${valueType} - ${type} - ${id} - ${flags}`);
+    }
 });
-
-
 
 // Handle window resize event
 window.addEventListener('resize', onWindowResize, false);
