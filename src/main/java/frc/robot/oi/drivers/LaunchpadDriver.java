@@ -6,6 +6,8 @@ import frc.robot.oi.inputs.OIAxis;
 import frc.robot.oi.inputs.OITrigger;
 import java.util.function.DoubleSupplier;
 
+import edu.wpi.first.hal.HAL;
+
 
 /**
  * Wrapper class for the TI Launchpad in mode 1.

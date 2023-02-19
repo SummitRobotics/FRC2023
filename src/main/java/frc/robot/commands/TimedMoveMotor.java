@@ -15,6 +15,7 @@ public class TimedMoveMotor extends CommandBase {
         this.powerSetter = powerSetter;
         this.power = power;
         this.seconds = seconds;
+        this.timer = new Timer();
     }
 
     @Override

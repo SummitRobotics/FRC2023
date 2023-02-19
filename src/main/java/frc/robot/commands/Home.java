@@ -26,20 +26,30 @@ public class Home extends CommandBase {
     }
 
     @Override
+    public void initialize() {
+        for (HomeableCANSparkMax homeable : homeables) {
+            homeable.updateCurrent();
+        }
+    }
+
+    @Override
     public void execute() {
 
         // remove homeables from activeHoming as they finish
-        for (HomeableCANSparkMax homeable : activeHoming) {
+        for (HomeableCANSparkMax homeable : new ArrayList<>(activeHoming)) {
             homeable.updateStopCondition();
-            if (homeable.isFinished()) activeHoming.remove(homeable); homeable.end();
+            if (homeable.isFinished()) {
+                activeHoming.remove(homeable);
+                homeable.end();
+                System.out.println("finished homing " + homeable);
+            }
         }
 
         if (activeHoming.isEmpty() && !homeables.isEmpty()) {
-
             // fill activeHoming with homeables of the same priority
             while (
-                activeHoming.isEmpty()
-                || homeables.peek().getOrder() == activeHoming.get(0).getOrder()
+                !homeables.isEmpty() && (activeHoming.isEmpty()
+                || homeables.peek().getOrder() == activeHoming.get(0).getOrder())
             ) {
                 HomeableCANSparkMax homeable = homeables.poll();
                 activeHoming.add(homeable);

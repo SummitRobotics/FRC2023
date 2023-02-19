@@ -190,6 +190,7 @@ public class HomeableCANSparkMax {
     }
 
     public void updateStopCondition() {
+        System.out.println(String.format("Threshold: %f Curret: %f", currentThreshold, currentAverage.getAverage()));
         if (
             type == Type.ByCurrent ? currentAverage.getAverage() >= currentThreshold
             : switchCondition.getAsBoolean()
