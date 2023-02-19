@@ -103,9 +103,32 @@ scene.add(dirLight);
 /**
  * Field.
  */
-import fieldConfig from '../assets/2023-chargedup.json' assert {type: 'json'};
-loader.load(`../assets/${fieldConfig['field-image']}`, (texture) => {
 
+/** 
+ * TODO: figure out why this imoprt fails for others. for now, just inline the config.
+ */
+// import fieldConfig from '../assets/2023-chargedup.json' assert {type: 'json'};
+const fieldConfig = {
+    "game": "Charged Up",
+    "field-image": "2023-field.png",
+    "field-corners": {
+        "top-left": [
+            46,
+            36
+        ],
+        "bottom-right": [
+            1088,
+            544
+        ]
+    },
+    "field-size": [
+        54.27083,
+        26.2916
+    ],
+    "field-unit": "foot"
+};
+
+loader.load(`../assets/${fieldConfig['field-image']}`, (texture) => {
     const [left, top] = fieldConfig['field-corners']['top-left'];
     const [right, bottom] = fieldConfig['field-corners']['bottom-right'];
 
