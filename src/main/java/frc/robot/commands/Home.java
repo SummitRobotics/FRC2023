@@ -41,7 +41,6 @@ public class Home extends CommandBase {
             if (homeable.isFinished()) {
                 activeHoming.remove(homeable);
                 homeable.end();
-                System.out.println("finished homing " + homeable);
             }
         }
 
@@ -65,5 +64,11 @@ public class Home extends CommandBase {
 
     public boolean isFinished() {
         return activeHoming.isEmpty() && homeables.isEmpty();
+    }
+
+    public void end(boolean interrupted) {
+        for (HomeableCANSparkMax homeable : activeHoming) {
+            homeable.end();
+        }
     }
 }

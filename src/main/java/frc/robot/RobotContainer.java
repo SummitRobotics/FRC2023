@@ -93,16 +93,17 @@ public class RobotContainer {
     Command joint3Manual = new FullManualArm(arm, FullManualArm.Type.JOINT_3, gunnerXBox);
     Command wristManual = new FullManualArm(arm, FullManualArm.Type.WRIST, gunnerXBox);
 
-    teleopInit = new SequentialCommandGroup(
+    Command home = new SequentialCommandGroup(
       new Home(arm.getHomeables()[3]),
       new Home(arm.getHomeables()[2]),
-      new TimedMoveMotor(arm::setJoint2MotorVoltage, 8, 1.25)
-      // new Home(arm.getHomeables()[1]),
+      new Home(arm.getHomeables()[1])
       // new Home(arm.getHomeables()[4])
     );
 
+    launchpad.missileB.getTrigger().whileTrue(home);
+
     launchpad.buttonC.getTrigger().toggleOnTrue(turretManual);
-    launchpad.buttonC.setLED(true);
+    launchpad.buttonC.commandBind(turretManual);
 
     launchpad.buttonB.getTrigger().toggleOnTrue(joint1Manual);
     launchpad.buttonB.commandBind(joint1Manual);
@@ -137,10 +138,14 @@ public class RobotContainer {
   }
 
   public void teleopInit() {
-    scheduler.schedule(teleopInit);
+    arm.stop();
   }
 
   public void disabledInit() {
     scheduler.cancelAll();
+    arm.stop();
+  }
+
+  public void robotPeriodic() {
   }
 }

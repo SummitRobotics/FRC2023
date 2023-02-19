@@ -74,19 +74,19 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
     TURRET_GEAR_RATIO_OVERALL = 27 * 3.09523809524, // Ratio Example a 9:1 would be 9
     TURRET_HOME_ANGLE = 0, // Angle in radians where 0 is straight forward and positive is counter clockwise.
 
-    ARM_JOINT_1_LEADSCREW_HOME_LENGTH = Units.inchesToMeters(16.5), // Length in meters
+    ARM_JOINT_1_LEADSCREW_HOME_LENGTH = Units.inchesToMeters(9.5), // Length in meters
     ARM_JOINT_1_PIVOT_TO_MOTOR_LENGTH = 0.1019, // Length in meters
     ARM_JOINT_1_PIVOT_TO_LEADSCREW_LENGTH = 0.22606, // Length in meters
     ARM_JOINT_1_PIVOT_TO_MOTOR_HORIZONTAL_ANGLE_OFFSET = Math.toRadians(14), // Angle in radians
     ARM_JOINT_1_MOTOR_GEAR_RATIO = 9, // Ratio Example a 9:1 gear ratio would be 9
-    ARM_JOINT_1_LEADSCREW_PITCH = 0.00635, // Length in meters. The distance the lead screw moves per revolution
+    ARM_JOINT_1_LEADSCREW_PITCH = Units.inchesToMeters(1/8), // Length in meters. The distance the lead screw moves per revolution
 
-    ARM_JOINT_2_LEADSCREW_HOME_LENGTH = Units.inchesToMeters(4.875), // Length in meters
+    ARM_JOINT_2_LEADSCREW_HOME_LENGTH = Units.inchesToMeters(16.8125), // Length in meters
     ARM_JOINT_2_PIVOT_TO_MOTOR_LENGTH = 0.33655, // Length in meters
     ARM_JOINT_2_PIVOT_TO_LEADSCREW_LENGTH = 0.1001776, // Length in meters
     ARM_JOINT_2_PIVOT_TO_MOTOR_HORIZONTAL_ANGLE_OFFSET = Math.toRadians(90 - 16.3), // Angle in radians
     ARM_JOINT_2_MOTOR_GEAR_RATIO = 5, // Ratio Example a 9:1 gear ratio would be 9
-    ARM_JOINT_2_LEADSCREW_PITCH = 0.00635, // Length in meters. The distance the lead screw moves per revolution
+    ARM_JOINT_2_LEADSCREW_PITCH = Units.inchesToMeters(1/8), // Length in meters. The distance the lead screw moves per revolution
 
     ARM_JOINT_3_GEAR_RATIO_OVERALL = 225, // Ratio Example a 9:1 would be 9
     ARM_JOINT_3_HOME_ANGLE = Math.toRadians(-63), // Angle in radians where 0 is straight forward and positive is counter clockwise.
@@ -364,10 +364,10 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
   public HomeableCANSparkMax[] getHomeables() {
     return new HomeableCANSparkMax[] {
       new HomeableCANSparkMax(turretMotor, this, 0.3, 15.0, 0),
-      new HomeableCANSparkMax(joint1Motor, this, -0.1, 15.0, 1),
+      new HomeableCANSparkMax(joint1Motor, this, -0.1, 20.0, 1),
       new HomeableCANSparkMax(joint2Motor, this, -0.1, 20.0, 2),
-      new HomeableCANSparkMax(joint3Motor, this, 0.1, 5.0, 3),
-      new HomeableCANSparkMax(wristMotor, this, 0.01, 5.0, 4)
+      new HomeableCANSparkMax(joint3Motor, this, 0.1, 10.0, 3),
+      new HomeableCANSparkMax(wristMotor, this, 0.03, 5.0, 4)
     };
   }
 
@@ -426,5 +426,13 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
         getWristEncoderPosition(),
         POSITION_TYPE.ENCODER_ROTATIONS
       );
+  }
+
+  public void stop() {
+    setTurretMotorVoltage(0);
+    setJoint1MotorVoltage(0);
+    setJoint2MotorVoltage(0);
+    setJoint3MotorVoltage(0);
+    setWristMotorVoltage(0);
   }
 }

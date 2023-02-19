@@ -6,7 +6,9 @@ import frc.robot.oi.inputs.OIAxis;
 import frc.robot.oi.inputs.OITrigger;
 import java.util.function.DoubleSupplier;
 
+import edu.wpi.first.hal.DriverStationJNI;
 import edu.wpi.first.hal.HAL;
+import edu.wpi.first.hal.simulation.DriverStationDataJNI;
 
 
 /**
@@ -92,6 +94,6 @@ public class LaunchpadDriver extends GenericDriver {
      */
     public void setOutput(int outputNumber, boolean value) {
         outputs = (outputs & ~(1 << (outputNumber - 1))) | ((value ? 1 : 0) << (outputNumber - 1));
-        // HAL.setJoystickOutputs((byte) port, outputs, (short) 0, (short) 0);
+        DriverStationJNI.setJoystickOutputs((byte) port, outputs, (short) 0, (short) 0);
     }
 }

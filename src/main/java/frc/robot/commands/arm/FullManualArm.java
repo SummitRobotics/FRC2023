@@ -49,5 +49,16 @@ public class FullManualArm extends CommandBase {
     public void end(final boolean interrupted) {
         plusAxis.destroy();
         minusAxis.destroy();
+        if (type == Type.TURRET) {
+            arm.setTurretMotorVoltage(0);
+        } else if (type == Type.JOINT_1) {
+            arm.setJoint1MotorVoltage(0);
+        } else if (type == Type.JOINT_2) {
+            arm.setJoint2MotorVoltage(0);
+        } else if (type == Type.JOINT_3) {
+            arm.setJoint3MotorVoltage(0);
+        } else if (type == Type.WRIST) {
+            arm.setWristMotorVoltage(0);
+        }
     }
 }
