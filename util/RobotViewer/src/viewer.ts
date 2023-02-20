@@ -1,6 +1,10 @@
 import * as THREE from 'three';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { GUI } from 'dat.gui';
+// import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+// @ts-ignore
+import { OrbitControls } from "./3rdparty/ThreeOrbitControlsGizmo/OrbitControls.js";
+// @ts-ignore
+import { OrbitControlsGizmo } from "./3rdparty/ThreeOrbitControlsGizmo/OrbitControlsGizmo.js";
 
 const DEBUG = false;
 
@@ -44,11 +48,14 @@ controls.maxPolarAngle = Math.PI / 2;
 
 // Create helpers
 const loader = new THREE.TextureLoader();
+const controlsGizmo = new OrbitControlsGizmo(controls, { size: 100, padding: 8 });
+document.body.appendChild(controlsGizmo.domElement);
 
 // Add a grid to the scene
 const size = 20;
 const divisions = 40;
 const gridHelper = new THREE.GridHelper(size, divisions);
+gridHelper.visible = false;
 scene.add(gridHelper);
 
 const finalizeObject = (geometry: THREE.BufferGeometry, options: any = {}) => {
@@ -104,8 +111,8 @@ scene.add(dirLight);
  * Field.
  */
 
-/** 
- * TODO: figure out why this imoprt fails for others. for now, just inline the config.
+/**
+ * TODO: figure out why this import fails for others. for now, just inline the config.
  */
 // import fieldConfig from '../assets/2023-chargedup.json' assert {type: 'json'};
 const fieldConfig = {
@@ -156,39 +163,30 @@ loader.load(`../assets/${fieldConfig['field-image']}`, (texture) => {
     field.geometry.rotateX(-Math.PI / 2);
     scene.add(field);
 
-    // Create edges of play area
-    const edgeHeight = feetToMeters(0.5);
-    const edgeColor = 0xff00ff;
+    // Create a little edge of the play area (visible only from inside)
+    const edgeHeight = inchesToMeters(3);
+    const edgeColor = 0x60a9b2;
 
-    let edge = createPlane(fieldWidth, edgeHeight, { color: edgeColor, side: THREE.DoubleSide, });
+    let edge = createPlane(fieldWidth, edgeHeight, { color: edgeColor });
+    edge.geometry.rotateY(Math.PI);
     edge.geometry.translate(0, edgeHeight / 2, fieldHeight * 0.5);
     scene.add(edge);
 
-    edge = createPlane(fieldWidth, edgeHeight, { color: edgeColor, side: THREE.DoubleSide, });
+    edge = createPlane(fieldWidth, edgeHeight, { color: edgeColor });
     edge.geometry.translate(0, edgeHeight / 2, -fieldHeight * 0.5);
     scene.add(edge);
 
-    edge = createPlane(fieldHeight, edgeHeight, { color: edgeColor, side: THREE.DoubleSide, });
+    edge = createPlane(fieldHeight, edgeHeight, { color: edgeColor });
+    edge.geometry.rotateY(Math.PI);
     edge.geometry.translate(0, edgeHeight / 2, fieldWidth * 0.5);
     edge.geometry.rotateY(Math.PI / 2);
     scene.add(edge);
 
-    edge = createPlane(fieldHeight, edgeHeight, { color: edgeColor, side: THREE.DoubleSide, });
+    edge = createPlane(fieldHeight, edgeHeight, { color: edgeColor });
+    edge.geometry.rotateY(Math.PI);
     edge.geometry.translate(0, edgeHeight / 2, fieldWidth * 0.5);
     edge.geometry.rotateY(-Math.PI / 2);
     scene.add(edge);
-
-    // const points = [];
-    // points.push(new THREE.Vector3(-fieldWidth * 0.5, -fieldHeight * 0.5, 0));
-    // points.push(new THREE.Vector3(fieldWidth * 0.5, -fieldHeight * 0.5, 0));
-    // points.push(new THREE.Vector3(fieldWidth * 0.5, fieldHeight * 0.5, 0));
-    // points.push(new THREE.Vector3(-fieldWidth * 0.5, fieldHeight * 0.5, 0));
-    // points.push(new THREE.Vector3(-fieldWidth * 0.5, -fieldHeight * 0.5, 0));
-    // const geometry = new THREE.BufferGeometry().setFromPoints(points);
-    // const material = new THREE.LineBasicMaterial({ color: 0x0000ff });
-    // const playEdge = new THREE.Line(geometry, material);
-    // playEdge.geometry.rotateX(-Math.PI / 2);
-    // scene.add(playEdge);
 });
 
 /**
@@ -289,6 +287,7 @@ const controller = {
 
 const actionsFolder = gui.addFolder('Actions');
 actionsFolder.add(gridHelper, 'visible').name('Toggle Grid');
+actionsFolder.add(controlsGizmo.domElement, 'hidden').name('Hide Orbit Controls');
 actionsFolder.add(controller, 'reset').name('Reset');
 actionsFolder.open();
 
