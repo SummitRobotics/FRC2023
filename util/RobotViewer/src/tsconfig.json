@@ -2,10 +2,7 @@
     "compilerOptions": {
         "target": "ES6",
         "moduleResolution": "node",
-	"module": "nodenext",
         "strict": true,
-	"resolveJsonModule": true,
-	"allowSyntheticDefaultImports": true
     },
     "include": ["**/*.ts"]
 }
