@@ -46,7 +46,7 @@ async function main() {
     const win = createWindow();
 
     // Bind IPC methods
-    ipcMain.handle('set', (_, name: string, val: any)  => {
+    ipcMain.handle('set', (_, name: string, val: any) => {
         console.log(`set: ${name} - ${val}`);
         ntClient.Assign(val, name);
     });

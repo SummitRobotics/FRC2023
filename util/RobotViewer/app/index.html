@@ -19,8 +19,35 @@
       overflow: hidden;
       margin: 0px;
     }
+
     span {
       user-select: none;
+    }
+
+    .obit-controls-gizmo {
+      position: absolute;
+      top: 2em;
+      right: 2em;
+      z-index: 1000;
+      background-color: #FFFFFF00;
+      border-radius: 100%;
+      transition: background-color .15s linear;
+      cursor: pointer;
+    }
+
+    .obit-controls-gizmo.dragging,
+    .obit-controls-gizmo:hover {
+      background-color: #ffffff33;
+    }
+
+    .obit-controls-gizmo.inactive {
+      pointer-events: none;
+      background-color: #FFFFFF00 !important;
+    }
+
+    .dg.a {
+      float: left !important;
+      margin-left: 2em !important;
     }
   </style>
 </head>
