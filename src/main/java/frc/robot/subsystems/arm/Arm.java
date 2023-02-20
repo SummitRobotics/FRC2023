@@ -18,7 +18,6 @@ import com.revrobotics.SparkMaxPIDController.AccelStrategy;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
-import edu.wpi.first.math.util.Units;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj.Solenoid;
@@ -34,7 +33,7 @@ import frc.robot.utilities.lists.Ports;
 // TODO - override toString for ArmConfiguration
 public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
   
-  public static final Transform3d ROBOT_TO_TURRET_BASE = new Transform3d(new Translation3d(0, 0, 0), new Rotation3d());
+  public static final Transform3d ROBOT_TO_TURRET_BASE = new Transform3d(new Translation3d(-0.2413, 0, 0.189), new Rotation3d());
   public static final double
     TURRET_P = 0,
     TURRET_I = 0,
@@ -57,8 +56,8 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
     WRIST_D = 0,
     
     ARM_LINKAGE_0_LENGTH = 8 / 39.37, // Length in meters
-    ARM_LINKAGE_1_LENGTH = 31 / 39.37, // Length in meters
-    ARM_LINKAGE_2_LENGTH = 29 / 39.37, // Length in meters
+    ARM_LINKAGE_1_LENGTH = 31.003 / 39.37, // Length in meters
+    ARM_LINKAGE_2_LENGTH = 28.99 / 39.37, // Length in meters
     ARM_LINKAGE_3_LENGTH = 18 / 39.37, // Length in meters
 
     ARM_LINKAGE_1_CG_DISTANCE = 14 / 39.37, // Distance from the pivot to the center of gravity in meters
@@ -86,19 +85,19 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
 
     public static final double
 
-    TURRET_GEAR_RATIO_OVERALL = 27 * 3.09523809524, // Ratio Example a 9:1 would be 9
+    TURRET_GEAR_RATIO_OVERALL = 81 * 3.09523809524, // Ratio Example a 9:1 would be 9
     TURRET_HOME_ANGLE = 0, // Angle in radians where 0 is straight forward and positive is counter clockwise.
 
     ARM_JOINT_1_LEADSCREW_HOME_LENGTH = 0.2413, // Length in meters
-    ARM_JOINT_1_PIVOT_TO_MOTOR_LENGTH = 0.1019, // Length in meters
-    ARM_JOINT_1_PIVOT_TO_LEADSCREW_LENGTH = 0.22606, // Length in meters
+    ARM_JOINT_1_PIVOT_TO_MOTOR_LENGTH = 0.103075994, // Length in meters
+    ARM_JOINT_1_PIVOT_TO_LEADSCREW_LENGTH = 0.22507627832, // Length in meters
     ARM_JOINT_1_PIVOT_TO_MOTOR_HORIZONTAL_ANGLE_OFFSET = Math.toRadians(14), // Angle in radians
     ARM_JOINT_1_MOTOR_GEAR_RATIO = 9, // Ratio Example a 9:1 gear ratio would be 9
     ARM_JOINT_1_LEADSCREW_PITCH = 0.00635, // Length in meters. The distance the lead screw moves per revolution
 
     ARM_JOINT_2_LEADSCREW_HOME_LENGTH = 0.4270375, // Length in meters
-    ARM_JOINT_2_PIVOT_TO_MOTOR_LENGTH = 0.33655, // Length in meters
-    ARM_JOINT_2_PIVOT_TO_LEADSCREW_LENGTH = 0.1001776, // Length in meters
+    ARM_JOINT_2_PIVOT_TO_MOTOR_LENGTH = 0.3360166, // Length in meters
+    ARM_JOINT_2_PIVOT_TO_LEADSCREW_LENGTH = 0.0999998, // Length in meters
     ARM_JOINT_2_PIVOT_TO_MOTOR_VERTICAL_ANGLE_OFFSET = Math.toRadians(16.3), // Angle in radians
     ARM_JOINT_2_MOTOR_GEAR_RATIO = 5, // Ratio Example a 9:1 gear ratio would be 9
     ARM_JOINT_2_LEADSCREW_PITCH = 0.00635, // Length in meters. The distance the lead screw moves per revolution
@@ -106,7 +105,7 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
     ARM_JOINT_3_GEAR_RATIO_OVERALL = 225, // Ratio Example a 9:1 would be 9
     ARM_JOINT_3_HOME_ANGLE = Math.toRadians(-63), // Angle in radians where 0 is straight forward and positive is counter clockwise.
 
-    WRIST_GEAR_RATIO_OVERALL = 179.069767442, // Ratio Example a 9:1 would be 9
+    WRIST_GEAR_RATIO_OVERALL = (5*5*4) * 4, // Ratio Example a 9:1 would be 9
     WRIST_HOME_ANGLE = 0; // Angle in radians where 0 is straight forward and positive is counter clockwise.
 
   

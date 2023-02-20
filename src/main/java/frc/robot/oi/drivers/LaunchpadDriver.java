@@ -7,8 +7,6 @@ import frc.robot.oi.inputs.OITrigger;
 import java.util.function.DoubleSupplier;
 
 import edu.wpi.first.hal.DriverStationJNI;
-import edu.wpi.first.hal.HAL;
-import edu.wpi.first.hal.simulation.DriverStationDataJNI;
 
 
 /**
