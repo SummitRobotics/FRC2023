@@ -4,8 +4,10 @@
 
 package frc.robot;
 
+import com.fasterxml.jackson.databind.cfg.ConfigFeature;
 import com.kauailabs.navx.frc.AHRS;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.Publisher;
@@ -15,13 +17,22 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import edu.wpi.first.wpilibj2.command.StartEndCommand;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
+import frc.robot.commands.arm.ArmMO;
 import frc.robot.commands.arm.FullManualArm;
+import frc.robot.commands.arm.MoveArmUnsafe;
 import frc.robot.commands.drivetrain.ArcadeDrive;
 import frc.robot.oi.drivers.ControllerDriver;
 import frc.robot.oi.drivers.LaunchpadDriver;
 import frc.robot.subsystems.arm.Arm;
+import frc.robot.subsystems.arm.ArmConfiguration;
+import frc.robot.subsystems.arm.ArmConfiguration.POSITION_TYPE;
 import frc.robot.subsystems.Drivetrain;
+import frc.robot.utilities.FancyArmFeedForward;
+import frc.robot.utilities.Positions;
 import frc.robot.utilities.lists.AxisPriorities;
 import frc.robot.utilities.lists.Ports;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -41,10 +52,10 @@ public class RobotContainer {
 
   private Command teleopInit;
   // private ArcadeDrive arcadeDrive;
-  // private Drivetrain drivetrain;
+  private Drivetrain drivetrain;
   private Arm arm;
   
-  // private AHRS navx;
+  private AHRS navx;
 
   public RobotContainer() {
     scheduler = CommandScheduler.getInstance();
@@ -56,10 +67,10 @@ public class RobotContainer {
     launchpad = new LaunchpadDriver(Ports.OI.LAUNCHPAD_PORT);
 
     // Devices
-    // navx = new AHRS();
+    navx = new AHRS();
 
     // Subsystems
-    // drivetrain = Drivetrain.init(navx, new Pose2d());
+    drivetrain = Drivetrain.init(navx, new Pose2d());
     arm = new Arm();
     
     // Commands
@@ -94,10 +105,45 @@ public class RobotContainer {
     Command wristManual = new FullManualArm(arm, FullManualArm.Type.WRIST, gunnerXBox);
 
     Command home = new SequentialCommandGroup(
+      new Home(arm.getHomeables()[4]),
+      new TimedMoveMotor(arm::setWristMotorVoltage, -12, 0.305),
       new Home(arm.getHomeables()[3]),
-      new Home(arm.getHomeables()[2]),
-      new Home(arm.getHomeables()[1])
-      // new Home(arm.getHomeables()[4])
+      new Home(arm.getHomeables()[2], arm.getHomeables()[1]),
+      new ParallelCommandGroup(
+        new TimedMoveMotor(arm::setJoint1MotorVoltage, 2, 0.2),
+        new TimedMoveMotor(arm::setJoint2MotorVoltage, 2, 0.2)
+      ),
+      new MoveArmUnsafe(arm, Positions.Pose3d.fromRobotSpace(new Translation3d(1.2, 0, 0.5)), 0, (Math.PI / 2))
+    );
+
+    // Command tryPid = new StartEndCommand(() -> {
+    //   double pos1 = 20;
+    //   double pos2 = 80;
+    //   double pos3 = -45;
+    //   double pos4 = -58;
+    //   ArmConfiguration config = new ArmConfiguration(0, pos1, pos2, pos3, pos4, POSITION_TYPE.ENCODER_ROTATIONS);
+    //   double ff1 = Arm.joint1FF.calculate(pos1, config.getJoint1FFData());
+    //   double ff2 = Arm.joint2FF.calculate(pos2, config.getJoint2FFData());
+    //   double ff3 = Arm.joint3FF.calculate(pos3, config.getJoint3FFData());
+    //   System.out.println(ff3);
+    //   arm.setFirstJointMotorRotations(pos1, ff1);
+    //   arm.setSecondJointMotorRotations(pos2, ff2);
+    //   arm.setThirdJointMotorRotations(pos3, ff3);
+    //   arm.setWristMotorRotations(pos4);
+    // }, () -> {
+    //   arm.setJoint1MotorVoltage(0);
+    //   arm.setJoint2MotorVoltage(0);
+    //   arm.setJoint3MotorVoltage(0);
+    //   arm.setWristMotorVoltage(0);
+    // }, arm);
+
+    Command moveToPose = new SequentialCommandGroup(
+      new MoveArmUnsafe(arm, Positions.Pose3d.fromRobotSpace(new Translation3d(1.3, 0, 1)), 0, (Math.PI / 2)),
+      new WaitCommand(0.5),
+      new MoveArmUnsafe(arm, Positions.Pose3d.fromRobotSpace(new Translation3d(1.3, 0, 0.5)), 0, 0),
+      new WaitCommand(0.5),
+      new MoveArmUnsafe(arm, Positions.Pose3d.fromRobotSpace(new Translation3d(.7, 0, 0.2)), (Math.PI / 2), (Math.PI / 4)),
+      new WaitCommand(0.5)
     );
 
     launchpad.missileB.getTrigger().whileTrue(home);
@@ -116,6 +162,13 @@ public class RobotContainer {
 
     launchpad.buttonE.getTrigger().toggleOnTrue(wristManual);
     launchpad.buttonE.commandBind(wristManual);
+
+    launchpad.buttonG.getTrigger().whileTrue(moveToPose.repeatedly());
+    launchpad.buttonG.commandBind(moveToPose);
+
+    Command fancyArmMo = new ArmMO(arm, driverXBox);
+    launchpad.buttonI.getTrigger().toggleOnTrue(fancyArmMo);
+    launchpad.buttonI.commandBind(fancyArmMo);
   }
 
   private void setDefaultCommands() {
@@ -138,6 +191,8 @@ public class RobotContainer {
   }
 
   public void teleopInit() {
+    System.out.println(ArmConfiguration.fromEndPosition(Positions.Pose3d.fromRobotSpace(new Translation3d(0.3, 0.5, 0.2)), 0, 0));
+    System.out.println(Math.toDegrees(ArmConfiguration.joint1EncoderToAngle(ArmConfiguration.joint1AngleToEncoder(Math.toRadians(20)))));
     arm.stop();
   }
 

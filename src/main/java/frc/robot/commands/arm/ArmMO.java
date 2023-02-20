@@ -27,13 +27,17 @@ public class ArmMO extends CommandBase {
     PrioritizedAxis wristLeft;
     PrioritizedAxis wristRight;
 
+    ControllerDriver controller;
+
     public ArmMO(Arm arm, ControllerDriver controller) {
         this.arm = arm;
-        endPose = arm.getCurrentArmConfiguration().getEndPosition();
-        grabberRadians
-            = arm.getCurrentArmConfiguration().getThirdJointPosition(POSITION_TYPE.ANGLE);
-        wristRadians 
-            = arm.getCurrentArmConfiguration().getWristPosition(POSITION_TYPE.ANGLE);
+        this.controller = controller;
+
+        addRequirements(arm);
+    }
+
+    @Override
+    public void initialize() {
         xAxis = controller.leftX.prioritize(AxisPriorities.MANUAL_OVERRIDE);
         yAxis = controller.leftY.prioritize(AxisPriorities.MANUAL_OVERRIDE);
         zAxis = controller.rightY.prioritize(AxisPriorities.MANUAL_OVERRIDE);
@@ -43,7 +47,11 @@ public class ArmMO extends CommandBase {
         wristRight = controller.rightTrigger.prioritize(AxisPriorities.MANUAL_OVERRIDE);
         clampButton = controller.buttonA.prioritize(AxisPriorities.MANUAL_OVERRIDE);
 
-        addRequirements(arm);
+        endPose = arm.getCurrentArmConfiguration().getEndPosition();
+        grabberRadians
+            = arm.getCurrentArmConfiguration().getThirdJointPosition(POSITION_TYPE.ANGLE);
+        wristRadians 
+            = arm.getCurrentArmConfiguration().getWristPosition(POSITION_TYPE.ANGLE);
     }
 
     @Override
@@ -53,9 +61,10 @@ public class ArmMO extends CommandBase {
         // convert from robot space, edit based on inputs, and convert back to robot space
         endPose = Positions.Pose3d.fromRobotSpace(
             new Pose3d(
-                endPose.inRobotSpace().getX() + xAxis.get() / 200,
-                endPose.inRobotSpace().getY() + yAxis.get() / 200,
-                endPose.inRobotSpace().getZ() + zAxis.get() / 200,
+                endPose.inRobotSpace().getX() + -yAxis.get() / 200,
+                // endPose.inRobotSpace().getY() + yAxis.get() / 200,
+                endPose.inRobotSpace().getY(),
+                endPose.inRobotSpace().getZ() + -zAxis.get() / 200,
                 endPose.inRobotSpace().getRotation() // It doesn't matter what this rotation is.
             )
         );
@@ -81,5 +90,6 @@ public class ArmMO extends CommandBase {
         grabberDown.destroy();
         wristLeft.destroy();
         wristRight.destroy();
+        arm.stop();
     }
 }

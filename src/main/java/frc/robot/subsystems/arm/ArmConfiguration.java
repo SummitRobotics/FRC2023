@@ -5,6 +5,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.math.util.Units;
 import frc.robot.utilities.Functions;
 import frc.robot.utilities.Positions;
 import frc.robot.utilities.FancyArmFeedForward.FFData;
@@ -25,19 +26,22 @@ private final double
 
 private final Positions.Pose3d endPose;
 
-private static double joint1AngleToEncoder(double angle) {
-    double theta = (Math.PI / 2) + Arm.ARM_JOINT_1_PIVOT_TO_MOTOR_HORIZONTAL_ANGLE_OFFSET - angle;
+public static double joint1AngleToEncoder(double angle) {
+    // System.out.println("Angle: " + Math.toDegrees(angle));
+    double theta = (Math.PI / 2) - Arm.ARM_JOINT_1_PIVOT_TO_MOTOR_HORIZONTAL_ANGLE_OFFSET - angle;
+    // System.out.println("Theta: " + Math.toDegrees(theta));
     double c = Math.sqrt(Math.pow(Arm.ARM_JOINT_1_PIVOT_TO_LEADSCREW_LENGTH, 2) + Math.pow(Arm.ARM_JOINT_1_PIVOT_TO_MOTOR_LENGTH, 2) - (2 * Arm.ARM_JOINT_1_PIVOT_TO_LEADSCREW_LENGTH * Arm.ARM_JOINT_1_PIVOT_TO_MOTOR_LENGTH) * Math.cos(theta));
-    return -1 * (c - Arm.ARM_JOINT_1_LEADSCREW_HOME_LENGTH) * (Arm.ARM_JOINT_1_MOTOR_GEAR_RATIO / Arm.ARM_JOINT_1_LEADSCREW_PITCH);
+    // System.out.println("C: " + c);
+    return (Arm.ARM_JOINT_1_LEADSCREW_HOME_LENGTH - c) * (Arm.ARM_JOINT_1_MOTOR_GEAR_RATIO / Arm.ARM_JOINT_1_LEADSCREW_PITCH);
 } 
 
-private static double joint2AngleToEncoder(double angle) {
-    double theta = (Math.PI / 2) + Arm.ARM_JOINT_2_PIVOT_TO_MOTOR_HORIZONTAL_ANGLE_OFFSET - angle;
+public static double joint2AngleToEncoder(double angle) {
+    double theta = angle - Arm.ARM_JOINT_2_PIVOT_TO_MOTOR_VERTICAL_ANGLE_OFFSET;
     double c = Math.sqrt(Math.pow(Arm.ARM_JOINT_2_PIVOT_TO_LEADSCREW_LENGTH, 2) + Math.pow(Arm.ARM_JOINT_2_PIVOT_TO_MOTOR_LENGTH, 2) - (2 * Arm.ARM_JOINT_2_PIVOT_TO_LEADSCREW_LENGTH * Arm.ARM_JOINT_2_PIVOT_TO_MOTOR_LENGTH) * Math.cos(theta));
     return -1 * (c - Arm.ARM_JOINT_2_LEADSCREW_HOME_LENGTH) * (Arm.ARM_JOINT_2_MOTOR_GEAR_RATIO / Arm.ARM_JOINT_2_LEADSCREW_PITCH);
 }
 
-ArmConfiguration(
+public ArmConfiguration(
     double turretPosition,
     double firstJointPosition,
     double secondJointPosition,
@@ -45,6 +49,7 @@ ArmConfiguration(
     double wristPosition,
     POSITION_TYPE positionType
     ) {
+        // System.out.println(String.format("Turret: %.2f One: %.2f Two: %.2f Three: %.2f", turretPosition, firstJointPosition, secondJointPosition, thirdJointPosition));
     if (positionType == POSITION_TYPE.ENCODER_ROTATIONS) {
     this.turretPositionRotations = turretPosition;
     this.firstJointPositionRotations = firstJointPosition;
@@ -121,15 +126,19 @@ public double getTurretPosition(POSITION_TYPE positionType) {
 }
 
 public static double joint1EncoderToAngle(double rotations) {
-    double c = Arm.ARM_JOINT_1_LEADSCREW_HOME_LENGTH - (rotations * (1/Arm.ARM_JOINT_1_MOTOR_GEAR_RATIO) * Arm.ARM_JOINT_1_LEADSCREW_PITCH);
+    // System.out.println(rotations);
+    double c = (Arm.ARM_JOINT_1_LEADSCREW_HOME_LENGTH - (rotations * (1/Arm.ARM_JOINT_1_MOTOR_GEAR_RATIO) * Arm.ARM_JOINT_1_LEADSCREW_PITCH));
+    // System.out.println(c);
     double numerator = Math.pow(Arm.ARM_JOINT_1_PIVOT_TO_LEADSCREW_LENGTH, 2) +  Math.pow(Arm.ARM_JOINT_1_PIVOT_TO_MOTOR_LENGTH, 2) - Math.pow(c, 2);
     double denominator = 2 * Arm.ARM_JOINT_1_PIVOT_TO_LEADSCREW_LENGTH * Arm.ARM_JOINT_1_PIVOT_TO_MOTOR_LENGTH;
-    return (Math.PI/2) - Math.acos(numerator / denominator) + Arm.ARM_JOINT_1_PIVOT_TO_MOTOR_HORIZONTAL_ANGLE_OFFSET;
+    // System.out.println(Math.toDegrees(Math.acos(numerator / denominator)));
+    // System.out.println(Math.toDegrees((Math.PI/2) - Math.acos(numerator / denominator) + Arm.ARM_JOINT_1_PIVOT_TO_MOTOR_HORIZONTAL_ANGLE_OFFSET));
+    return (Math.PI/2) - Math.acos(numerator / denominator) - Arm.ARM_JOINT_1_PIVOT_TO_MOTOR_HORIZONTAL_ANGLE_OFFSET;
 }
 
 public double getFirstJointPosition(POSITION_TYPE positionType) {
     if (positionType == POSITION_TYPE.ENCODER_ROTATIONS) {
-    return firstJointPositionRotations;
+        return firstJointPositionRotations;
     }
     return joint1EncoderToAngle(firstJointPositionRotations);
 }
@@ -138,7 +147,7 @@ public static double joint2EncoderToAngle(double rotations) {
     double c = Arm.ARM_JOINT_2_LEADSCREW_HOME_LENGTH - (rotations * (1/Arm.ARM_JOINT_2_MOTOR_GEAR_RATIO) * Arm.ARM_JOINT_2_LEADSCREW_PITCH);
     double numerator = Math.pow(Arm.ARM_JOINT_2_PIVOT_TO_LEADSCREW_LENGTH, 2) + Math.pow(Arm.ARM_JOINT_2_PIVOT_TO_MOTOR_LENGTH, 2) - Math.pow(c, 2);
     double denominator = 2 * Arm.ARM_JOINT_2_PIVOT_TO_LEADSCREW_LENGTH * Arm.ARM_JOINT_2_PIVOT_TO_MOTOR_LENGTH;
-    return (Math.PI/2) - Math.acos(numerator / denominator) + Arm.ARM_JOINT_2_PIVOT_TO_MOTOR_HORIZONTAL_ANGLE_OFFSET;
+    return Math.acos(numerator / denominator) + Arm.ARM_JOINT_2_PIVOT_TO_MOTOR_VERTICAL_ANGLE_OFFSET;
 }
 
 public double getSecondJointPosition(POSITION_TYPE positionType) {

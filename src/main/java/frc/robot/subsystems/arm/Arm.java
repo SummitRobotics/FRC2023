@@ -11,7 +11,9 @@ import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkMaxPIDController;
 import com.revrobotics.CANSparkMax.ControlType;
+import com.revrobotics.CANSparkMax.SoftLimitDirection;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
+import com.revrobotics.SparkMaxPIDController.AccelStrategy;
 
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
@@ -38,20 +40,20 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
     TURRET_I = 0,
     TURRET_D = 0,
 
-    ARM_JOINT_1_P = 0,
-    ARM_JOINT_1_I = 0,
+    ARM_JOINT_1_P = 5E-5,
+    ARM_JOINT_1_I = 1E-6,
     ARM_JOINT_1_D = 0,
 
-    ARM_JOINT_2_P = 0,
-    ARM_JOINT_2_I = 0,
+    ARM_JOINT_2_P = 5E-5,
+    ARM_JOINT_2_I = 1E-6,
     ARM_JOINT_2_D = 0,
     
-    ARM_JOINT_3_P = 0,
-    ARM_JOINT_3_I = 0,
+    ARM_JOINT_3_P = 4E-5,
+    ARM_JOINT_3_I = 2E-7,
     ARM_JOINT_3_D = 0,
 
-    WRIST_P = 0,
-    WRIST_I = 0,
+    WRIST_P = 4E-5,
+    WRIST_I = 2E-7,
     WRIST_D = 0,
     
     ARM_LINKAGE_0_LENGTH = 8 / 39.37, // Length in meters
@@ -69,24 +71,37 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
     
     KG_TO_NEWTONS = 9.80665;
 
+    public static final float
+
+    ARM_TURRET_FORWARD_SOFT_LIMIT = -1000,
+    ARM_TURRET_REVERSE_SOFT_LIMIT = 1000,
+    ARM_JOINT_1_FORWARD_SOFT_LIMIT = 118,
+    ARM_JOINT_1_REVERSE_SOFT_LIMIT = 2,
+    ARM_JOINT_2_FORWARD_SOFT_LIMIT = 138,
+    ARM_JOINT_2_REVERSE_SOFT_LIMIT = 3,
+    ARM_JOINT_3_FORWARD_SOFT_LIMIT = -3,
+    ARM_JOINT_3_REVERSE_SOFT_LIMIT = -101,
+    ARM_WRIST_FORWARD_SOFT_LIMIT = -4,
+    ARM_WRIST_REVERSE_SOFT_LIMIT = -100;
+
     public static final double
 
     TURRET_GEAR_RATIO_OVERALL = 27 * 3.09523809524, // Ratio Example a 9:1 would be 9
     TURRET_HOME_ANGLE = 0, // Angle in radians where 0 is straight forward and positive is counter clockwise.
 
-    ARM_JOINT_1_LEADSCREW_HOME_LENGTH = Units.inchesToMeters(9.5), // Length in meters
+    ARM_JOINT_1_LEADSCREW_HOME_LENGTH = 0.2413, // Length in meters
     ARM_JOINT_1_PIVOT_TO_MOTOR_LENGTH = 0.1019, // Length in meters
     ARM_JOINT_1_PIVOT_TO_LEADSCREW_LENGTH = 0.22606, // Length in meters
     ARM_JOINT_1_PIVOT_TO_MOTOR_HORIZONTAL_ANGLE_OFFSET = Math.toRadians(14), // Angle in radians
     ARM_JOINT_1_MOTOR_GEAR_RATIO = 9, // Ratio Example a 9:1 gear ratio would be 9
-    ARM_JOINT_1_LEADSCREW_PITCH = Units.inchesToMeters(1/8), // Length in meters. The distance the lead screw moves per revolution
+    ARM_JOINT_1_LEADSCREW_PITCH = 0.00635, // Length in meters. The distance the lead screw moves per revolution
 
-    ARM_JOINT_2_LEADSCREW_HOME_LENGTH = Units.inchesToMeters(16.8125), // Length in meters
+    ARM_JOINT_2_LEADSCREW_HOME_LENGTH = 0.4270375, // Length in meters
     ARM_JOINT_2_PIVOT_TO_MOTOR_LENGTH = 0.33655, // Length in meters
     ARM_JOINT_2_PIVOT_TO_LEADSCREW_LENGTH = 0.1001776, // Length in meters
-    ARM_JOINT_2_PIVOT_TO_MOTOR_HORIZONTAL_ANGLE_OFFSET = Math.toRadians(90 - 16.3), // Angle in radians
+    ARM_JOINT_2_PIVOT_TO_MOTOR_VERTICAL_ANGLE_OFFSET = Math.toRadians(16.3), // Angle in radians
     ARM_JOINT_2_MOTOR_GEAR_RATIO = 5, // Ratio Example a 9:1 gear ratio would be 9
-    ARM_JOINT_2_LEADSCREW_PITCH = Units.inchesToMeters(1/8), // Length in meters. The distance the lead screw moves per revolution
+    ARM_JOINT_2_LEADSCREW_PITCH = 0.00635, // Length in meters. The distance the lead screw moves per revolution
 
     ARM_JOINT_3_GEAR_RATIO_OVERALL = 225, // Ratio Example a 9:1 would be 9
     ARM_JOINT_3_HOME_ANGLE = Math.toRadians(-63), // Angle in radians where 0 is straight forward and positive is counter clockwise.
@@ -140,22 +155,41 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
     turretPIDController.setP(TURRET_P, 0);
     turretPIDController.setI(TURRET_I, 0);
     turretPIDController.setD(TURRET_D, 0);
+    turretPIDController.setOutputRange(-1, 1, 0);
 
     joint1PIDController.setP(ARM_JOINT_1_P, 0);
     joint1PIDController.setI(ARM_JOINT_1_I, 0);
     joint1PIDController.setD(ARM_JOINT_1_D, 0);
+    joint1PIDController.setOutputRange(-1, 1, 0);
+    joint1PIDController.setSmartMotionAccelStrategy(AccelStrategy.kTrapezoidal, 0);
+    joint1PIDController.setSmartMotionMaxAccel(6000, 0);
+    joint1PIDController.setSmartMotionMaxVelocity(12000, 0);
 
     joint2PIDController.setP(ARM_JOINT_2_P, 0);
     joint2PIDController.setI(ARM_JOINT_2_I, 0);
     joint2PIDController.setD(ARM_JOINT_2_D, 0);
+    joint2PIDController.setOutputRange(-1, 1, 0);
+    joint2PIDController.setOutputRange(-1, 1, 0);
+    joint2PIDController.setSmartMotionAccelStrategy(AccelStrategy.kTrapezoidal, 0);
+    joint2PIDController.setSmartMotionMaxAccel(6000, 0);
+    joint2PIDController.setSmartMotionMaxVelocity(12000, 0);
 
     joint3PIDController.setP(ARM_JOINT_3_P, 0);
     joint3PIDController.setI(ARM_JOINT_3_I, 0);
     joint3PIDController.setD(ARM_JOINT_3_D, 0);
+    joint3PIDController.setOutputRange(-1, 1, 0);
+    joint3PIDController.setOutputRange(-1, 1, 0);
+    joint3PIDController.setSmartMotionAccelStrategy(AccelStrategy.kTrapezoidal, 0);
+    joint3PIDController.setSmartMotionMaxAccel(6000, 0);
+    joint3PIDController.setSmartMotionMaxVelocity(12000, 0);
 
-    wristPIDController.setP(WRIST_P);
-    wristPIDController.setI(WRIST_I);
-    wristPIDController.setD(WRIST_D);
+    wristPIDController.setP(WRIST_P,0);
+    wristPIDController.setI(WRIST_I,0);
+    wristPIDController.setD(WRIST_D,0);
+    wristPIDController.setOutputRange(-1, 1,0);
+    wristPIDController.setSmartMotionAccelStrategy(AccelStrategy.kTrapezoidal, 0);
+    wristPIDController.setSmartMotionMaxAccel(6000, 0);
+    wristPIDController.setSmartMotionMaxVelocity(12000, 0);
 
     turretMotor.clearFaults();
     joint1Motor.clearFaults();
@@ -169,6 +203,35 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
     joint3Motor.setIdleMode(CANSparkMax.IdleMode.kBrake);
     wristMotor.setIdleMode(CANSparkMax.IdleMode.kBrake);
 
+    turretMotor.setSoftLimit(SoftLimitDirection.kForward, ARM_TURRET_FORWARD_SOFT_LIMIT);
+    turretMotor.setSoftLimit(SoftLimitDirection.kReverse, ARM_TURRET_REVERSE_SOFT_LIMIT);
+
+    joint1Motor.setSoftLimit(SoftLimitDirection.kForward, ARM_JOINT_1_FORWARD_SOFT_LIMIT);
+    joint1Motor.setSoftLimit(SoftLimitDirection.kReverse, ARM_JOINT_1_REVERSE_SOFT_LIMIT);
+
+    joint2Motor.setSoftLimit(SoftLimitDirection.kForward, ARM_JOINT_2_FORWARD_SOFT_LIMIT);
+    joint2Motor.setSoftLimit(SoftLimitDirection.kReverse, ARM_JOINT_2_REVERSE_SOFT_LIMIT);
+
+    joint3Motor.setSoftLimit(SoftLimitDirection.kForward, ARM_JOINT_3_FORWARD_SOFT_LIMIT);
+    joint3Motor.setSoftLimit(SoftLimitDirection.kReverse, ARM_JOINT_3_REVERSE_SOFT_LIMIT);
+
+    wristMotor.setSoftLimit(SoftLimitDirection.kForward, ARM_WRIST_FORWARD_SOFT_LIMIT);
+    wristMotor.setSoftLimit(SoftLimitDirection.kReverse, ARM_WRIST_REVERSE_SOFT_LIMIT);
+
+    turretMotor.enableSoftLimit(SoftLimitDirection.kForward, false);
+    turretMotor.enableSoftLimit(SoftLimitDirection.kReverse, false);
+
+    joint1Motor.enableSoftLimit(SoftLimitDirection.kForward, true);
+    joint1Motor.enableSoftLimit(SoftLimitDirection.kReverse, true);
+
+    joint2Motor.enableSoftLimit(SoftLimitDirection.kForward, true);
+    joint2Motor.enableSoftLimit(SoftLimitDirection.kReverse, true);
+
+    joint3Motor.enableSoftLimit(SoftLimitDirection.kForward, true);
+    joint3Motor.enableSoftLimit(SoftLimitDirection.kReverse, true);
+
+    wristMotor.enableSoftLimit(SoftLimitDirection.kForward, true);
+    wristMotor.enableSoftLimit(SoftLimitDirection.kReverse, true);
     clampSolenoidState = clampSolenoid.get();
   }
 
@@ -222,7 +285,7 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
    * @param position The position to set the motor to in rotations.
    */
   public void setTurretMotorRotations(double motorRotations) {
-    turretPIDController.setReference(motorRotations, ControlType.kPosition, 0);
+    turretPIDController.setReference(motorRotations, ControlType.kSmartMotion, 0);
   }
 
   /**
@@ -230,7 +293,7 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
    * @param position The position to set the motor to in rotations.
    */
   public void setFirstJointMotorRotations(double motorRotations, double feedForward) {
-    joint1PIDController.setReference(motorRotations, ControlType.kPosition, 0, feedForward);
+    joint1PIDController.setReference(motorRotations, ControlType.kSmartMotion, 0, feedForward);
   }
 
   /**
@@ -238,7 +301,7 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
    * @param position The position to set the motor to in rotations.
    */
   public void setSecondJointMotorRotations(double motorRotations, double feedForward) {
-    joint2PIDController.setReference(motorRotations, ControlType.kPosition, 0, feedForward);
+    joint2PIDController.setReference(motorRotations, ControlType.kSmartMotion, 0, feedForward);
   }
 
   /**
@@ -246,7 +309,7 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
    * @param position The position to set the motor to in rotations.
    */
   public void setThirdJointMotorRotations(double motorRotations, double feedForward) {
-    joint3PIDController.setReference(motorRotations, ControlType.kPosition, 0, feedForward);
+    joint3PIDController.setReference(motorRotations, ControlType.kSmartMotion, 0, feedForward);
   }
 
   /**
@@ -254,7 +317,7 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
    * @param position The position to set the motor to in rotations.
    */
   public void setWristMotorRotations(double motorRotations) {
-    wristPIDController.setReference(motorRotations, ControlType.kPosition, 0);
+    wristPIDController.setReference(motorRotations, ControlType.kSmartMotion, 0);
   }
 
   /**
@@ -323,14 +386,10 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
   }
 
   //TODO Make sure thease are good tollerances
-  public boolean atConfiguration(ArmConfiguration configuration) {
-    return (
-      Functions.withinTolerance(getTurretEncoderPosition(), configuration.getTurretPosition(POSITION_TYPE.ENCODER_ROTATIONS), 0.1) &&
-      Functions.withinTolerance(getFirstJointEncoderPosition(), configuration.getFirstJointPosition(POSITION_TYPE.ENCODER_ROTATIONS), 0.1) &&
-      Functions.withinTolerance(getSecondJointEncoderPosition(), configuration.getSecondJointPosition(POSITION_TYPE.ENCODER_ROTATIONS), 0.1) &&
-      Functions.withinTolerance(getThirdJointEncoderPosition(), configuration.getThirdJointPosition(POSITION_TYPE.ENCODER_ROTATIONS), 0.1) &&
-      Functions.withinTolerance(getWristEncoderPosition(), configuration.getWristPosition(POSITION_TYPE.ENCODER_ROTATIONS), 0.1)
-    );
+  public boolean atConfiguration(ArmConfiguration configuration, double tollerance) {
+    double distance = configuration.getEndPosition().inRobotSpace().minus(getCurrentArmConfiguration().getEndPosition().inRobotSpace()).getTranslation().getNorm();
+    System.out.println(distance);
+    return distance < tollerance/100;
   }
 
   /**
@@ -363,11 +422,11 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
   @Override
   public HomeableCANSparkMax[] getHomeables() {
     return new HomeableCANSparkMax[] {
-      new HomeableCANSparkMax(turretMotor, this, 0.3, 15.0, 0),
-      new HomeableCANSparkMax(joint1Motor, this, -0.1, 20.0, 1),
-      new HomeableCANSparkMax(joint2Motor, this, -0.1, 20.0, 2),
-      new HomeableCANSparkMax(joint3Motor, this, 0.1, 10.0, 3),
-      new HomeableCANSparkMax(wristMotor, this, 0.03, 5.0, 4)
+      new HomeableCANSparkMax(turretMotor, this, 0.3, 15.0, ARM_TURRET_FORWARD_SOFT_LIMIT, ARM_TURRET_REVERSE_SOFT_LIMIT, 0),
+      new HomeableCANSparkMax(joint1Motor, this, -0.1, 30.0, ARM_JOINT_1_FORWARD_SOFT_LIMIT, ARM_JOINT_1_REVERSE_SOFT_LIMIT, 1),
+      new HomeableCANSparkMax(joint2Motor, this, -0.1, 30.0, ARM_JOINT_2_FORWARD_SOFT_LIMIT, ARM_JOINT_2_REVERSE_SOFT_LIMIT, 1),
+      new HomeableCANSparkMax(joint3Motor, this, 0.1, 10.0, ARM_JOINT_3_FORWARD_SOFT_LIMIT, ARM_JOINT_3_REVERSE_SOFT_LIMIT, 2),
+      new HomeableCANSparkMax(wristMotor, this, 0.08, 4.5, ARM_WRIST_FORWARD_SOFT_LIMIT, ARM_WRIST_REVERSE_SOFT_LIMIT, 3)
     };
   }
 
@@ -389,6 +448,7 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
     builder.addDoubleProperty("thirdJointAngle", () -> this.getCurrentArmConfiguration().getThirdJointPosition(POSITION_TYPE.ANGLE), null);
     builder.addDoubleProperty("wristAngle", () -> this.getCurrentArmConfiguration().getWristPosition(POSITION_TYPE.ANGLE), null);
 
+    builder.addStringProperty("PosEstimate", () -> this.getCurrentArmConfiguration().getEndPosition().inRobotSpace().toString(), null);
   }
 
   @Override
@@ -426,6 +486,31 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
         getWristEncoderPosition(),
         POSITION_TYPE.ENCODER_ROTATIONS
       );
+  }
+
+  public void setTurretSoftLimit(boolean enable) {
+    turretMotor.enableSoftLimit(SoftLimitDirection.kForward, enable);
+    turretMotor.enableSoftLimit(SoftLimitDirection.kReverse, enable);
+  }
+
+  public void setFirstJointSoftLimit(boolean enable) {
+    joint1Motor.enableSoftLimit(SoftLimitDirection.kForward, enable);
+    joint1Motor.enableSoftLimit(SoftLimitDirection.kReverse, enable);
+  }
+
+  public void setSecondJointSoftLimit(boolean enable) {
+    joint2Motor.enableSoftLimit(SoftLimitDirection.kForward, enable);
+    joint2Motor.enableSoftLimit(SoftLimitDirection.kReverse, enable);
+  }
+
+  public void setThirdJointSoftLimit(boolean enable) {
+    joint3Motor.enableSoftLimit(SoftLimitDirection.kForward, enable);
+    joint3Motor.enableSoftLimit(SoftLimitDirection.kReverse, enable);
+  }
+
+  public void setWristSoftLimit(boolean enable) {
+    wristMotor.enableSoftLimit(SoftLimitDirection.kForward, enable);
+    wristMotor.enableSoftLimit(SoftLimitDirection.kReverse, enable);
   }
 
   public void stop() {

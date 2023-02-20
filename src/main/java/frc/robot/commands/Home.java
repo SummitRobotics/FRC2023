@@ -13,10 +13,11 @@ public class Home extends CommandBase {
     private PriorityQueue<HomeableCANSparkMax> homeables = new PriorityQueue<>(HomeableCANSparkMax.ORDER_COMPARATOR);
     private ArrayList<HomeableCANSparkMax> activeHoming = new ArrayList<HomeableCANSparkMax>();
 
-    public Home(HomeableCANSparkMax... toHome) {
+    private final HomeableCANSparkMax[] homeableArray;
 
+    public Home(HomeableCANSparkMax... toHome) {
+        homeableArray = toHome;
         for (HomeableCANSparkMax homeable : toHome) {
-            homeables.add(homeable);
             addRequirements(homeable.getSubsystemObject());
         }
     }
@@ -27,6 +28,10 @@ public class Home extends CommandBase {
 
     @Override
     public void initialize() {
+        for (HomeableCANSparkMax homeable : homeableArray) {
+            homeables.add(homeable);
+        }
+        activeHoming.clear();
         for (HomeableCANSparkMax homeable : homeables) {
             homeable.updateCurrent();
         }
