@@ -68,7 +68,7 @@ public ArmConfiguration(
     Translation2d linkage1 = new Translation2d(Arm.ARM_LINKAGE_1_LENGTH, Rotation2d.fromRadians((Math.PI / 2) - getFirstJointPosition(POSITION_TYPE.ANGLE))).plus(linkage2.rotateBy(Rotation2d.fromRadians(-getFirstJointPosition(POSITION_TYPE.ANGLE))));
     Translation3d endPose = new Translation3d(linkage1.getX(), 0, linkage1.getY()).rotateBy(getTurretRotation()).plus(new Translation3d(0,0,Arm.ARM_LINKAGE_0_LENGTH));
 
-    Rotation3d endRotation = getTurretRotation().plus(new Rotation3d(0,-getFirstJointPosition(POSITION_TYPE.ANGLE),0)).plus(new Rotation3d(0,-getSecondJointPosition(POSITION_TYPE.ANGLE),0)).plus(new Rotation3d(0,-getThirdJointPosition(POSITION_TYPE.ANGLE),0)).plus(new Rotation3d(getWristPosition(POSITION_TYPE.ANGLE),0,0));
+    Rotation3d endRotation = new Rotation3d(0,(Math.PI / 2),0).plus(getTurretRotation()).plus(new Rotation3d(0,-getFirstJointPosition(POSITION_TYPE.ANGLE),0)).plus(new Rotation3d(0,-getSecondJointPosition(POSITION_TYPE.ANGLE),0)).plus(new Rotation3d(0,-getThirdJointPosition(POSITION_TYPE.ANGLE),0)).plus(new Rotation3d(getWristPosition(POSITION_TYPE.ANGLE),0,0));
 
     this.endPose = Positions.Pose3d.fromOtherSpace(new Pose3d(endPose, endRotation), Arm.ROBOT_TO_TURRET_BASE);
 }
