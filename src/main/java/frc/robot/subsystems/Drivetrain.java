@@ -11,6 +11,7 @@ import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMax.ControlType;
 import com.revrobotics.CANSparkMax.IdleMode;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
+import com.revrobotics.CANSparkMaxLowLevel.PeriodicFrame;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkMaxPIDController;
 import edu.wpi.first.math.Matrix;
@@ -299,6 +300,21 @@ public class Drivetrain extends SubsystemBase implements Testable, Loggable {
         rightMiddle.setIdleMode(IdleMode.kBrake);
         rightBack.setIdleMode(IdleMode.kBrake);
 
+        // We basically don't care about CAN data for follower motors.
+        for (CANSparkMax motor : new CANSparkMax[] {leftMiddle, leftBack, rightMiddle, rightBack}) {
+            motor.setPeriodicFramePeriod(PeriodicFrame.kStatus0, 500);
+            motor.setPeriodicFramePeriod(PeriodicFrame.kStatus1, 65535);
+            motor.setPeriodicFramePeriod(PeriodicFrame.kStatus2, 65533);
+            motor.setPeriodicFramePeriod(PeriodicFrame.kStatus3, 65531);
+            motor.setPeriodicFramePeriod(PeriodicFrame.kStatus4, 65529);
+            motor.setPeriodicFramePeriod(PeriodicFrame.kStatus5, 65527);
+            motor.setPeriodicFramePeriod(PeriodicFrame.kStatus6, 65525);
+        }
+
+        // Speeding up frame 0 on the leader motors will increase the rate
+        // at which followers are updated.
+        left.setPeriodicFramePeriod(PeriodicFrame.kStatus0, 5);
+        right.setPeriodicFramePeriod(PeriodicFrame.kStatus0, 5);
     }
 
     /**
