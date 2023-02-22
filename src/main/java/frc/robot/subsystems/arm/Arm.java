@@ -105,7 +105,7 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
     ARM_JOINT_3_GEAR_RATIO_OVERALL = 225, // Ratio Example a 9:1 would be 9
     ARM_JOINT_3_HOME_ANGLE = Math.toRadians(-63), // Angle in radians where 0 is straight forward and positive is counter clockwise.
 
-    WRIST_GEAR_RATIO_OVERALL = (5*5*4) * 4, // Ratio Example a 9:1 would be 9
+    WRIST_GEAR_RATIO_OVERALL = (5*5*4) * (77/42), // Ratio Example a 9:1 would be 9
     WRIST_HOME_ANGLE = 0; // Angle in radians where 0 is straight forward and positive is counter clockwise.
 
   
