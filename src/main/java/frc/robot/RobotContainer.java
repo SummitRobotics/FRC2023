@@ -4,39 +4,27 @@
 
 package frc.robot;
 
-import com.fasterxml.jackson.databind.cfg.ConfigFeature;
 import com.kauailabs.navx.frc.AHRS;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Translation3d;
-import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.networktables.Publisher;
-import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
-import edu.wpi.first.wpilibj2.command.StartEndCommand;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.commands.arm.ArmMO;
 import frc.robot.commands.arm.FullManualArm;
 import frc.robot.commands.arm.MoveArmUnsafe;
-import frc.robot.commands.drivetrain.ArcadeDrive;
 import frc.robot.oi.drivers.ControllerDriver;
 import frc.robot.oi.drivers.LaunchpadDriver;
 import frc.robot.subsystems.arm.Arm;
 import frc.robot.subsystems.arm.ArmConfiguration;
-import frc.robot.subsystems.arm.ArmConfiguration.POSITION_TYPE;
 import frc.robot.subsystems.Drivetrain;
-import frc.robot.utilities.FancyArmFeedForward;
 import frc.robot.utilities.Positions;
-import frc.robot.utilities.lists.AxisPriorities;
 import frc.robot.utilities.lists.Ports;
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import frc.robot.commands.Home;
 import frc.robot.commands.LogComponents;
 import frc.robot.commands.TimedMoveMotor;
@@ -50,7 +38,6 @@ public class RobotContainer {
   private ControllerDriver gunnerXBox;
   private LaunchpadDriver launchpad;
 
-  private Command teleopInit;
   // private ArcadeDrive arcadeDrive;
   private Drivetrain drivetrain;
   private Arm arm;
@@ -191,8 +178,6 @@ public class RobotContainer {
   }
 
   public void teleopInit() {
-    System.out.println(ArmConfiguration.fromEndPosition(Positions.Pose3d.fromRobotSpace(new Translation3d(0.3, 0.5, 0.2)), 0, 0));
-    System.out.println(Math.toDegrees(ArmConfiguration.joint1EncoderToAngle(ArmConfiguration.joint1AngleToEncoder(Math.toRadians(20)))));
     arm.stop();
   }
 

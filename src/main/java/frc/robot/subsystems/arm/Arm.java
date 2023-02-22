@@ -35,8 +35,8 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
   
   public static final Transform3d ROBOT_TO_TURRET_BASE = new Transform3d(new Translation3d(-0.2413, 0, 0.189), new Rotation3d());
   public static final double
-    TURRET_P = 0,
-    TURRET_I = 0,
+    TURRET_P = 4E-5,
+    TURRET_I = 2E-7,
     TURRET_D = 0,
 
     ARM_JOINT_1_P = 5E-5,
@@ -55,14 +55,14 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
     WRIST_I = 2E-7,
     WRIST_D = 0,
     
-    ARM_LINKAGE_0_LENGTH = 8 / 39.37, // Length in meters
-    ARM_LINKAGE_1_LENGTH = 31.003 / 39.37, // Length in meters
-    ARM_LINKAGE_2_LENGTH = 28.99 / 39.37, // Length in meters
-    ARM_LINKAGE_3_LENGTH = 18 / 39.37, // Length in meters
+    ARM_LINKAGE_0_LENGTH = 8 / 39.3701, // Length in meters
+    ARM_LINKAGE_1_LENGTH = 31.003 / 39.3701, // Length in meters
+    ARM_LINKAGE_2_LENGTH = 28.99 / 39.3701, // Length in meters
+    ARM_LINKAGE_3_LENGTH = 18.125 / 39.3701, // Length in meters
 
-    ARM_LINKAGE_1_CG_DISTANCE = 14 / 39.37, // Distance from the pivot to the center of gravity in meters
-    ARM_LINKAGE_2_CG_DISTANCE = 19 / 39.37, // Distance from the pivot to the center of gravity in meters
-    ARM_LINKAGE_3_CG_DISTANCE = 8 / 39.37, // Distance from the pivot to the center of gravity in meters
+    ARM_LINKAGE_1_CG_DISTANCE = 14 / 39.3701, // Distance from the pivot to the center of gravity in meters
+    ARM_LINKAGE_2_CG_DISTANCE = 19 / 39.3701, // Distance from the pivot to the center of gravity in meters
+    ARM_LINKAGE_3_CG_DISTANCE = 8 / 39.3701, // Distance from the pivot to the center of gravity in meters
 
     ARM_LINKAGE_1_MASS = 12 / 2.205, // Mass in kilograms
     ARM_LINKAGE_2_MASS = 8 / 2.205, // Mass in kilograms
@@ -155,6 +155,9 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
     turretPIDController.setI(TURRET_I, 0);
     turretPIDController.setD(TURRET_D, 0);
     turretPIDController.setOutputRange(-1, 1, 0);
+    turretPIDController.setSmartMotionAccelStrategy(AccelStrategy.kTrapezoidal, 0);
+    turretPIDController.setSmartMotionMaxAccel(6000, 0);
+    turretPIDController.setSmartMotionMaxVelocity(12000, 0);
 
     joint1PIDController.setP(ARM_JOINT_1_P, 0);
     joint1PIDController.setI(ARM_JOINT_1_I, 0);
@@ -162,7 +165,7 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
     joint1PIDController.setOutputRange(-1, 1, 0);
     joint1PIDController.setSmartMotionAccelStrategy(AccelStrategy.kTrapezoidal, 0);
     joint1PIDController.setSmartMotionMaxAccel(6000, 0);
-    joint1PIDController.setSmartMotionMaxVelocity(12000, 0);
+    joint1PIDController.setSmartMotionMaxVelocity(6000, 0);
 
     joint2PIDController.setP(ARM_JOINT_2_P, 0);
     joint2PIDController.setI(ARM_JOINT_2_I, 0);
@@ -171,7 +174,7 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
     joint2PIDController.setOutputRange(-1, 1, 0);
     joint2PIDController.setSmartMotionAccelStrategy(AccelStrategy.kTrapezoidal, 0);
     joint2PIDController.setSmartMotionMaxAccel(6000, 0);
-    joint2PIDController.setSmartMotionMaxVelocity(12000, 0);
+    joint2PIDController.setSmartMotionMaxVelocity(6000, 0);
 
     joint3PIDController.setP(ARM_JOINT_3_P, 0);
     joint3PIDController.setI(ARM_JOINT_3_I, 0);
@@ -421,7 +424,7 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
   @Override
   public HomeableCANSparkMax[] getHomeables() {
     return new HomeableCANSparkMax[] {
-      new HomeableCANSparkMax(turretMotor, this, 0.3, 15.0, ARM_TURRET_FORWARD_SOFT_LIMIT, ARM_TURRET_REVERSE_SOFT_LIMIT, 0),
+      new HomeableCANSparkMax(turretMotor, this, 0.1, 15.0, ARM_TURRET_FORWARD_SOFT_LIMIT, ARM_TURRET_REVERSE_SOFT_LIMIT, 0),
       new HomeableCANSparkMax(joint1Motor, this, -0.1, 30.0, ARM_JOINT_1_FORWARD_SOFT_LIMIT, ARM_JOINT_1_REVERSE_SOFT_LIMIT, 1),
       new HomeableCANSparkMax(joint2Motor, this, -0.1, 30.0, ARM_JOINT_2_FORWARD_SOFT_LIMIT, ARM_JOINT_2_REVERSE_SOFT_LIMIT, 1),
       new HomeableCANSparkMax(joint3Motor, this, 0.1, 10.0, ARM_JOINT_3_FORWARD_SOFT_LIMIT, ARM_JOINT_3_REVERSE_SOFT_LIMIT, 2),
