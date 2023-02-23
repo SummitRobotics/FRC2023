@@ -17,10 +17,9 @@ public final class Ports {
     public static final class OI {
         public static final int
             DRIVER_XBOX_PORT = 0,
-            GUNNER_XBOX_PORT = 0,
-            LAUNCHPAD_PORT = 1,
-            JOYSTICK_PORT = 2;
-    }
+            GUNNER_XBOX_PORT = 2,
+            LAUNCHPAD_PORT = 1;
+            }
 
     public static final class Drivetrain {
         public static final int
