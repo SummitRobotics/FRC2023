@@ -8,8 +8,6 @@
     "start": "electron .",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "devDependencies": {
-  },
   "dependencies": {
     "@types/dat.gui": "^0.7.7",
     "@types/electron": "^1.6.10",
@@ -17,8 +15,8 @@
     "@types/three": "^0.149.0",
     "dat.gui": "^0.7.9",
     "electron": "^23.1.0",
+    "ntcore-ts-client": "^0.2.0",
     "three": "^0.149.0",
-    "typescript": "^4.9.5",
-    "wpilib-nt-client": "^1.7.2"
+    "typescript": "^4.9.5"
   }
 }
