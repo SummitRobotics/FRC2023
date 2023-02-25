@@ -1,6 +1,8 @@
 {
     "java.format.settings.url": ".vscode/java-formatter.xml",
     "[java]": {
-        "editor.tabSize": 2
-    }
+        "editor.tabSize": 2,
+        "editor.defaultFormatter": "redhat.java"
+    },
+    "editor.formatOnSave": true,
 }
