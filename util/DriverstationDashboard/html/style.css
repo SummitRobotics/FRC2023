@@ -50,6 +50,14 @@ h1 {
     opacity: 0.5;
 }
 
+.button {
+    border: 1px solid black;
+    justify-self: stretch;
+    border-radius: 20px;
+    opacity: 0.5;
+    flex-grow: 1;
+}
+
 .cube {
     background-color: purple;
 }

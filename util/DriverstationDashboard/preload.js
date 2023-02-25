@@ -1,7 +1,8 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('ntClient', {
-  set: (id, val) => ipcRenderer.invoke('assign', id, val),
+  setStation: (val) => ipcRenderer.invoke('setStation', val),
+  setIndicator: (val) => ipcRenderer.invoke('setIndicator', val),
   isReady: () => ipcRenderer.invoke('ready'),
-  publish: () => ipcRenderer.invoke('publisher')
+  publish: () => ipcRenderer.invoke('publish')
 })

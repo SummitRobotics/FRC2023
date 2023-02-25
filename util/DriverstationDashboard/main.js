@@ -6,7 +6,8 @@ const ntcore = NetworkTables.getInstanceByURI("127.0.0.1");
 
 if (require('electron-squirrel-startup')) app.quit();
 
-const stationSelectorTopic = ntcore.createTopic('/stationSelector', NetworkTablesTypeInfos.kString);
+const stationSelectorTopic = ntcore.createTopic('/customDS/location', NetworkTablesTypeInfos.kString);
+const indicatorTopic = ntcore.createTopic('/customDS/indicator', NetworkTablesTypeInfos.kString);
 
 async function main() {
 
@@ -18,11 +19,14 @@ async function main() {
                 preload: path.join(__dirname, 'preload.js'),
             }
         })
-        ipcMain.handle('assign', (_, id, val) => stationSelectorTopic.setValue(val));
+        ipcMain.handle('setStation', (_, val) => stationSelectorTopic.setValue(val));
+        ipcMain.handle('setIndicator', (_, val) => indicatorTopic.setValue(val));
         ipcMain.handle('ready', () => ntcore.isRobotConnected());
-        ipcMain.handle('publisher', () => {
+        ipcMain.handle('publish', () => {
             stationSelectorTopic.announce();
             stationSelectorTopic.publish();
+            indicatorTopic.announce();
+            indicatorTopic.publish();
         })
         win.loadFile('./html/index.html');
     }

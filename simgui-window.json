@@ -9,17 +9,17 @@
       "DockNode  ID=0x00000008 Parent=0x00000007 SizeRef=159,171 Selected=0xC8493FD8",
       "DockNode  ID=0x00000009 Parent=0x00000007 SizeRef=159,148 Selected=0xD58031C5",
       "DockNode      ID=0x00000001 Parent=0x00000002 SizeRef=712,528 Selected=0x6AE6D891",
-      "DockNode        ID=0x00000003 Parent=0x00000005 SizeRef=1188,597 Selected=0x48913727"
+      "DockNode        ID=0x00000003 Parent=0x00000005 SizeRef=1188,597 Selected=0x2D9B9756"
     ]
   },
   "MainWindow": {
     "GLOBAL": {
       "fps": "120",
-      "height": "568",
+      "height": "2084",
       "maximized": "1",
       "style": "0",
       "userScale": "2",
-      "width": "799",
+      "width": "1892",
       "xpos": "2560",
       "ypos": "150"
     }

@@ -10,7 +10,7 @@ function generateAnyHtml(row, col) {
 
 function updateSelected(row, col) {
     console.log('here');
-    const allPrevSelected = document.getElementsByClassName('selected');
+    const allPrevSelected = document.getElementsByClassName('selected item');
     for (const prevSelected of allPrevSelected) {
         prevSelected.classList.toggle('selected');
     }
@@ -20,8 +20,22 @@ function updateSelected(row, col) {
         element.classList.toggle('selected');
     }
 
-    console.log('/stationSelector/id', `${row}${col}`);
-    window.ntClient.set('/stationSelector/id', `${row}${col}`)
+    window.ntClient.setStation(`${row}${col}`);
+}
+
+function setSelector(type) {
+    const allPrevSelected = document.getElementsByClassName('selected button');
+    for (const prevSelected of allPrevSelected) {
+        prevSelected.classList.toggle('selected');
+    }
+
+    const element = document.getElementById(type);
+    if (element) {
+        element.classList.toggle('selected');
+    }
+
+    console.log(type);
+    window.ntClient.setIndicator(type);
 }
 
 async function main() {
@@ -32,7 +46,7 @@ async function main() {
 
     window.ntClient.publish();
 
-    const buttonsDiv = document.getElementById('main');
+    const buttonsDiv = document.getElementById('buttons');
     let innerHtml = '';
 
     for (let row = 1; row <= 3; row++) {
@@ -48,12 +62,21 @@ async function main() {
     }
     buttonsDiv.innerHTML = innerHtml;
 
+    const selectorDiv = document.getElementById('signaler');
+    selectorDiv.innerHTML = '<div class="button cone" id="cone"></div><div class="button cube" id="cube"></div>';
+
     const buttons = document.getElementsByClassName('item');
 
     for (const button of buttons) {
         button.addEventListener('click', () => updateSelected(button.id.at(2), button.id.at(3)));
     }
     updateSelected(0, 0);
+
+    const selectorButtons = document.getElementsByClassName('button');
+    for (const button of selectorButtons) {
+        button.addEventListener('click', () => setSelector(button.id));
+    }
+    setSelector('none');
 }
 
 main();
