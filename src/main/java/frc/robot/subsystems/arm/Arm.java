@@ -13,6 +13,7 @@ import com.revrobotics.SparkMaxPIDController;
 import com.revrobotics.CANSparkMax.ControlType;
 import com.revrobotics.CANSparkMax.SoftLimitDirection;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
+import com.revrobotics.CANSparkMaxLowLevel.PeriodicFrame;
 import com.revrobotics.SparkMaxPIDController.AccelStrategy;
 
 import edu.wpi.first.math.geometry.Rotation3d;
@@ -241,6 +242,17 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
     wristMotor.enableSoftLimit(SoftLimitDirection.kForward, true);
     wristMotor.enableSoftLimit(SoftLimitDirection.kReverse, true);
     clampSolenoidState = clampSolenoid.get();
+
+    // sets refresh rate for various types of CAN data
+    for (CANSparkMax motor : new CANSparkMax[] {turretMotor, joint1Motor, joint2Motor, joint3Motor, wristMotor}) {
+      motor.setPeriodicFramePeriod(PeriodicFrame.kStatus0, 100);
+      motor.setPeriodicFramePeriod(PeriodicFrame.kStatus1, 100);
+      motor.setPeriodicFramePeriod(PeriodicFrame.kStatus2, 10);
+      motor.setPeriodicFramePeriod(PeriodicFrame.kStatus3, 65535);
+      motor.setPeriodicFramePeriod(PeriodicFrame.kStatus4, 65533);
+      motor.setPeriodicFramePeriod(PeriodicFrame.kStatus5, 65531);
+      motor.setPeriodicFramePeriod(PeriodicFrame.kStatus6, 65529);
+    }
   }
 
   /**
