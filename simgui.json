@@ -1,8 +1,10 @@
 {
   "HALProvider": {
-    "RoboRIO": {
-      "window": {
-        "visible": true
+    "Other Devices": {
+      "SPARK MAX [11]": {
+        "header": {
+          "open": true
+        }
       }
     }
   },
@@ -27,12 +29,38 @@
         }
       },
       "SmartDashboard": {
-        "open": true
+        "Arm": {
+          "open": true
+        },
+        "Field": {
+          "open": true
+        }
       }
     }
   },
   "NetworkTables Info": {
+    "Clients": {
+      "open": true
+    },
+    "Connections": {
+      "open": true
+    },
     "Server": {
+      "Publishers": {
+        "open": true
+      },
+      "Subscribers": {
+        "open": true
+      },
+      "open": true
+    },
+    "ntcore-ts-1677313196460@1": {
+      "Publishers": {
+        "open": true
+      },
+      "Subscribers": {
+        "open": true
+      },
       "open": true
     },
     "visible": true

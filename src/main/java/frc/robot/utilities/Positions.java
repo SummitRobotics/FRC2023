@@ -20,7 +20,7 @@ public class Positions {
             this.pose = pose;
             this.space = space;
         }
-        
+
         public static Pose3d fromRobotSpace(edu.wpi.first.math.geometry.Pose3d pose) {
             return new Pose3d(pose, Space.ROBOT);
         }
@@ -62,12 +62,20 @@ public class Positions {
             }
         }
 
-        public edu.wpi.first.math.geometry.Pose3d inOtherSpace(Transform3d robotToOther) { 
+        public edu.wpi.first.math.geometry.Pose3d inOtherSpace(Transform3d robotToOther) {
             if (space == Space.ROBOT) {
                 return pose.relativeTo(new edu.wpi.first.math.geometry.Pose3d(robotToOther.getTranslation(), robotToOther.getRotation()));
             } else {
                 return inRobotSpace().relativeTo(new edu.wpi.first.math.geometry.Pose3d(robotToOther.getTranslation(), robotToOther.getRotation()));
             }
+        }
+
+        @Override
+        public String toString() {
+            if (space == Space.ROBOT) {
+                return "Robot Space: " + pose;
+            }
+            return "Field Space: " + pose;
         }
     }
 }

@@ -36,12 +36,12 @@ public class MoveArm extends CommandBase {
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
-    MovementMap movementMap = new MovementMap();
+    MovementMap movementMap = MovementMap.getInstance();
     path = MovementMap.generatePathBetweenTwoPoints(arm.getCurrentArmConfiguration().getEndPosition(), endPosition, movementMap.getMainMap());
 
     if (path != null) {
       List<Command> commands = new ArrayList<>();
-  
+
       // Make all the movemnets Fast except the last one
       for (int i = 0; i < path.size() - 1; i++) {
         commands.add(new MoveArmUnsafe(arm, path.get(i), grabberAngleRadians, wristRotationRadians));

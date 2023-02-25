@@ -292,7 +292,7 @@ actionsFolder.add(controller, 'reset').name('Reset');
 actionsFolder.open();
 
 // Configure interprocess hooks
-window.electronAPI.onUpdate((_: any, key: string, value: any, valueType: string, type: string, id: number, flags: number) => {
+window.electronAPI.onUpdate((_: any, key: string, value: any) => {
     // Coerce NaN value to zero
     if (value !== value) {
         value = 0;
@@ -317,7 +317,7 @@ window.electronAPI.onUpdate((_: any, key: string, value: any, valueType: string,
         updateGuiControllers();
     }
     if (DEBUG) {
-        console.log(`update: ${key} - ${value} - ${valueType} - ${type} - ${id} - ${flags}`);
+        console.log(`update: ${key} - ${value}`);
     }
 });
 
@@ -343,3 +343,6 @@ function render() {
 }
 
 animate();
+
+// Notify main process that renderer is ready
+window.electronAPI.set('rendererReady', true);
