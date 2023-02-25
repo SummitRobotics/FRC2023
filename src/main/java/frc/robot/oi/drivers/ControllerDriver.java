@@ -56,7 +56,7 @@ public class ControllerDriver extends GenericDriver {
             dPadRight,
             dPadAny;
             
-    public OIAxis leftX, leftY, leftTrigger, rightX, rightY, rightTrigger;
+    public OIAxis leftX, leftY, leftTrigger, rightTrigger, rightX, rightY;
 
     /**
      * Constructor for generating a Controller Driver.

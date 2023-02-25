@@ -17,10 +17,9 @@ public final class Ports {
     public static final class OI {
         public static final int
             DRIVER_XBOX_PORT = 0,
-            GUNNER_XBOX_PORT = 0,
-            LAUNCHPAD_PORT = 1,
-            JOYSTICK_PORT = 2;
-    }
+            GUNNER_XBOX_PORT = 2,
+            LAUNCHPAD_PORT = 1;
+            }
 
     public static final class Drivetrain {
         public static final int
@@ -30,7 +29,7 @@ public final class Ports {
             RIGHT_1 = 14,
             RIGHT_2 = 15,
             RIGHT_3 = 16,
-            SHIFT_SOLENOID = 4;
+            SHIFT_SOLENOID = 0;
     }
 
     public static final class Arm {
@@ -40,7 +39,7 @@ public final class Ports {
             JOINT_2 = 22,
             JOINT_3 = 23,
             WRIST = 24,
-            CLAMP_SOLENOID = 0;
+            CLAMP_SOLENOID = 1;
     }
     
     public static final class Intake {

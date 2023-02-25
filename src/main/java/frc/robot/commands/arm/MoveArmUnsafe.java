@@ -20,10 +20,17 @@ public class MoveArmUnsafe extends CommandBase {
     addRequirements(arm);
   }
 
+  public MoveArmUnsafe(Arm arm, ArmConfiguration armConfiguration) {
+    this.arm = arm;
+    this.armConfiguration = armConfiguration;
+    addRequirements(arm);
+  }
+
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
     arm.setToConfiguration(armConfiguration);
+    System.out.println("MoveArmUnsafe: " + armConfiguration);
   }
 
   // Called every time the scheduler runs while the command is scheduled.
@@ -39,6 +46,6 @@ public class MoveArmUnsafe extends CommandBase {
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    return arm.atConfiguration(armConfiguration, 1);
+    return arm.atConfiguration(armConfiguration, 0.01);
   }
 }

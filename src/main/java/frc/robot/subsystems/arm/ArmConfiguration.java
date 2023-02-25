@@ -25,6 +25,8 @@ public class ArmConfiguration {
 
     private final Positions.Pose3d endPose;
 
+    public static final double VALID_POS_OFFSET = 1;
+
     public static double joint1AngleToEncoder(double angle) {
         // System.out.println("Angle: " + Math.toDegrees(angle));
         double theta = (Math.PI / 2) - Arm.ARM_JOINT_1_PIVOT_TO_MOTOR_HORIZONTAL_ANGLE_OFFSET - angle;
@@ -353,6 +355,34 @@ public class ArmConfiguration {
         double distance = endPose.inRobotSpace()
             .minus(secondConfig.getEndPosition().inRobotSpace()).getTranslation().getNorm();
         // System.out.println(distance);
-        return distance < tolerance / 100;
+        return distance < tolerance;
     }
+
+    /**
+ * Returns wheather or not this configuration is valid and within the soft limits
+ * If out of the soft limits but moving back towards the soft limits, it is still valid
+ * @param currentPos The current position of the arm
+ * @return Wheather or not the current configuration is valid and within the soft limits
+ */
+public boolean validConfig(ArmConfiguration currentPos) {
+    if (this.turretPositionRotations > currentPos.turretPositionRotations ? this.turretPositionRotations > Arm.ARM_TURRET_FORWARD_SOFT_LIMIT - VALID_POS_OFFSET : this.turretPositionRotations < Arm.ARM_TURRET_REVERSE_SOFT_LIMIT + VALID_POS_OFFSET) {
+        return false;
+    }
+    if (this.firstJointPositionRotations > currentPos.firstJointPositionRotations ? this.firstJointPositionRotations > Arm.ARM_JOINT_1_FORWARD_SOFT_LIMIT - VALID_POS_OFFSET : this.firstJointPositionRotations < Arm.ARM_JOINT_1_REVERSE_SOFT_LIMIT + VALID_POS_OFFSET) {
+        return false;
+    }
+    if (this.secondJointPositionRotations > currentPos.secondJointPositionRotations ? this.secondJointPositionRotations > Arm.ARM_JOINT_2_FORWARD_SOFT_LIMIT - VALID_POS_OFFSET : this.secondJointPositionRotations < Arm.ARM_JOINT_2_REVERSE_SOFT_LIMIT + VALID_POS_OFFSET) {
+        return false;
+    }
+    if (this.thirdJointPositionRotations > currentPos.thirdJointPositionRotations ? this.thirdJointPositionRotations > Arm.ARM_JOINT_3_FORWARD_SOFT_LIMIT - VALID_POS_OFFSET : this.thirdJointPositionRotations < Arm.ARM_JOINT_3_REVERSE_SOFT_LIMIT + VALID_POS_OFFSET) {
+        return false;
+    }
+    if (this.wristPositionRotations > currentPos.wristPositionRotations ? this.wristPositionRotations > Arm.ARM_WRIST_FORWARD_SOFT_LIMIT - VALID_POS_OFFSET : this.wristPositionRotations < Arm.ARM_WRIST_REVERSE_SOFT_LIMIT + VALID_POS_OFFSET) {
+        return false;
+    }
+    if (getEndPosition().inRobotSpace().getZ() <= 0) {
+        return false;
+    }
+    return true;
+}
 }

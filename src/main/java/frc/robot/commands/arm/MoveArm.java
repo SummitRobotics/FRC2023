@@ -44,7 +44,7 @@ public class MoveArm extends CommandBase {
   
       // Make all the movemnets Fast except the last one
       for (int i = 0; i < path.size() - 1; i++) {
-        commands.add(new MoveArmFastUnsafe(arm, path.get(i), grabberAngleRadians, wristRotationRadians));
+        commands.add(new MoveArmUnsafe(arm, path.get(i), grabberAngleRadians, wristRotationRadians));
       }
 
       // For the last one do a normal MoveArmUnsafe
