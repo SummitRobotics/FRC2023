@@ -31,7 +31,7 @@ public class MovementMap {
     }
 
     private MovementMap() {
-        // TODO ADD REGIONS TO MAP
+        // TODO ADD REGIONS TO MAP NOTE NODES ARE IN ROBOT SPACE!!!
         // Node<Region> node1 = new Node<>(new Region(new Translation3d(0, 0, 0), new
         // Translation3d(0, 0, 0)));
         // Node<Region> node2 = new Node<>(new Region(new Translation3d(0, 0, 0), new
@@ -60,6 +60,8 @@ public class MovementMap {
         makeNeighbors(region5, region6);
         makeNeighbors(region4, region2);
         makeNeighbors(region6, region2);
+        makeNeighbors(region1, region3);
+        makeNeighbors(region1, region4);
 
         mainMap.add(region1);
         mainMap.add(region2);
@@ -83,46 +85,44 @@ public class MovementMap {
     public static List<Positions.Pose3d> generatePathBetweenTwoPoints(Positions.Pose3d startPose, Positions.Pose3d endPose, Set<Node<Region>> map) {
         Translation3d start = startPose.inRobotSpace().getTranslation();
         Translation3d end = endPose.inRobotSpace().getTranslation();
-        Node<Region> startNode = null;
-        for (Node<Region> node : map) {
-            if (node.getData().contains(start)) {
-                startNode = node;
-                break;
-            }
-        }
-        if (startNode == null) {
-            return null;
-        }
 
-        // Do Dijkstra's algorithm to find the shortest path to a region that contains
-        // the end point
-
-        Set<NodeWrapper<Region>> settledNodes = new HashSet<>();
         Set<NodeWrapper<Region>> unsettledNodes = new HashSet<>();
 
-        NodeWrapper<Region> startNodeWrapper = new NodeWrapper<>(startNode, 0);
+        for (Node<Region> node : map) {
+            if (node.getData().contains(start)) {
+                unsettledNodes.add(new NodeWrapper<>(node, 0));
+            } else {
+                unsettledNodes.add(new NodeWrapper<>(node));
+            }
+        }
 
-        unsettledNodes.add(startNodeWrapper);
+        NodeWrapper<Region> currentNode = getLowestDistanceNode(unsettledNodes);
 
-        while (unsettledNodes.size() != 0) {
-            NodeWrapper<Region> currentNode = getLowestDistanceNode(unsettledNodes);
+        while (currentNode != null) {
+
             if (currentNode.node.getData().contains(end)) {
                 List<Positions.Pose3d> path = new ArrayList<>();
                 for (Node<Region> pathNode : currentNode.getShortestPath()) {
-                    path.add(Positions.Pose3d.fromRobotSpace(new Pose3d(pathNode.getData().getCenter(), new Rotation3d())));
+                    path.add(Positions.Pose3d.fromRobotSpace(new Pose3d(pathNode.getData().getMovementPoint(), new Rotation3d())));
                 }
+                path.add(Positions.Pose3d.fromRobotSpace(currentNode.getNode().getData().getMovementPoint()));
+                path.add(Positions.Pose3d.fromRobotSpace(end));
                 return path;
             }
-            unsettledNodes.remove(currentNode);
-            for (Node<Region> neighboor : currentNode.node.getNeighbors()) {
-                double edgeWeight = currentNode.node.getData().distanceToOther(neighboor.getData());
-                NodeWrapper<Region> neighboorNode = new NodeWrapper<>(neighboor, currentNode.distance + edgeWeight);
-                if (!settledNodes.contains(neighboorNode)) {
-                    calculateMinimumDistance(neighboorNode, edgeWeight, currentNode);
-                    unsettledNodes.add(neighboorNode);
+
+            Set<NodeWrapper<Region>> unvisitedNeighbors = new HashSet<>();
+            for (NodeWrapper<Region> node : unsettledNodes) {
+                if (currentNode.getNode().getNeighbors().contains(node.getNode())) {
+                    unvisitedNeighbors.add(node);
                 }
             }
-            settledNodes.add(currentNode);
+
+            for (NodeWrapper<Region> neighbor : unvisitedNeighbors) {
+                calculateMinimumDistance(neighbor, currentNode.getNode().getData().distanceToOther(neighbor.getNode().getData()), currentNode);
+            }
+
+            unsettledNodes.remove(currentNode);
+            currentNode = getLowestDistanceNode(unsettledNodes);
         }
         return null;
     }
@@ -142,24 +142,27 @@ public class MovementMap {
 
     private static void calculateMinimumDistance(NodeWrapper<Region> evaluationNode, double edgeWeigh, NodeWrapper<Region> sourceNode) {
         double sourceDistance = sourceNode.getDistance();
-        System.out.println(evaluationNode.getDistance());
         if (sourceDistance + edgeWeigh < evaluationNode.getDistance()) {
             evaluationNode.setDistance(sourceDistance + edgeWeigh);
             LinkedList<Node<Region>> shortestPath = new LinkedList<>(sourceNode.getShortestPath());
             shortestPath.add(sourceNode.getNode());
-            System.out.println(shortestPath);
+            // System.out.println(shortestPath);
             evaluationNode.setShortestPath(shortestPath);
         }
     }
 
     private static class NodeWrapper<T> {
         private final Node<T> node;
-        private double distance = 10000000;
+        private double distance = Double.MAX_VALUE;
         private LinkedList<Node<T>> shortestPath = new LinkedList<>();
 
         public NodeWrapper(Node<T> node, double distance) {
             this.node = node;
             this.distance = distance;
+        }
+
+        public NodeWrapper(Node<T> node) {
+            this.node = node;
         }
 
         public Node<T> getNode() {

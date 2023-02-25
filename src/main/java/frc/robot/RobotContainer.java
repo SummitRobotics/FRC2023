@@ -39,172 +39,172 @@ import frc.robot.commands.TimedMoveMotor;
 
 public class RobotContainer {
 
-  // Overall
-  private CommandScheduler scheduler;
-  private AHRS navx;
-
-  // OI
-  private ControllerDriver driverXBox;
-  private ControllerDriver gunnerXBox;
-  private LaunchpadDriver launchpad;
-
-  // Subsystems
-  private Drivetrain drivetrain;
-  private Arm arm;
-
-  // Commands
-  private Command arcadeDrive;
-
-  private Command turretManual;
-  private Command joint1Manual;
-  private Command joint2Manual;
-  private Command joint3Manual;
-  private Command wristManual;
-  private Command fancyArmMo;
-
-  private Command homeArm;
-
-  private Command testCommand;
-
-  public RobotContainer() {
-    scheduler = CommandScheduler.getInstance();
+    // Overall
+    private CommandScheduler scheduler;
+    private AHRS navx;
 
     // OI
-    driverXBox = new ControllerDriver(Ports.OI.DRIVER_XBOX_PORT);
-    gunnerXBox = new ControllerDriver(Ports.OI.GUNNER_XBOX_PORT);
-    launchpad = new LaunchpadDriver(Ports.OI.LAUNCHPAD_PORT);
-
-    // Devices
-    navx = new AHRS();
+    private ControllerDriver driverXBox;
+    private ControllerDriver gunnerXBox;
+    private LaunchpadDriver launchpad;
 
     // Subsystems
-    drivetrain = Drivetrain.init(navx, new Pose2d());
-    arm = new Arm();
+    private Drivetrain drivetrain;
+    private Arm arm;
 
-    createCommands();
-    setDefaultCommands();
-    configureBindings();
+    // Commands
+    private Command arcadeDrive;
 
-    // Init Logging and Telemetry
-    initLogging();
-    initTelemetry();
-  }
+    private Command turretManual;
+    private Command joint1Manual;
+    private Command joint2Manual;
+    private Command joint3Manual;
+    private Command wristManual;
+    private Command fancyArmMo;
 
-  private void createCommands() {
-    arcadeDrive = new ArcadeDrive(drivetrain, driverXBox.leftTrigger, driverXBox.rightTrigger, driverXBox.leftX, driverXBox.dPadAny);
+    private Command homeArm;
 
-    turretManual = new FullManualArm(arm, FullManualArm.Type.TURRET, gunnerXBox);
-    joint1Manual = new FullManualArm(arm, FullManualArm.Type.JOINT_1, gunnerXBox);
-    joint2Manual = new FullManualArm(arm, FullManualArm.Type.JOINT_2, gunnerXBox);
-    joint3Manual = new FullManualArm(arm, FullManualArm.Type.JOINT_3, gunnerXBox);
-    wristManual = new FullManualArm(arm, FullManualArm.Type.WRIST, gunnerXBox);
-    fancyArmMo = new ArmMO(arm, gunnerXBox);
+    private Command testCommand;
 
-    homeArm = new SequentialCommandGroup(new Home(arm.getHomeables()[4]), new Home(arm.getHomeables()[3]),
-        new ParallelCommandGroup(new TimedMoveMotor(arm::setWristMotorVoltage, -12, 0.25), new TimedMoveMotor(arm::setJoint3MotorVoltage, -3, 0.25)),
-        new Home(arm.getHomeables()[2], arm.getHomeables()[1]),
-        new ParallelCommandGroup(new TimedMoveMotor(arm::setJoint1MotorVoltage, 2, 0.2), new TimedMoveMotor(arm::setJoint2MotorVoltage, 2, 0.2)), new Home(arm.getHomeables()[0]),
-        new TimedMoveMotor(arm::setTurretMotorVoltage, 5, 0.1), new MoveArmHome(arm));
+    public RobotContainer() {
+        scheduler = CommandScheduler.getInstance();
 
-    // testCommand = new StartEndCommand(() -> {
-    // double pos1 = 20;
-    // double pos2 = 80;
-    // double pos3 = -45;
-    // double pos4 = -58;
-    // double pos0 = 98;
-    // ArmConfiguration config = new ArmConfiguration(pos0, pos1, pos2, pos3, pos4,
-    // POSITION_TYPE.ENCODER_ROTATIONS);
-    // double ff1 = Arm.joint1FF.calculate(pos1, config.getJoint1FFData());
-    // double ff2 = Arm.joint2FF.calculate(pos2, config.getJoint2FFData());
-    // double ff3 = Arm.joint3FF.calculate(pos3, config.getJoint3FFData());
-    // arm.setTurretMotorRotations(pos0);
-    // arm.setFirstJointMotorRotations(pos1, ff1);
-    // arm.setSecondJointMotorRotations(pos2, ff2);
-    // arm.setThirdJointMotorRotations(pos3, ff3);
-    // arm.setWristMotorRotations(pos4);
-    // }, () -> {
-    // arm.setTurretMotorVoltage(0);
-    // arm.setJoint1MotorVoltage(0);
-    // arm.setJoint2MotorVoltage(0);
-    // arm.setJoint3MotorVoltage(0);
-    // arm.setWristMotorVoltage(0);
-    // }, arm);
+        // OI
+        driverXBox = new ControllerDriver(Ports.OI.DRIVER_XBOX_PORT);
+        gunnerXBox = new ControllerDriver(Ports.OI.GUNNER_XBOX_PORT);
+        launchpad = new LaunchpadDriver(Ports.OI.LAUNCHPAD_PORT);
 
-    testCommand = new SequentialCommandGroup(new MoveArmUnsafe(arm, Positions.Pose3d.fromRobotSpace(new Translation3d(0, 1, 0.75)), 100, 0)
-    // new WaitCommand(0.5),
-    // new MoveArmUnsafe(arm, Positions.Pose3d.fromRobotSpace(new Translation3d(1.3, 0, 0.5)), 0,
-    // 0),
-    // new WaitCommand(0.5),
-    // new MoveArmUnsafe(arm, Positions.Pose3d.fromRobotSpace(new Translation3d(.7, 0, 0.2)),
-    // (Math.PI / 2), (Math.PI / 4)),
-    // new WaitCommand(0.5)
-    );
-  }
+        // Devices
+        navx = new AHRS();
 
-  private void configureBindings() {
-    driverXBox.rightBumper.prioritize(AxisPriorities.DRIVE).getTrigger().onTrue(new InstantCommand(drivetrain::highGear));
-    driverXBox.leftBumper.prioritize(AxisPriorities.DRIVE).getTrigger().onTrue(new InstantCommand(drivetrain::lowGear));
+        // Subsystems
+        drivetrain = Drivetrain.init(navx, new Pose2d());
+        arm = new Arm();
 
-    launchpad.missileB.getTrigger().whileTrue(homeArm);
+        createCommands();
+        setDefaultCommands();
+        configureBindings();
 
-    launchpad.buttonC.getTrigger().toggleOnTrue(turretManual);
-    launchpad.buttonC.commandBind(turretManual);
+        // Init Logging and Telemetry
+        initLogging();
+        initTelemetry();
+    }
 
-    launchpad.buttonB.getTrigger().toggleOnTrue(joint1Manual);
-    launchpad.buttonB.commandBind(joint1Manual);
+    private void createCommands() {
+        arcadeDrive = new ArcadeDrive(drivetrain, driverXBox.leftTrigger, driverXBox.rightTrigger, driverXBox.leftX, driverXBox.dPadAny);
 
-    launchpad.buttonA.getTrigger().toggleOnTrue(joint2Manual);
-    launchpad.buttonA.commandBind(joint2Manual);
+        turretManual = new FullManualArm(arm, FullManualArm.Type.TURRET, gunnerXBox);
+        joint1Manual = new FullManualArm(arm, FullManualArm.Type.JOINT_1, gunnerXBox);
+        joint2Manual = new FullManualArm(arm, FullManualArm.Type.JOINT_2, gunnerXBox);
+        joint3Manual = new FullManualArm(arm, FullManualArm.Type.JOINT_3, gunnerXBox);
+        wristManual = new FullManualArm(arm, FullManualArm.Type.WRIST, gunnerXBox);
+        fancyArmMo = new ArmMO(arm, gunnerXBox);
 
-    launchpad.buttonF.getTrigger().toggleOnTrue(joint3Manual);
-    launchpad.buttonF.commandBind(joint3Manual);
+        homeArm = new SequentialCommandGroup(new Home(arm.getHomeables()[4]), new Home(arm.getHomeables()[3]),
+                        new ParallelCommandGroup(new TimedMoveMotor(arm::setWristMotorVoltage, -12, 0.25), new TimedMoveMotor(arm::setJoint3MotorVoltage, -3, 0.25)),
+                        new Home(arm.getHomeables()[2], arm.getHomeables()[1]),
+                        new ParallelCommandGroup(new TimedMoveMotor(arm::setJoint1MotorVoltage, 2, 0.2), new TimedMoveMotor(arm::setJoint2MotorVoltage, 2, 0.2)), new Home(arm.getHomeables()[0]),
+                        new TimedMoveMotor(arm::setTurretMotorVoltage, 5, 0.1), new MoveArmHome(arm));
 
-    launchpad.buttonE.getTrigger().toggleOnTrue(wristManual);
-    launchpad.buttonE.commandBind(wristManual);
+        // testCommand = new StartEndCommand(() -> {
+        // double pos1 = 20;
+        // double pos2 = 80;
+        // double pos3 = -45;
+        // double pos4 = -58;
+        // double pos0 = 98;
+        // ArmConfiguration config = new ArmConfiguration(pos0, pos1, pos2, pos3, pos4,
+        // POSITION_TYPE.ENCODER_ROTATIONS);
+        // double ff1 = Arm.joint1FF.calculate(pos1, config.getJoint1FFData());
+        // double ff2 = Arm.joint2FF.calculate(pos2, config.getJoint2FFData());
+        // double ff3 = Arm.joint3FF.calculate(pos3, config.getJoint3FFData());
+        // arm.setTurretMotorRotations(pos0);
+        // arm.setFirstJointMotorRotations(pos1, ff1);
+        // arm.setSecondJointMotorRotations(pos2, ff2);
+        // arm.setThirdJointMotorRotations(pos3, ff3);
+        // arm.setWristMotorRotations(pos4);
+        // }, () -> {
+        // arm.setTurretMotorVoltage(0);
+        // arm.setJoint1MotorVoltage(0);
+        // arm.setJoint2MotorVoltage(0);
+        // arm.setJoint3MotorVoltage(0);
+        // arm.setWristMotorVoltage(0);
+        // }, arm);
 
-    launchpad.buttonI.getTrigger().toggleOnTrue(fancyArmMo);
-    launchpad.buttonI.commandBind(fancyArmMo);
+        testCommand = new SequentialCommandGroup(new MoveArmUnsafe(arm, Positions.Pose3d.fromRobotSpace(new Translation3d(0, 1, 0.75)), 100, 0)
+        // new WaitCommand(0.5),
+        // new MoveArmUnsafe(arm, Positions.Pose3d.fromRobotSpace(new Translation3d(1.3, 0, 0.5)), 0,
+        // 0),
+        // new WaitCommand(0.5),
+        // new MoveArmUnsafe(arm, Positions.Pose3d.fromRobotSpace(new Translation3d(.7, 0, 0.2)),
+        // (Math.PI / 2), (Math.PI / 4)),
+        // new WaitCommand(0.5)
+        );
+    }
 
-    launchpad.buttonG.getTrigger().whileTrue(testCommand);
-    launchpad.buttonG.commandBind(testCommand);
+    private void configureBindings() {
+        driverXBox.rightBumper.prioritize(AxisPriorities.DRIVE).getTrigger().onTrue(new InstantCommand(drivetrain::highGear));
+        driverXBox.leftBumper.prioritize(AxisPriorities.DRIVE).getTrigger().onTrue(new InstantCommand(drivetrain::lowGear));
 
-    launchpad.buttonD.getTrigger().onTrue(new InstantCommand(arm::toggleClamp));
-    launchpad.buttonD.booleanSupplierBind(arm::getClampSolenoidState);
+        launchpad.missileB.getTrigger().whileTrue(homeArm);
 
-    launchpad.buttonH.getTrigger().whileTrue(new MoveArmHome(arm));
-    launchpad.buttonH.pressBind();
-  }
+        launchpad.buttonC.getTrigger().toggleOnTrue(turretManual);
+        launchpad.buttonC.commandBind(turretManual);
 
-  private void setDefaultCommands() {
-    drivetrain.setDefaultCommand(arcadeDrive);
-  }
+        launchpad.buttonB.getTrigger().toggleOnTrue(joint1Manual);
+        launchpad.buttonB.commandBind(joint1Manual);
 
-  private void initLogging() {
-    // scheduler.schedule(new LogComponents(arm));
-    scheduler.schedule(new LogComponents(drivetrain, arm));
+        launchpad.buttonA.getTrigger().toggleOnTrue(joint2Manual);
+        launchpad.buttonA.commandBind(joint2Manual);
 
-  }
+        launchpad.buttonF.getTrigger().toggleOnTrue(joint3Manual);
+        launchpad.buttonF.commandBind(joint3Manual);
 
-  private void initTelemetry() {
-    SmartDashboard.putData("Arm", arm);
-    SmartDashboard.putData("Drivetrain", drivetrain);
-  }
+        launchpad.buttonE.getTrigger().toggleOnTrue(wristManual);
+        launchpad.buttonE.commandBind(wristManual);
 
-  public Command getAutonomousCommand() {
-    return Commands.print("No autonomous command configured");
-  }
+        launchpad.buttonI.getTrigger().toggleOnTrue(fancyArmMo);
+        launchpad.buttonI.commandBind(fancyArmMo);
 
-  public void teleopInit() {
-    arm.stop();
-    System.out.println(MovementMap.generatePathBetweenTwoPoints(Positions.Pose3d.fromRobotSpace(new Translation3d(0.5, 0.5, 0)), Positions.Pose3d.fromRobotSpace(new Translation3d(3.5, 3.5, 0)),
-        MovementMap.getInstance().getMainMap()));
-  }
+        launchpad.buttonG.getTrigger().whileTrue(testCommand);
+        launchpad.buttonG.commandBind(testCommand);
 
-  public void disabledInit() {
-    scheduler.cancelAll();
-    arm.stop();
-  }
+        launchpad.buttonD.getTrigger().onTrue(new InstantCommand(arm::toggleClamp));
+        launchpad.buttonD.booleanSupplierBind(arm::getClampSolenoidState);
 
-  public void robotPeriodic() {
-  }
+        launchpad.buttonH.getTrigger().whileTrue(new MoveArmHome(arm));
+        launchpad.buttonH.pressBind();
+    }
+
+    private void setDefaultCommands() {
+        drivetrain.setDefaultCommand(arcadeDrive);
+    }
+
+    private void initLogging() {
+        // scheduler.schedule(new LogComponents(arm));
+        scheduler.schedule(new LogComponents(drivetrain, arm));
+
+    }
+
+    private void initTelemetry() {
+        SmartDashboard.putData("Arm", arm);
+        SmartDashboard.putData("Drivetrain", drivetrain);
+    }
+
+    public Command getAutonomousCommand() {
+        return Commands.print("No autonomous command configured");
+    }
+
+    public void teleopInit() {
+        arm.stop();
+        System.out.println(MovementMap.generatePathBetweenTwoPoints(Positions.Pose3d.fromRobotSpace(new Translation3d(0.5, 0.5, 0)), Positions.Pose3d.fromRobotSpace(new Translation3d(1, 4.5, 0)),
+                        MovementMap.getInstance().getMainMap()));
+    }
+
+    public void disabledInit() {
+        scheduler.cancelAll();
+        arm.stop();
+    }
+
+    public void robotPeriodic() {
+    }
 }
