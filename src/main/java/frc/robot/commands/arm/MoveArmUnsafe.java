@@ -46,6 +46,6 @@ public class MoveArmUnsafe extends CommandBase {
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    return arm.atConfiguration(armConfiguration, 1);
+    return arm.atConfiguration(armConfiguration, 0.01);
   }
 }

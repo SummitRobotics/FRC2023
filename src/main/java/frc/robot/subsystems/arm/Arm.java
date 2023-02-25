@@ -30,7 +30,6 @@ import frc.robot.utilities.homing.HomeableCANSparkMax;
 import frc.robot.utilities.homing.HomeableSubsystem;
 import frc.robot.utilities.lists.Ports;
 
-// TODO - override toString for ArmConfiguration
 public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
   
   public static final Transform3d ROBOT_TO_TURRET_BASE = new Transform3d(new Translation3d(-0.2413, 0, 0.189), new Rotation3d());
@@ -136,7 +135,8 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
     joint3Encoder = joint3Motor.getEncoder(),
     wirstEncoder = wristMotor.getEncoder();
 
-  private ArmConfiguration armConfiguration = new ArmConfiguration();
+  private ArmConfiguration currentConfiguration = new ArmConfiguration();
+  private ArmConfiguration targetConfiguration = new ArmConfiguration();
 
     // Seperate boolean to store clamp state because it is slow to get the state of the solenoid.
   private final Solenoid clampSolenoid = new Solenoid(Ports.Other.PCM, PneumaticsModuleType.REVPH, Ports.Arm.CLAMP_SOLENOID);
@@ -373,7 +373,16 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
    * @return The current configuration of the arm.
    */
   public ArmConfiguration getCurrentArmConfiguration() {
-    return armConfiguration;
+    return currentConfiguration;
+  }
+
+  /**
+   * Returns the target configuration of the arm.
+   * @return The target configuration of the arm.
+   * @return
+   */
+  public ArmConfiguration getTargetArmConfiguration() {
+    return targetConfiguration;
   }
 
   /**
@@ -386,6 +395,7 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
 
   public void setToConfigurationUnsafe(ArmConfiguration configuration) {
 
+    targetConfiguration = configuration;
     double joint1ArbFF = joint1FF.calculate(configuration.getFirstJointPosition(POSITION_TYPE.ENCODER_ROTATIONS), configuration.getJoint1FFData());
     double joint2ArbFF = joint2FF.calculate(configuration.getFirstJointPosition(POSITION_TYPE.ENCODER_ROTATIONS), configuration.getJoint2FFData());
     double joint3ArbFF = joint3FF.calculate(configuration.getFirstJointPosition(POSITION_TYPE.ENCODER_ROTATIONS), configuration.getJoint3FFData());
@@ -397,11 +407,12 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
     setWristMotorRotations(configuration.getWristPosition(POSITION_TYPE.ENCODER_ROTATIONS));
   }
 
-  //TODO Make sure thease are good tollerances
-  public boolean atConfiguration(ArmConfiguration configuration, double tollerance) {
-    double distance = configuration.getEndPosition().inRobotSpace().minus(getCurrentArmConfiguration().getEndPosition().inRobotSpace()).getTranslation().getNorm();
-    System.out.println(distance);
-    return distance < tollerance/100;
+  public boolean atConfiguration(ArmConfiguration configuration, double tolerance) {
+    return currentConfiguration.equals(configuration, tolerance);
+  }
+
+  public boolean atTargetConfiguration(double tolerance) {
+    return currentConfiguration.equals(targetConfiguration, tolerance);
   }
 
   /**
@@ -438,7 +449,6 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
 
   
 
-  // TODO - check power and current values, check sequencing and what can be homed in parallel
   @Override
   public HomeableCANSparkMax[] getHomeables() {
     return new HomeableCANSparkMax[] {
@@ -498,7 +508,7 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
 
   @Override
   public void periodic() {
-    this.armConfiguration = 
+    this.currentConfiguration = 
       new ArmConfiguration(
         getTurretEncoderPosition(),
         getFirstJointEncoderPosition(),

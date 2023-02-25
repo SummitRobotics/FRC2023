@@ -47,17 +47,16 @@ public class ArmMO extends CommandBase {
         wristDown = controller.leftTrigger.prioritize(AxisPriorities.MANUAL_OVERRIDE);
         clampButton = controller.buttonA.prioritize(AxisPriorities.MANUAL_OVERRIDE);
 
-        endPose = arm.getCurrentArmConfiguration().getEndPosition();
+        endPose = arm.getTargetArmConfiguration().getEndPosition();
         grabberRadians
-            = arm.getCurrentArmConfiguration().getThirdJointPosition(POSITION_TYPE.ANGLE);
+            = arm.getTargetArmConfiguration().getThirdJointPosition(POSITION_TYPE.ANGLE);
         wristRadians 
-            = arm.getCurrentArmConfiguration().getWristPosition(POSITION_TYPE.ANGLE);
+            = arm.getTargetArmConfiguration().getWristPosition(POSITION_TYPE.ANGLE);
     }
 
     @Override
     public void execute() {
 
-        // TODO - check if input dampening is reasonable
         // convert from robot space, edit based on inputs, and convert back to robot space
         endPose = Positions.Pose3d.fromRobotSpace(
             new Pose3d(
