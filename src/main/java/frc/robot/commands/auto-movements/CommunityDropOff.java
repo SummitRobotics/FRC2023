@@ -19,7 +19,13 @@ import frc.robot.utilities.lists.FieldElementPositions;
 
 public class CommunityDropOff extends SequentialCommandGroup {
     
+    private static final double 
+        SLOPE = 0.5,
+        GRABBER_ANGLE = 0,
+        WRIST_ANGLE = 0;
+
     public CommunityDropOff(Drivetrain drivetrain, Arm arm) {
+
 
         final int value = Integer.parseInt(NetworkTableInstance.getDefault()
             .getTable("customDS").getEntry("location").getString("00"));
@@ -29,51 +35,73 @@ public class CommunityDropOff extends SequentialCommandGroup {
         final int xCoordIndex = value - value % 10;
         final int yCoordIndex = value % 10;
 
-        final Translation3d node;
+        final Positions.Pose3d node;
         final Pose2d drivePoint;
 
         if (xCoordIndex != 0 && yCoordIndex != 0) {
             // xCoordIndex is used for z value because height depends on x
             if (DriverStation.getAlliance() == Alliance.Blue) {
-                node = new Translation3d(
+                node = Positions.Pose3d.fromFieldSpace(new Translation3d(
                     FieldElementPositions.BLUE_X_VALUES[xCoordIndex - 1],
                     FieldElementPositions.BLUE_Y_VALUES[yCoordIndex - 1],
                     FieldElementPositions.BLUE_Z_VALUES[xCoordIndex - 1]
-                );
+                ));
+                double x = Math.abs(drivetrain.getPose().getX() - FieldElementPositions.BLUE_X_VALUES[xCoordIndex - 1] + 0.6);
+                double y = drivetrain.getPose().getY() - FieldElementPositions.BLUE_Y_VALUES[yCoordIndex - 1];
+                double slope = y / x;
+                Rotation2d endRot;
+                if (slope < -SLOPE) {
+                    endRot = Rotation2d.fromDegrees(90);
+                } else if (slope > SLOPE) {
+                    endRot = Rotation2d.fromDegrees(-90);
+                } else {
+                    endRot = Rotation2d.fromDegrees(180);
+                }
                 drivePoint = new Pose2d(
                     FieldElementPositions.BLUE_X_VALUES[xCoordIndex - 1] + 0.6,
                     FieldElementPositions.BLUE_Y_VALUES[yCoordIndex - 1],
-                    new Rotation2d(-4, 0)
+                    endRot
                 );
             } else {
-                node = new Translation3d(
+                node = Positions.Pose3d.fromFieldSpace(new Translation3d(
                     FieldElementPositions.RED_X_VALUES[xCoordIndex - 1],
                     FieldElementPositions.RED_Y_VALUES[yCoordIndex - 1],
                     FieldElementPositions.RED_Z_VALUES[xCoordIndex - 1]
-                );
+                ));
+                double x = Math.abs(drivetrain.getPose().getX() - FieldElementPositions.RED_X_VALUES[xCoordIndex - 1] + 0.6);
+                double y = drivetrain.getPose().getY() - FieldElementPositions.RED_Y_VALUES[yCoordIndex - 1];
+                double slope = y / x;
+                Rotation2d endRot;
+                if (slope < -SLOPE) {
+                    endRot = Rotation2d.fromDegrees(90);
+                } else if (slope > SLOPE) {
+                    endRot = Rotation2d.fromDegrees(-90);
+                } else {
+                    endRot = Rotation2d.fromDegrees(0);
+                }
                 drivePoint = new Pose2d(
-                    FieldElementPositions.RED_X_VALUES[xCoordIndex - 1] - 0.6,
+                    FieldElementPositions.RED_X_VALUES[xCoordIndex - 1] + 0.6,
                     FieldElementPositions.RED_Y_VALUES[yCoordIndex - 1],
-                    new Rotation2d(4, 0)
+                    endRot
                 );
             }
 
             addCommands(
-                new MoveArmHome(arm),
-                new InstantCommand(() -> drivetrain.highGear()),
+                new MoveArmHome(arm).unless(() -> arm.isWithinRange(node, GRABBER_ANGLE, WRIST_ANGLE)),
+                new InstantCommand(() -> drivetrain.highGear()).unless(() -> arm.isWithinRange(node, GRABBER_ANGLE, WRIST_ANGLE)),
                 new FollowDynamicTrajectoryThreaded(
                     drivetrain::getPose,
                     () -> drivePoint,
                     () -> new ArrayList<Translation2d>(),
                     drivetrain.generateTrajectoryConfigHighGear(),
                     drivetrain
-                ),
+                ).unless(() -> arm.isWithinRange(node, GRABBER_ANGLE, WRIST_ANGLE)),
                 // TODO - adjust grabber angle and wrist rotations
                 new MoveArm(
                     arm,
-                    Positions.Pose3d.fromFieldSpace(node),
-                    0.0,
-                    0.0
+                    node,
+                    GRABBER_ANGLE,
+                    WRIST_ANGLE
                 ),
                 new InstantCommand(() -> arm.unclamp()),
                 new MoveArmHome(arm)

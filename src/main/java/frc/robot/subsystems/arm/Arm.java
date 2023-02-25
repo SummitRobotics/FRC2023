@@ -7,6 +7,9 @@ package frc.robot.subsystems.arm;
 import java.util.HashMap;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
+
+import javax.swing.text.Position;
+
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkMaxPIDController;
@@ -27,13 +30,14 @@ import frc.robot.subsystems.arm.ArmConfiguration.POSITION_TYPE;
 import frc.robot.utilities.FancyArmFeedForward;
 import frc.robot.utilities.Functions;
 import frc.robot.utilities.Loggable;
+import frc.robot.utilities.Positions;
 import frc.robot.utilities.homing.HomeableCANSparkMax;
 import frc.robot.utilities.homing.HomeableSubsystem;
 import frc.robot.utilities.lists.Ports;
 
 public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
   
-  public static final Transform3d ROBOT_TO_TURRET_BASE = new Transform3d(new Translation3d(-0.2413, 0, 0.189), new Rotation3d());
+  public static final Transform3d ROBOT_TO_TURRET_BASE = new Transform3d(new Translation3d(-0.2413, 0, 0.18265), new Rotation3d());
   // public static final Transform3d ROBOT_TO_TURRET_BASE = new Transform3d(new Translation3d(), new Rotation3d());
   public static final double
     TURRET_P = 4E-5,
@@ -556,11 +560,30 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
     wristMotor.enableSoftLimit(SoftLimitDirection.kReverse, enable);
   }
 
+  public void setAllSoftLimit(boolean enable) {
+    setTurretSoftLimit(enable);
+    setFirstJointSoftLimit(enable);
+    setSecondJointSoftLimit(enable);
+    setThirdJointSoftLimit(enable);
+    setWristSoftLimit(enable);
+  }
+
   public void stop() {
     setTurretMotorVoltage(0);
     setJoint1MotorVoltage(0);
     setJoint2MotorVoltage(0);
     setJoint3MotorVoltage(0);
     setWristMotorVoltage(0);
+  }
+
+  public boolean isWithinRange(Positions.Pose3d pose, double grabberAngle, double wristAngle) { 
+    ArmConfiguration config = ArmConfiguration.fromEndPosition(pose, grabberAngle, wristAngle);
+    if (!config.validConfig(getCurrentArmConfiguration())) {
+      return false;
+    }
+    if (MovementMap.generatePathBetweenTwoPoints(getCurrentArmConfiguration().getEndPosition(), pose, MovementMap.getInstance().getMainMap()) == null) {
+      return false;
+    }
+    return true;
   }
 }
