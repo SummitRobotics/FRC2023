@@ -22,7 +22,7 @@ public class CommunityDropOff extends SequentialCommandGroup {
     public CommunityDropOff(Drivetrain drivetrain, Arm arm) {
 
         final int value = Integer.parseInt(NetworkTableInstance.getDefault()
-            .getTable("stationSelector").getEntry("id").getString("00"));
+            .getTable("customDS").getEntry("location").getString("00"));
 
         // Encoding: first digit is x, second is y, 11 is top left from driver's perspective.
         // 00 means nothing is selected or we couldn't read the table data.
