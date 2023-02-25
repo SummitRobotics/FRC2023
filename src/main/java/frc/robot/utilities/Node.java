@@ -22,4 +22,9 @@ public class Node<T> {
     public void addNeighboor(Node<T> node) {
         neighbors.add(node);
     }
+
+    @Override
+    public String toString() {
+        return "Node: (" + data.toString() + ")";
+    }
 }
