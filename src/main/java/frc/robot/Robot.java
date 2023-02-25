@@ -4,12 +4,9 @@
 
 package frc.robot;
 
-import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import frc.robot.subsystems.arm.ArmConfiguration;
-import frc.robot.utilities.Positions;
 
 public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
@@ -19,6 +16,7 @@ public class Robot extends TimedRobot {
   @Override
   public void robotInit() {
     m_robotContainer = new RobotContainer();
+    m_robotContainer.robotInit();
   }
 
   @Override
@@ -33,49 +31,63 @@ public class Robot extends TimedRobot {
   }
 
   @Override
-  public void disabledPeriodic() {}
+  public void disabledPeriodic() {
+    m_robotContainer.disabledPeriodic();
+  }
 
   @Override
-  public void disabledExit() {}
+  public void disabledExit() {
+    m_robotContainer.disabledExit();
+  }
 
   @Override
   public void autonomousInit() {
     m_autonomousCommand = m_robotContainer.getAutonomousCommand();
-
     if (m_autonomousCommand != null) {
       m_autonomousCommand.schedule();
     }
+    m_robotContainer.autonomousInit();
   }
 
   @Override
-  public void autonomousPeriodic() {}
+  public void autonomousPeriodic() {
+    m_robotContainer.autonomousPeriodic();
+  }
 
   @Override
-  public void autonomousExit() {}
+  public void autonomousExit() {
+    m_robotContainer.autonomousExit();
+  }
 
   @Override
   public void teleopInit() {
     if (m_autonomousCommand != null) {
       m_autonomousCommand.cancel();
     }
-
     m_robotContainer.teleopInit();
   }
 
   @Override
-  public void teleopPeriodic() {}
+  public void teleopPeriodic() {
+    m_robotContainer.teleopPeriodic();
+  }
 
   @Override
-  public void teleopExit() {}
+  public void teleopExit() {
+    m_robotContainer.teleopExit();
+  }
 
   @Override
   public void testInit() {
-    CommandScheduler.getInstance().cancelAll();
-    System.out.println(ArmConfiguration.fromEndPosition(Positions.Pose3d.fromRobotSpace(new Translation3d(0.6, 0.2, 0.4)), 0, 0));
+    m_robotContainer.testInit();
   }
   @Override
-  public void testPeriodic() {}
+  public void testPeriodic() {
+    m_robotContainer.testPeriodic();
+  }
 
   @Override
-  public void testExit() {}
+  public void testExit() {
+    m_robotContainer.testExit();
+  }
 }

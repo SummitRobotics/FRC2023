@@ -23,6 +23,8 @@ import frc.robot.commands.arm.FullManualArm;
 import frc.robot.commands.arm.MoveArmHome;
 import frc.robot.commands.arm.MoveArmUnsafe;
 import frc.robot.commands.drivetrain.ArcadeDrive;
+import frc.robot.commands.drivetrain.ChargeStationBalance;
+import frc.robot.devices.PCM;
 import frc.robot.oi.drivers.ControllerDriver;
 import frc.robot.oi.drivers.LaunchpadDriver;
 import frc.robot.subsystems.arm.Arm;
@@ -42,6 +44,7 @@ public class RobotContainer {
     // Overall
     private CommandScheduler scheduler;
     private AHRS navx;
+    private PCM pcm;
 
     // OI
     private ControllerDriver driverXBox;
@@ -54,6 +57,7 @@ public class RobotContainer {
 
     // Commands
     private Command arcadeDrive;
+    private Command balance;
 
     private Command turretManual;
     private Command joint1Manual;
@@ -76,10 +80,12 @@ public class RobotContainer {
 
         // Devices
         navx = new AHRS();
-
+        
         // Subsystems
         drivetrain = Drivetrain.init(navx, new Pose2d());
         arm = new Arm();
+
+        pcm = new PCM(Ports.Other.PCM, drivetrain);
 
         createCommands();
         setDefaultCommands();
@@ -92,6 +98,7 @@ public class RobotContainer {
 
     private void createCommands() {
         arcadeDrive = new ArcadeDrive(drivetrain, driverXBox.leftTrigger, driverXBox.rightTrigger, driverXBox.leftX, driverXBox.dPadAny);
+        balance = new ChargeStationBalance(drivetrain, navx);
 
         turretManual = new FullManualArm(arm, FullManualArm.Type.TURRET, gunnerXBox);
         joint1Manual = new FullManualArm(arm, FullManualArm.Type.JOINT_1, gunnerXBox);
@@ -106,46 +113,17 @@ public class RobotContainer {
                         new ParallelCommandGroup(new TimedMoveMotor(arm::setJoint1MotorVoltage, 2, 0.2), new TimedMoveMotor(arm::setJoint2MotorVoltage, 2, 0.2)), new Home(arm.getHomeables()[0]),
                         new TimedMoveMotor(arm::setTurretMotorVoltage, 5, 0.1), new MoveArmHome(arm));
 
-        // testCommand = new StartEndCommand(() -> {
-        // double pos1 = 20;
-        // double pos2 = 80;
-        // double pos3 = -45;
-        // double pos4 = -58;
-        // double pos0 = 98;
-        // ArmConfiguration config = new ArmConfiguration(pos0, pos1, pos2, pos3, pos4,
-        // POSITION_TYPE.ENCODER_ROTATIONS);
-        // double ff1 = Arm.joint1FF.calculate(pos1, config.getJoint1FFData());
-        // double ff2 = Arm.joint2FF.calculate(pos2, config.getJoint2FFData());
-        // double ff3 = Arm.joint3FF.calculate(pos3, config.getJoint3FFData());
-        // arm.setTurretMotorRotations(pos0);
-        // arm.setFirstJointMotorRotations(pos1, ff1);
-        // arm.setSecondJointMotorRotations(pos2, ff2);
-        // arm.setThirdJointMotorRotations(pos3, ff3);
-        // arm.setWristMotorRotations(pos4);
-        // }, () -> {
-        // arm.setTurretMotorVoltage(0);
-        // arm.setJoint1MotorVoltage(0);
-        // arm.setJoint2MotorVoltage(0);
-        // arm.setJoint3MotorVoltage(0);
-        // arm.setWristMotorVoltage(0);
-        // }, arm);
-
-        testCommand = new SequentialCommandGroup(new MoveArmUnsafe(arm, Positions.Pose3d.fromRobotSpace(new Translation3d(0, 1, 0.75)), 100, 0)
-        // new WaitCommand(0.5),
-        // new MoveArmUnsafe(arm, Positions.Pose3d.fromRobotSpace(new Translation3d(1.3, 0, 0.5)), 0,
-        // 0),
-        // new WaitCommand(0.5),
-        // new MoveArmUnsafe(arm, Positions.Pose3d.fromRobotSpace(new Translation3d(.7, 0, 0.2)),
-        // (Math.PI / 2), (Math.PI / 4)),
-        // new WaitCommand(0.5)
-        );
+        testCommand = new SequentialCommandGroup(new MoveArmUnsafe(arm, Positions.Pose3d.fromRobotSpace(new Translation3d(0, 1, 0.75)), 100, 0));
     }
 
     private void configureBindings() {
         driverXBox.rightBumper.prioritize(AxisPriorities.DRIVE).getTrigger().onTrue(new InstantCommand(drivetrain::highGear));
         driverXBox.leftBumper.prioritize(AxisPriorities.DRIVE).getTrigger().onTrue(new InstantCommand(drivetrain::lowGear));
 
-        launchpad.missileB.getTrigger().whileTrue(homeArm);
+        launchpad.missileB.getTrigger().whileTrue(new StartEndCommand(() -> arm.setAllSoftLimit(false), () -> arm.setAllSoftLimit(true)));
+        launchpad.missileA.getTrigger().whileTrue(balance);
+
+        driverXBox.buttonBack.getTrigger().whileTrue(homeArm);
 
         launchpad.buttonC.getTrigger().toggleOnTrue(turretManual);
         launchpad.buttonC.commandBind(turretManual);
@@ -180,9 +158,7 @@ public class RobotContainer {
     }
 
     private void initLogging() {
-        // scheduler.schedule(new LogComponents(arm));
         scheduler.schedule(new LogComponents(drivetrain, arm));
-
     }
 
     private void initTelemetry() {
@@ -194,17 +170,26 @@ public class RobotContainer {
         return Commands.print("No autonomous command configured");
     }
 
-    public void teleopInit() {
-        arm.stop();
-        System.out.println(MovementMap.generatePathBetweenTwoPoints(Positions.Pose3d.fromRobotSpace(new Translation3d(0.5, 0.5, 0)), Positions.Pose3d.fromRobotSpace(new Translation3d(1, 4.5, 0)),
-                        MovementMap.getInstance().getMainMap()));
-    }
+    public void robotInit() {}
+    public void robotPeriodic() {}
 
     public void disabledInit() {
         scheduler.cancelAll();
         arm.stop();
+        drivetrain.stop();
     }
+    public void disabledPeriodic() {}
+    public void disabledExit() {}
 
-    public void robotPeriodic() {
-    }
+    public void autonomousInit() {}
+    public void autonomousPeriodic() {}
+    public void autonomousExit() {}
+
+    public void teleopInit() {}
+    public void teleopPeriodic() {}
+    public void teleopExit() {}
+
+    public void testInit() {}
+    public void testPeriodic() {}
+    public void testExit() {}
 }
