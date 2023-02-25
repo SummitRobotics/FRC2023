@@ -14,7 +14,7 @@ function updateSelected(row, col) {
     for (const prevSelected of allPrevSelected) {
         prevSelected.classList.toggle('selected');
     }
-    
+
     const element = document.getElementById(`id${row}${col}`);
     if (element) {
         element.classList.toggle('selected');
@@ -26,15 +26,17 @@ function updateSelected(row, col) {
 
 async function main() {
     // Wait for Network tables to be connected
-    while(!await window.ntClient.isReady()) {
+    while (!await window.ntClient.isReady()) {
         await new Promise(r => setTimeout(r, 1000));
     }
-    
+
+    window.ntClient.publish();
+
     const buttonsDiv = document.getElementById('main');
     let innerHtml = '';
-    
+
     for (let row = 1; row <= 3; row++) {
-        for (let col = 1; col <= 9; col++){
+        for (let col = 1; col <= 9; col++) {
             if (row == 1) {
                 innerHtml += generateAnyHtml(row, col);
             } else if (col === 2 || col === 5 || col === 8) {
@@ -45,13 +47,13 @@ async function main() {
         }
     }
     buttonsDiv.innerHTML = innerHtml;
-    
+
     const buttons = document.getElementsByClassName('item');
-    
+
     for (const button of buttons) {
         button.addEventListener('click', () => updateSelected(button.id.at(2), button.id.at(3)));
     }
-    updateSelected(0,0);
+    updateSelected(0, 0);
 }
 
 main();

@@ -1,35 +1,14 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const EventEmitter = require('events');
 const path = require('path');
-const ntClient = require('wpilib-nt-client');
-const client = new ntClient.Client()
-
-const retryEvent = new EventEmitter();
-let connected = false;
+const { NetworkTables, NetworkTablesTypeInfos } = require('ntcore-ts-client');
+const ntcore = NetworkTables.getInstanceByURI("127.0.0.1");
 
 if (require('electron-squirrel-startup')) app.quit();
 
-retryEvent.on('startFailed', async () => {
-    await new Promise(r => setTimeout(r, 1000));
-    client.start((isConnected, err) => {
-        console.log({ isConnected, err });
-        connected = isConnected;
-        if (!connected) {
-            retryEvent.emit('startFailed');
-        }
-    }, '10.54.68.2');
-});
+const stationSelectorTopic = ntcore.createTopic('/stationSelector', NetworkTablesTypeInfos.kString);
 
-async function main () {
-    client.start((isConnected, err) => {
-        console.log({ isConnected, err });
-        connected = isConnected;
-        if (!connected) {
-            retryEvent.emit('startFailed');
-        }
-    }, '10.54.68.2');
-    
-    client.setReconnectDelay(1000);
+async function main() {
 
     const createWindow = () => {
         const win = new BrowserWindow({
@@ -39,19 +18,23 @@ async function main () {
                 preload: path.join(__dirname, 'preload.js'),
             }
         })
-        ipcMain.handle('assign', (_, id, val) => client.Assign(val, id, false));
-        ipcMain.handle('ready', () => connected);
+        ipcMain.handle('assign', (_, id, val) => stationSelectorTopic.setValue(val));
+        ipcMain.handle('ready', () => ntcore.isRobotConnected());
+        ipcMain.handle('publisher', () => {
+            stationSelectorTopic.announce();
+            stationSelectorTopic.publish();
+        })
         win.loadFile('./html/index.html');
     }
-    
+
     app.whenReady().then(() => {
-    createWindow()
+        createWindow()
     })
-    
+
     app.on('window-all-closed', () => {
         if (process.platform !== 'darwin') app.quit()
     })
-    
+
     app.on('activate', () => {
         if (BrowserWindow.getAllWindows().length === 0) createWindow()
     })

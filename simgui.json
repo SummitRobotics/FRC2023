@@ -34,12 +34,35 @@
         },
         "Field": {
           "open": true
-        },
-        "open": true
+        }
       }
     }
   },
-  "NetworkTables View": {
-    "visible": false
+  "NetworkTables Info": {
+    "Clients": {
+      "open": true
+    },
+    "Connections": {
+      "open": true
+    },
+    "Server": {
+      "Publishers": {
+        "open": true
+      },
+      "Subscribers": {
+        "open": true
+      },
+      "open": true
+    },
+    "ntcore-ts-1677313196460@1": {
+      "Publishers": {
+        "open": true
+      },
+      "Subscribers": {
+        "open": true
+      },
+      "open": true
+    },
+    "visible": true
   }
 }
