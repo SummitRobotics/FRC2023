@@ -80,8 +80,8 @@ public class CommunityDropOff extends SequentialCommandGroup {
                     endRot = Rotation2d.fromDegrees(0);
                 }
                 drivePoint = new Pose2d(
-                    FieldElementPositions.BLUE_X_VALUES[xCoordIndex - 1] + 0.6,
-                    FieldElementPositions.BLUE_Y_VALUES[yCoordIndex - 1],
+                    FieldElementPositions.RED_X_VALUES[xCoordIndex - 1] + 0.6,
+                    FieldElementPositions.RED_Y_VALUES[yCoordIndex - 1],
                     endRot
                 );
             }
