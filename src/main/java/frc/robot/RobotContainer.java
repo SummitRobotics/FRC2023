@@ -102,7 +102,7 @@ public class RobotContainer {
     joint2Manual = new FullManualArm(arm, FullManualArm.Type.JOINT_2, gunnerXBox);
     joint3Manual = new FullManualArm(arm, FullManualArm.Type.JOINT_3, gunnerXBox);
     wristManual = new FullManualArm(arm, FullManualArm.Type.WRIST, gunnerXBox);
-    fancyArmMo = new ArmMO(arm, gunnerXBox);
+    fancyArmMo = new ArmMO(arm, gunnerXBox, launchpad);
 
     homeArm = new SequentialCommandGroup(
       new Home(arm.getHomeables()[4]),

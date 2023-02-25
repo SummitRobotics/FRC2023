@@ -1,4 +1,11 @@
 {
+  "HALProvider": {
+    "RoboRIO": {
+      "window": {
+        "visible": true
+      }
+    }
+  },
   "NTProvider": {
     "types": {
       "/FMSInfo": "FMSInfo",
@@ -20,14 +27,14 @@
         }
       },
       "SmartDashboard": {
-        "Arm": {
-          "open": true
-        },
-        "Field": {
-          "open": true
-        },
         "open": true
       }
     }
+  },
+  "NetworkTables Info": {
+    "Server": {
+      "open": true
+    },
+    "visible": true
   }
 }

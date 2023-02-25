@@ -103,7 +103,7 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
     ARM_JOINT_2_MOTOR_GEAR_RATIO = 5, // Ratio Example a 9:1 gear ratio would be 9
     ARM_JOINT_2_LEADSCREW_PITCH = 0.00635, // Length in meters. The distance the lead screw moves per revolution
 
-    ARM_JOINT_3_GEAR_RATIO_OVERALL = 225, // Ratio Example a 9:1 would be 9
+    ARM_JOINT_3_GEAR_RATIO_OVERALL = 243, // Ratio Example a 9:1 would be 9
     ARM_JOINT_3_HOME_ANGLE = -1.7500165, // Angle in radians where 0 is straight forward and positive is counter clockwise.
 
     WRIST_GEAR_RATIO_OVERALL = (5*5*4) * (77/42), // Ratio Example a 9:1 would be 9

@@ -5,13 +5,13 @@
   "MainWindow": {
     "GLOBAL": {
       "fps": "120",
-      "height": "2084",
+      "height": "1040",
       "maximized": "0",
       "style": "0",
       "userScale": "2",
       "width": "1892",
       "xpos": "1932",
-      "ypos": "60"
+      "ypos": "1104"
     }
   },
   "Table": {
@@ -19,6 +19,17 @@
       "Column 0  Width": "525",
       "Column 1  Width": "734",
       "RefScale": "25"
+    },
+    "0x965B9C9E,2": {
+      "Column 0  Width": "250",
+      "Column 1  Weight": "1.0000",
+      "RefScale": "25"
+    },
+    "0xE56EC1C2,4": {
+      "Column 0  Weight": "1.0000",
+      "Column 1  Weight": "1.0000",
+      "Column 2  Weight": "1.0000",
+      "Column 3  Weight": "1.0000"
     }
   },
   "Window": {
@@ -29,18 +40,28 @@
     },
     "###Joysticks": {
       "Collapsed": "0",
-      "Pos": "500,930",
+      "Pos": "72,392",
       "Size": "1516,109"
     },
     "###NetworkTables": {
       "Collapsed": "0",
-      "Pos": "366,399",
+      "Pos": "251,1021",
       "Size": "1500,847"
+    },
+    "###NetworkTables Info": {
+      "Collapsed": "1",
+      "Pos": "250,130",
+      "Size": "750,345"
     },
     "###Other Devices": {
       "Collapsed": "0",
       "Pos": "1682,40",
       "Size": "500,1390"
+    },
+    "###RoboRIO": {
+      "Collapsed": "0",
+      "Pos": "390,499",
+      "Size": "206,218"
     },
     "###System Joysticks": {
       "Collapsed": "0",

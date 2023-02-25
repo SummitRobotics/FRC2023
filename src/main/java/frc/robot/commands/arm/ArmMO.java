@@ -1,9 +1,13 @@
 package frc.robot.commands.arm;
 
+import org.opencv.video.TrackerMIL;
+
 import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.oi.drivers.ControllerDriver;
+import frc.robot.oi.drivers.LaunchpadDriver;
 import frc.robot.oi.inputs.OIAxis.PrioritizedAxis;
 import frc.robot.oi.inputs.OITrigger.PrioritizedTrigger;
 import frc.robot.subsystems.arm.Arm;
@@ -28,10 +32,12 @@ public class ArmMO extends CommandBase {
     PrioritizedAxis wristDown;
 
     ControllerDriver controller;
+    LaunchpadDriver launchpad;
 
-    public ArmMO(Arm arm, ControllerDriver controller) {
+    public ArmMO(Arm arm, ControllerDriver controller, LaunchpadDriver launchpad) {
         this.arm = arm;
         this.controller = controller;
+        this.launchpad = launchpad;
 
         addRequirements(arm);
     }
@@ -49,7 +55,7 @@ public class ArmMO extends CommandBase {
 
         endPose = arm.getTargetArmConfiguration().getEndPosition();
         grabberRadians
-            = arm.getTargetArmConfiguration().getThirdJointPosition(POSITION_TYPE.ANGLE);
+            = -arm.getTargetArmConfiguration().getEndPosition().inOtherSpace(Arm.ROBOT_TO_TURRET_BASE).getRotation().getY();
         wristRadians 
             = arm.getTargetArmConfiguration().getWristPosition(POSITION_TYPE.ANGLE);
     }
@@ -58,14 +64,40 @@ public class ArmMO extends CommandBase {
     public void execute() {
 
         // convert from robot space, edit based on inputs, and convert back to robot space
-        endPose = Positions.Pose3d.fromRobotSpace(
-            new Pose3d(
-                endPose.inRobotSpace().getX() + -yAxis.get() / 200,
-                endPose.inRobotSpace().getY() + -xAxis.get() / 200,
-                endPose.inRobotSpace().getZ() + -zAxis.get() / 200,
-                endPose.inRobotSpace().getRotation() // It doesn't matter what this rotation is.
-            )
-        );
+        if (launchpad.funRight.getTrigger().getAsBoolean()) {
+            endPose = Positions.Pose3d.fromFieldSpace(
+                new Pose3d(
+                    endPose.inFieldSpace().getX() + -yAxis.get() / 200,
+                    endPose.inFieldSpace().getY() + -xAxis.get() / 200,
+                    endPose.inFieldSpace().getZ() + -zAxis.get() / 200,
+                    endPose.inFieldSpace().getRotation() // It doesn't matter what this rotation is.
+                )
+            );
+        }
+
+        if (launchpad.funMiddle.getTrigger().getAsBoolean()) {
+            endPose = Positions.Pose3d.fromRobotSpace(
+                new Pose3d(
+                    endPose.inRobotSpace().getX() + -yAxis.get() / 200,
+                    endPose.inRobotSpace().getY() + -xAxis.get() / 200,
+                    endPose.inRobotSpace().getZ() + -zAxis.get() / 200,
+                    endPose.inRobotSpace().getRotation() // It doesn't matter what this rotation is.
+                )
+            );
+        }
+
+        if (launchpad.funLeft.getTrigger().getAsBoolean()) {
+            Transform3d thing = new Transform3d(arm.getCurrentArmConfiguration().getEndPosition().inRobotSpace().getTranslation(),arm.getCurrentArmConfiguration().getEndPosition().inRobotSpace().getRotation());
+            endPose = Positions.Pose3d.fromOtherSpace(
+                new Pose3d(
+                    endPose.inOtherSpace(thing).getX() + -yAxis.get() / 200,
+                    endPose.inOtherSpace(thing).getY() + -xAxis.get() / 200,
+                    endPose.inOtherSpace(thing).getZ() + -zAxis.get() / 200,
+                    endPose.inOtherSpace(thing).getRotation() // It doesn't matter what this rotation is.
+                ),
+                thing
+            );
+        }
 
         grabberRadians = grabberRadians + (grabberUp.get() ? 0.01 : 0) - (grabberDown.get() ? 0.01 : 0);
         wristRadians = wristRadians + wristUp.get() / 100 - wristDown.get() / 100;
