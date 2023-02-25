@@ -24,8 +24,8 @@ public class ArmMO extends CommandBase {
     PrioritizedTrigger clampButton;
     PrioritizedTrigger grabberUp;
     PrioritizedTrigger grabberDown;
-    PrioritizedAxis wristLeft;
-    PrioritizedAxis wristRight;
+    PrioritizedAxis wristUp;
+    PrioritizedAxis wristDown;
 
     ControllerDriver controller;
 
@@ -43,8 +43,8 @@ public class ArmMO extends CommandBase {
         zAxis = controller.rightY.prioritize(AxisPriorities.MANUAL_OVERRIDE);
         grabberUp = controller.rightBumper.prioritize(AxisPriorities.MANUAL_OVERRIDE);
         grabberDown = controller.leftBumper.prioritize(AxisPriorities.MANUAL_OVERRIDE);
-        wristLeft = controller.leftTrigger.prioritize(AxisPriorities.MANUAL_OVERRIDE);
-        wristRight = controller.rightTrigger.prioritize(AxisPriorities.MANUAL_OVERRIDE);
+        wristUp = controller.leftTrigger.prioritize(AxisPriorities.MANUAL_OVERRIDE);
+        wristDown = controller.leftTrigger.prioritize(AxisPriorities.MANUAL_OVERRIDE);
         clampButton = controller.buttonA.prioritize(AxisPriorities.MANUAL_OVERRIDE);
 
         endPose = arm.getCurrentArmConfiguration().getEndPosition();
@@ -62,15 +62,14 @@ public class ArmMO extends CommandBase {
         endPose = Positions.Pose3d.fromRobotSpace(
             new Pose3d(
                 endPose.inRobotSpace().getX() + -yAxis.get() / 200,
-                // endPose.inRobotSpace().getY() + yAxis.get() / 200,
-                endPose.inRobotSpace().getY(),
+                endPose.inRobotSpace().getY() + -xAxis.get() / 200,
                 endPose.inRobotSpace().getZ() + -zAxis.get() / 200,
                 endPose.inRobotSpace().getRotation() // It doesn't matter what this rotation is.
             )
         );
 
         grabberRadians = grabberRadians + (grabberUp.get() ? 0.01 : 0) - (grabberDown.get() ? 0.01 : 0);
-        wristRadians = wristRadians + wristLeft.get() / 100 - wristRight.get() / 100;
+        wristRadians = wristRadians + wristUp.get() / 100 - wristDown.get() / 100;
 
         arm.setToConfiguration(
             ArmConfiguration.fromEndPosition(endPose, grabberRadians, wristRadians));
@@ -88,8 +87,8 @@ public class ArmMO extends CommandBase {
         clampButton.destroy();
         grabberUp.destroy();
         grabberDown.destroy();
-        wristLeft.destroy();
-        wristRight.destroy();
+        wristUp.destroy();
+        wristDown.destroy();
         arm.stop();
     }
 }

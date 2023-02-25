@@ -28,6 +28,7 @@ public class Home extends CommandBase {
 
     @Override
     public void initialize() {
+        homeables.clear();
         for (HomeableCANSparkMax homeable : homeableArray) {
             homeables.add(homeable);
         }

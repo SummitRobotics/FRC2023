@@ -168,6 +168,7 @@ public class HomeableCANSparkMax {
             motor.enableSoftLimit(SoftLimitDirection.kForward, false);
             motor.enableSoftLimit(SoftLimitDirection.kReverse, false);
         }
+        isFinished = false;
     }
 
     public void end() {

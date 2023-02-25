@@ -71,12 +71,12 @@ public class Drivetrain extends SubsystemBase implements Testable, Loggable {
         HIGH_KS = 0.18976,
         HIGH_KV = 1.9778,
         HIGH_KA = 0.16066,
-        HIGH_GEAR_RATIO = 5.098,
-        LOW_GEAR_RATIO = 11.03102,
-        WHEEL_RADIUS_IN_METERS = 0.05207,
+        HIGH_GEAR_RATIO = 9.1,
+        LOW_GEAR_RATIO = 19.65,
+        WHEEL_RADIUS_IN_METERS = (0.1524 / 2),
         WHEEL_CIRCUMFERENCE_IN_METERS = (2 * WHEEL_RADIUS_IN_METERS) * Math.PI,
         MAX_OUTPUT_VOLTAGE = 11,
-        DRIVE_WIDTH = 0.6858,
+        DRIVE_WIDTH = 0.64135,
         SPLINE_MAX_VEL_MPS_HIGH = 3, // MAX:
         SPLINE_MAX_ACC_MPSSQ_HIGH = 3, // MAX :
         HIGH_FF_REV_FROM_SYSID = 0.12666/1.3/1.2,

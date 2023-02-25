@@ -30,8 +30,7 @@ public class Positions {
         }
 
         public static Pose3d fromOtherSpace(edu.wpi.first.math.geometry.Pose3d pose, Transform3d robotToOther) {
-            Transform3d otherToRobot = robotToOther.inverse();
-            return new Pose3d(pose.plus(otherToRobot), Space.ROBOT);
+            return new Pose3d(pose.relativeTo(new edu.wpi.first.math.geometry.Pose3d(robotToOther.inverse().getTranslation(), robotToOther.inverse().getRotation())), Space.ROBOT);
         }
 
         public static Pose3d fromRobotSpace(Translation3d pose) {
@@ -63,12 +62,11 @@ public class Positions {
             }
         }
 
-        public edu.wpi.first.math.geometry.Pose3d inOtherSpace(Transform3d robotToOther) {
+        public edu.wpi.first.math.geometry.Pose3d inOtherSpace(Transform3d robotToOther) { 
             if (space == Space.ROBOT) {
-                return pose.plus(robotToOther);
+                return pose.relativeTo(new edu.wpi.first.math.geometry.Pose3d(robotToOther.getTranslation(), robotToOther.getRotation()));
             } else {
-                edu.wpi.first.math.geometry.Pose3d robotPose = new edu.wpi.first.math.geometry.Pose3d(Drivetrain.getInstance().getPose());
-                return pose.relativeTo(robotPose).plus(robotToOther);
+                return inRobotSpace().relativeTo(new edu.wpi.first.math.geometry.Pose3d(robotToOther.getTranslation(), robotToOther.getRotation()));
             }
         }
     }

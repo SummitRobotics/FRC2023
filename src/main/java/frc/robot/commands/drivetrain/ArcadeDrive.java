@@ -26,9 +26,13 @@ public class ArcadeDrive extends CommandBase {
     private double reversePower;
     private boolean activateSwitchfoot;
 
-    private final OIAxis.PrioritizedAxis forwardPowerAxis;
-    private final OIAxis.PrioritizedAxis reversePowerAxis;
-    private final OIAxis.PrioritizedAxis turnAxis;
+    private final OIAxis forwardPowerAxis;
+    private final OIAxis reversePowerAxis;
+    private final OIAxis turnAxis;
+
+    private OIAxis.PrioritizedAxis forwardPowerAxisPrio;
+    private OIAxis.PrioritizedAxis reversePowerAxisPrio;
+    private OIAxis.PrioritizedAxis turnAxisPrio;
 
     private final ChangeRateLimiter limiter;
 
@@ -60,9 +64,9 @@ public class ArcadeDrive extends CommandBase {
         OIAxis turnAxis,
         OITrigger switchfoot) {
         this.drivetrain = drivetrain;
-        this.forwardPowerAxis = forwardPowerAxis.prioritize(AxisPriorities.DRIVE);
-        this.reversePowerAxis = reversePowerAxis.prioritize(AxisPriorities.DRIVE);
-        this.turnAxis = turnAxis.prioritize(AxisPriorities.DRIVE);
+        this.forwardPowerAxis = forwardPowerAxis;
+        this.reversePowerAxis = reversePowerAxis;
+        this.turnAxis = turnAxis;
 
         limiter = new ChangeRateLimiter(MAX_CHANGE_RATE);
 
@@ -96,9 +100,9 @@ public class ArcadeDrive extends CommandBase {
         OIAxis turnAxis, 
         OITrigger switchfoot) {
         this.drivetrain = drivetrain;
-        this.forwardPowerAxis = powerAxis.prioritize(AxisPriorities.DRIVE);
+        this.forwardPowerAxis = powerAxis;
         this.reversePowerAxis = null;
-        this.turnAxis = turnAxis.prioritize(AxisPriorities.DRIVE);
+        this.turnAxis = turnAxis;
 
         limiter = new ChangeRateLimiter(MAX_CHANGE_RATE);
 
@@ -121,6 +125,13 @@ public class ArcadeDrive extends CommandBase {
     // Called when the command is initially scheduled.
     @Override
     public void initialize() {
+        forwardPowerAxisPrio = forwardPowerAxis.prioritize(AxisPriorities.DRIVE);
+        if (reversePowerAxis != null) {
+            reversePowerAxisPrio = reversePowerAxis.prioritize(AxisPriorities.DRIVE);
+        } else {
+            reversePowerAxisPrio = null;
+        }
+        turnAxisPrio = turnAxis.prioritize(AxisPriorities.DRIVE);
         drivetrain.setOpenRampRate(0);
         avgPower.reset();
         avgSpeed.reset();
@@ -189,5 +200,10 @@ public class ArcadeDrive extends CommandBase {
     public void end(boolean interrupted) {
         drivetrain.stop();
         LEDs.getInstance().removeCall("reversed");
+        forwardPowerAxisPrio.destroy();
+        if (reversePowerAxisPrio != null) {
+            reversePowerAxisPrio.destroy();
+        }
+        turnAxisPrio.destroy();
     }
 }

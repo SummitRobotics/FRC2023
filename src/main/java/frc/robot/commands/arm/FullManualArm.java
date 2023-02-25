@@ -18,8 +18,8 @@ public class FullManualArm extends CommandBase {
 
     Arm arm;
     Type type;
-    PrioritizedAxis plusAxis;
-    PrioritizedAxis minusAxis;
+    PrioritizedAxis leftTriggerAxis;
+    PrioritizedAxis rightTriggerAxis;
     ControllerDriver controller;
 
     public FullManualArm(Arm arm, Type type, ControllerDriver controller) {
@@ -32,8 +32,8 @@ public class FullManualArm extends CommandBase {
 
     @Override
     public void initialize() {
-        this.plusAxis = controller.leftTrigger.prioritize(AxisPriorities.MANUAL_OVERRIDE);
-        this.minusAxis = controller.rightTrigger.prioritize(AxisPriorities.MANUAL_OVERRIDE);
+        this.leftTriggerAxis = controller.leftTrigger.prioritize(AxisPriorities.MANUAL_OVERRIDE);
+        this.rightTriggerAxis = controller.rightTrigger.prioritize(AxisPriorities.MANUAL_OVERRIDE);
         if (type == Type.TURRET) {
             arm.setTurretSoftLimit(false);
         } else if (type == Type.JOINT_1) {
@@ -50,22 +50,22 @@ public class FullManualArm extends CommandBase {
     @Override
     public void execute() {
         if (type == Type.TURRET) {
-            arm.setTurretMotorVoltage(12 * plusAxis.get() - 12 * minusAxis.get());
+            arm.setTurretMotorVoltage(12 * leftTriggerAxis.get() - 12 * rightTriggerAxis.get());
         } else if (type == Type.JOINT_1) {
-            arm.setJoint1MotorVoltage(12 * plusAxis.get() - 12 * minusAxis.get());
+            arm.setJoint1MotorVoltage(12 * leftTriggerAxis.get() - 12 * rightTriggerAxis.get());
         } else if (type == Type.JOINT_2) {
-            arm.setJoint2MotorVoltage(12 * plusAxis.get() - 12 * minusAxis.get());
+            arm.setJoint2MotorVoltage(12 * leftTriggerAxis.get() - 12 * rightTriggerAxis.get());
         } else if (type == Type.JOINT_3) {
-            arm.setJoint3MotorVoltage(12 * plusAxis.get() - 12 * minusAxis.get());
+            arm.setJoint3MotorVoltage(12 * leftTriggerAxis.get() - 12 * rightTriggerAxis.get());
         } else if (type == Type.WRIST) {
-            arm.setWristMotorVoltage(12 * plusAxis.get() - 12 * minusAxis.get());
+            arm.setWristMotorVoltage(12 * leftTriggerAxis.get() - 12 * rightTriggerAxis.get());
         }
     }
 
     @Override
     public void end(final boolean interrupted) {
-        plusAxis.destroy();
-        minusAxis.destroy();
+        leftTriggerAxis.destroy();
+        rightTriggerAxis.destroy();
         if (type == Type.TURRET) {
             arm.setTurretMotorVoltage(0);
             arm.setTurretSoftLimit(true);

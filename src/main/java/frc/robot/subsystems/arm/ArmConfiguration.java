@@ -11,6 +11,8 @@ import frc.robot.utilities.FancyArmFeedForward.FFData;
 
 public class ArmConfiguration {
 
+public static final double VALID_POS_OFFSET = 1;
+
 public enum POSITION_TYPE {
     ENCODER_ROTATIONS,
     ANGLE
@@ -22,8 +24,6 @@ private final double
     secondJointPositionRotations,
     thirdJointPositionRotations,
     wristPositionRotations;
-
-private final Positions.Pose3d endPose;
 
 public static double joint1AngleToEncoder(double angle) {
     // System.out.println("Angle: " + Math.toDegrees(angle));
@@ -62,15 +62,6 @@ public ArmConfiguration(
     this.thirdJointPositionRotations = (Arm.ARM_JOINT_3_GEAR_RATIO_OVERALL/(-2 * Math.PI)) * (thirdJointPosition - Arm.ARM_JOINT_3_HOME_ANGLE);
     this.wristPositionRotations = (Arm.WRIST_GEAR_RATIO_OVERALL/(-2 * Math.PI)) * (wristPosition - Arm.WRIST_HOME_ANGLE);
     }
-
-    Translation2d linkage3 = new Translation2d(Arm.ARM_LINKAGE_3_LENGTH, Rotation2d.fromRadians((Math.PI / 2) - getThirdJointPosition(POSITION_TYPE.ANGLE)));
-    Translation2d linkage2 = new Translation2d(Arm.ARM_LINKAGE_2_LENGTH, Rotation2d.fromRadians((Math.PI / 2) - getSecondJointPosition(POSITION_TYPE.ANGLE))).plus(linkage3.rotateBy(Rotation2d.fromRadians(-getSecondJointPosition(POSITION_TYPE.ANGLE))));
-    Translation2d linkage1 = new Translation2d(Arm.ARM_LINKAGE_1_LENGTH, Rotation2d.fromRadians((Math.PI / 2) - getFirstJointPosition(POSITION_TYPE.ANGLE))).plus(linkage2.rotateBy(Rotation2d.fromRadians(-getFirstJointPosition(POSITION_TYPE.ANGLE))));
-    Translation3d endPose = new Translation3d(linkage1.getX(), 0, linkage1.getY()).rotateBy(getTurretRotation()).plus(new Translation3d(0,0,Arm.ARM_LINKAGE_0_LENGTH));
-
-    Rotation3d endRotation = new Rotation3d(0,(Math.PI / 2),0).plus(getTurretRotation()).plus(new Rotation3d(0,-getFirstJointPosition(POSITION_TYPE.ANGLE),0)).plus(new Rotation3d(0,-getSecondJointPosition(POSITION_TYPE.ANGLE),0)).plus(new Rotation3d(0,-getThirdJointPosition(POSITION_TYPE.ANGLE),0)).plus(new Rotation3d(getWristPosition(POSITION_TYPE.ANGLE),0,0));
-
-    this.endPose = Positions.Pose3d.fromOtherSpace(new Pose3d(endPose, endRotation), Arm.ROBOT_TO_TURRET_BASE);
 }
 
 ArmConfiguration() {
@@ -78,8 +69,7 @@ ArmConfiguration() {
 }
 
 public static ArmConfiguration fromEndPosition(Positions.Pose3d endPose, double grabberAngleRadians, double wristRotationRadians) {
-    Translation3d endPosition = endPose.inOtherSpace(Arm.ROBOT_TO_TURRET_BASE).getTranslation();
-    // clamp grab angle
+    Translation3d endPosition = endPose.inOtherSpace(Arm.ROBOT_TO_TURRET_BASE).getTranslation();    // clamp grab angle
     grabberAngleRadians = Functions.clampDouble(grabberAngleRadians, Math.PI / 2, 0);
     // rotate turret to the same plane as pointToGrab
     double angleToPoint = Math.atan(endPosition.getY() / endPosition.getX());
@@ -103,6 +93,7 @@ public static ArmConfiguration fromEndPosition(Positions.Pose3d endPose, double 
     double j1 = (Math.PI / 2) - Math.atan(pointToGrab2d.getY() / pointToGrab2d.getX()) - gamma;
     double j2 = Math.PI - alpha;
 
+    System.out.println(String.format("Turret: %.2f One: %.2f Two: %.2f Three: %.2f", angleToPoint, j1, j2,  (Math.PI / 2) + grabberAngleRadians - j1 - j2));
 
     return new ArmConfiguration(
     angleToPoint,
@@ -210,7 +201,14 @@ public double getWristGearRatio() {
 }
 
 public Positions.Pose3d getEndPosition() {
-    return endPose;
+    Translation2d linkage3 = new Translation2d(Arm.ARM_LINKAGE_3_LENGTH, Rotation2d.fromRadians((Math.PI / 2) - getThirdJointPosition(POSITION_TYPE.ANGLE)));
+    Translation2d linkage2 = new Translation2d(Arm.ARM_LINKAGE_2_LENGTH, Rotation2d.fromRadians((Math.PI / 2) - getSecondJointPosition(POSITION_TYPE.ANGLE))).plus(linkage3.rotateBy(Rotation2d.fromRadians(-getSecondJointPosition(POSITION_TYPE.ANGLE))));
+    Translation2d linkage1 = new Translation2d(Arm.ARM_LINKAGE_1_LENGTH, Rotation2d.fromRadians((Math.PI / 2) - getFirstJointPosition(POSITION_TYPE.ANGLE))).plus(linkage2.rotateBy(Rotation2d.fromRadians(-getFirstJointPosition(POSITION_TYPE.ANGLE))));
+    Translation3d endPose = new Translation3d(linkage1.getX(), 0, linkage1.getY()).rotateBy(getTurretRotation()).plus(new Translation3d(0,0,Arm.ARM_LINKAGE_0_LENGTH));
+
+    Rotation3d endRotation = new Rotation3d(0,(Math.PI / 2),0).plus(getTurretRotation()).plus(new Rotation3d(0,-getFirstJointPosition(POSITION_TYPE.ANGLE),0)).plus(new Rotation3d(0,-getSecondJointPosition(POSITION_TYPE.ANGLE),0)).plus(new Rotation3d(0,-getThirdJointPosition(POSITION_TYPE.ANGLE),0)).plus(new Rotation3d(getWristPosition(POSITION_TYPE.ANGLE),0,0));
+
+    return Positions.Pose3d.fromOtherSpace(new Pose3d(endPose, endRotation), Arm.ROBOT_TO_TURRET_BASE);
 }
 
 public Positions.Pose3d getJoint1Pose() {
@@ -307,6 +305,34 @@ public FFData getJoint3FFData() {
     return new FFData(joint3CGDistance, joint3CGAngle, getThirdJointGearRatio());
 }
 
+/**
+ * Returns wheather or not this configuration is valid and within the soft limits
+ * If out of the soft limits but moving back towards the soft limits, it is still valid
+ * @param currentPos The current position of the arm
+ * @return Wheather or not the current configuration is valid and within the soft limits
+ */
+public boolean validConfig(ArmConfiguration currentPos) {
+    if (this.turretPositionRotations > currentPos.turretPositionRotations ? this.turretPositionRotations > Arm.ARM_TURRET_FORWARD_SOFT_LIMIT - VALID_POS_OFFSET : this.turretPositionRotations < Arm.ARM_TURRET_REVERSE_SOFT_LIMIT + VALID_POS_OFFSET) {
+        return false;
+    }
+    if (this.firstJointPositionRotations > currentPos.firstJointPositionRotations ? this.firstJointPositionRotations > Arm.ARM_JOINT_1_FORWARD_SOFT_LIMIT - VALID_POS_OFFSET : this.firstJointPositionRotations < Arm.ARM_JOINT_1_REVERSE_SOFT_LIMIT + VALID_POS_OFFSET) {
+        return false;
+    }
+    if (this.secondJointPositionRotations > currentPos.secondJointPositionRotations ? this.secondJointPositionRotations > Arm.ARM_JOINT_2_FORWARD_SOFT_LIMIT - VALID_POS_OFFSET : this.secondJointPositionRotations < Arm.ARM_JOINT_2_REVERSE_SOFT_LIMIT + VALID_POS_OFFSET) {
+        return false;
+    }
+    if (this.thirdJointPositionRotations > currentPos.thirdJointPositionRotations ? this.thirdJointPositionRotations > Arm.ARM_JOINT_3_FORWARD_SOFT_LIMIT - VALID_POS_OFFSET : this.thirdJointPositionRotations < Arm.ARM_JOINT_3_REVERSE_SOFT_LIMIT + VALID_POS_OFFSET) {
+        return false;
+    }
+    if (this.wristPositionRotations > currentPos.wristPositionRotations ? this.wristPositionRotations > Arm.ARM_WRIST_FORWARD_SOFT_LIMIT - VALID_POS_OFFSET : this.wristPositionRotations < Arm.ARM_WRIST_REVERSE_SOFT_LIMIT + VALID_POS_OFFSET) {
+        return false;
+    }
+    if (getEndPosition().inRobotSpace().getZ() <= 0) {
+        return false;
+    }
+    return true;
+}
+
 @Override
 public String toString() {
     return "Turret Encoder: " + turretPositionRotations
@@ -332,7 +358,7 @@ public String toString() {
     + "\n First Joint FF Data: " + getJoint1FFData()
     + "\n Second Joint FF Data: " + getJoint2FFData()
     + "\n Third Joint FF Data: " + getJoint3FFData()
-    + String.format("\nPosition (RS): (%.2f, %.2f, %.2f)", endPose.inRobotSpace().getX(), endPose.inRobotSpace().getY(), endPose.inRobotSpace().getZ())
+    + String.format("\nPosition (RS): (%.2f, %.2f, %.2f)", getEndPosition().inRobotSpace().getX(), getEndPosition().inRobotSpace().getY(), getEndPosition().inRobotSpace().getZ())
     + String.format("\nJoint 1 Pos (RS): (%.2f, %.2f, %.2f)", getJoint1Pose().inRobotSpace().getX(), getJoint1Pose().inRobotSpace().getY(), getJoint1Pose().inRobotSpace().getZ())
     + String.format("\nJoint 2 Pos (RS): (%.2f, %.2f, %.2f)", getJoint2Pose().inRobotSpace().getX(), getJoint2Pose().inRobotSpace().getY(), getJoint2Pose().inRobotSpace().getZ())
     + String.format("\nJoint 3 Pos (RS): (%.2f, %.2f, %.2f)", getJoint3Pose().inRobotSpace().getX(), getJoint3Pose().inRobotSpace().getY(), getJoint3Pose().inRobotSpace().getZ())
