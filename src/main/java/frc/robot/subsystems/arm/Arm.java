@@ -83,33 +83,33 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
     ARM_JOINT_2_REVERSE_SOFT_LIMIT = 1,
     ARM_JOINT_3_FORWARD_SOFT_LIMIT = -1,
     ARM_JOINT_3_REVERSE_SOFT_LIMIT = -145,
-    ARM_WRIST_FORWARD_SOFT_LIMIT = -1,
+    ARM_WRIST_FORWARD_SOFT_LIMIT = -6,
     ARM_WRIST_REVERSE_SOFT_LIMIT = -100;
 
     public static final double
 
     TURRET_GEAR_RATIO_OVERALL = 81 * 3.09523809524, // Ratio Example a 9:1 would be 9
-    TURRET_HOME_ANGLE = 2.4477152, // Angle in radians where 0 is straight forward and positive is counter clockwise.
+    TURRET_HOME_ANGLE = 2.394019735, // Angle in radians where 0 is straight forward and positive is counter clockwise.
 
-    ARM_JOINT_1_LEADSCREW_HOME_LENGTH = 0.2413, // Length in meters
-    ARM_JOINT_1_PIVOT_TO_MOTOR_LENGTH = 0.103075994, // Length in meters
-    ARM_JOINT_1_PIVOT_TO_LEADSCREW_LENGTH = 0.22507627832, // Length in meters
-    ARM_JOINT_1_PIVOT_TO_MOTOR_HORIZONTAL_ANGLE_OFFSET = Math.toRadians(14), // Angle in radians
+    ARM_JOINT_1_LEADSCREW_HOME_LENGTH = 0.244475, // Length in meters
+    ARM_JOINT_1_PIVOT_TO_MOTOR_LENGTH = 0.1016, // Length in meters
+    ARM_JOINT_1_PIVOT_TO_LEADSCREW_LENGTH = 0.2270125, // Length in meters
+    ARM_JOINT_1_PIVOT_TO_MOTOR_HORIZONTAL_ANGLE_OFFSET = Math.toRadians(14.8) - 0.11472846, // Angle in radians
     ARM_JOINT_1_MOTOR_GEAR_RATIO = 9, // Ratio Example a 9:1 gear ratio would be 9
     ARM_JOINT_1_LEADSCREW_PITCH = 0.00635, // Length in meters. The distance the lead screw moves per revolution
 
     ARM_JOINT_2_LEADSCREW_HOME_LENGTH = 0.422275, // Length in meters
     ARM_JOINT_2_PIVOT_TO_MOTOR_LENGTH = 0.3360166, // Length in meters
     ARM_JOINT_2_PIVOT_TO_LEADSCREW_LENGTH = 0.0999998, // Length in meters
-    ARM_JOINT_2_PIVOT_TO_MOTOR_VERTICAL_ANGLE_OFFSET = Math.toRadians(16.3), // Angle in radians
+    ARM_JOINT_2_PIVOT_TO_MOTOR_VERTICAL_ANGLE_OFFSET = Math.toRadians(15.4) + 0.05184132679, // Angle in radians
     ARM_JOINT_2_MOTOR_GEAR_RATIO = 5, // Ratio Example a 9:1 gear ratio would be 9
     ARM_JOINT_2_LEADSCREW_PITCH = 0.00635, // Length in meters. The distance the lead screw moves per revolution
 
-    ARM_JOINT_3_GEAR_RATIO_OVERALL = 243, // Ratio Example a 9:1 would be 9
-    ARM_JOINT_3_HOME_ANGLE = -1.7500165, // Angle in radians where 0 is straight forward and positive is counter clockwise.
+    ARM_JOINT_3_GEAR_RATIO_OVERALL = 348.949552, // Ratio Example a 9:1 would be 9
+    ARM_JOINT_3_HOME_ANGLE = -1.09195, // Angle in radians where 0 is straight forward and positive is counter clockwise.
 
     WRIST_GEAR_RATIO_OVERALL = (5*5*4) * (77/42), // Ratio Example a 9:1 would be 9
-    WRIST_HOME_ANGLE = -2.5761; // Angle in radians where 0 is straight forward and positive is counter clockwise.
+    WRIST_HOME_ANGLE = -2.96953297; // Angle in radians where 0 is straight forward and positive is counter clockwise.
 
   
   private final CANSparkMax
@@ -161,7 +161,7 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
     turretPIDController.setFF(0.000156, 0);
     turretPIDController.setOutputRange(-1, 1, 0);
     turretPIDController.setSmartMotionAccelStrategy(AccelStrategy.kTrapezoidal, 0);
-    turretPIDController.setSmartMotionMaxAccel(2000, 0);
+    turretPIDController.setSmartMotionMaxAccel(1000, 0);
     turretPIDController.setSmartMotionMaxVelocity(12000, 0);
 
     joint1PIDController.setP(ARM_JOINT_1_P, 0);
@@ -403,7 +403,10 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
    * Sets the arm to a specific configuration.
    */
   public void setToConfiguration(ArmConfiguration configuration) {
+    System.out.println("Setting arm to configuration");
     if (!configuration.validConfig(getCurrentArmConfiguration())) return;
+    System.out.println("Valid configuration");
+
     setToConfigurationUnsafe(configuration);
   }
 
@@ -479,7 +482,7 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
   @Override
   public void initSendable(SendableBuilder builder) {
     // builder.addStringProperty("armConfiguration", getCurrentArmConfiguration()::toString, null);
-    builder.addStringProperty("grabberClamp", () -> clampSolenoidState ? "Open" : "Closed", null);
+    builder.addStringProperty("grabberClamp", () -> clampSolenoidState ? "Closed" : "Open", null);
     builder.addDoubleProperty("turretEncoder", this::getTurretEncoderPosition, null);
     builder.addDoubleProperty("firstJointEncoder", this::getFirstJointEncoderPosition, null);
     builder.addDoubleProperty("secondJointEncoder", this::getSecondJointEncoderPosition, null);

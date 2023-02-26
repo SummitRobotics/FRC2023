@@ -20,6 +20,7 @@ public class TimedMoveMotor extends CommandBase {
 
     @Override
     public void initialize() {
+        timer.reset();
         timer.start();
     }
     

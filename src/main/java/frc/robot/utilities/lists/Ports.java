@@ -52,7 +52,7 @@ public final class Ports {
     public static final class LED {
         public static final int
             PORT = 0,
-            LENGTH = 114;
+            LENGTH = 60;
     }
 
     public static final class Other {

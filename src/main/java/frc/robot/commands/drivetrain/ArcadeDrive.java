@@ -78,7 +78,7 @@ public class ArcadeDrive extends CommandBase {
             new InstantCommand(() -> {
                 activateSwitchfoot = !activateSwitchfoot;
                 if (activateSwitchfoot) {
-                    LEDs.getInstance().addCall("reversed", new LEDCall(LEDPriorities.DRIVE_REV, LEDRange.Aarms).ffh(Colors.YELLOW, Colors.OFF));  
+                    LEDs.getInstance().addCall("reversed", new LEDCall(LEDPriorities.DRIVE_REV, LEDRange.All).ffh(Colors.YELLOW, Colors.OFF));  
                 } else {
                     LEDs.getInstance().removeCall("reversed");
                 }
@@ -114,7 +114,7 @@ public class ArcadeDrive extends CommandBase {
             new InstantCommand(() -> {
                 activateSwitchfoot = !activateSwitchfoot;
                 if (activateSwitchfoot) {
-                    LEDs.getInstance().addCall("reversed", new LEDCall(LEDPriorities.DRIVE_REV, LEDRange.Aarms).ffh(Colors.YELLOW, Colors.OFF));  
+                    LEDs.getInstance().addCall("reversed", new LEDCall(LEDPriorities.DRIVE_REV, LEDRange.All).ffh(Colors.YELLOW, Colors.OFF));  
                 } else {
                     LEDs.getInstance().removeCall("reversed");
                 }
@@ -170,14 +170,14 @@ public class ArcadeDrive extends CommandBase {
             drivetrain.lowGear();
         }
 
-        double turn = Math.pow(turnAxis.get(), 3);
+        double turn = -Math.pow(turnAxis.get(), 3);
 
         //System.out.println(turn);
 
         if (activateSwitchfoot) {
             //dumb stuff is dumb
             if (!ledsOn) {
-                LEDs.getInstance().addCall("reversed", new LEDCall(LEDPriorities.DRIVE_REV, LEDRange.Aarms).ffh(Colors.YELLOW, Colors.OFF));   
+                LEDs.getInstance().addCall("reversed", new LEDCall(LEDPriorities.DRIVE_REV, LEDRange.All).ffh(Colors.YELLOW, Colors.OFF));   
             }
             turn = -turn;
         }

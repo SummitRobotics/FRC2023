@@ -1,7 +1,5 @@
 package frc.robot.commands.arm;
 
-import org.opencv.video.TrackerMIL;
-
 import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Transform3d;
@@ -53,11 +51,13 @@ public class ArmMO extends CommandBase {
         wristDown = controller.leftTrigger.prioritize(AxisPriorities.MANUAL_OVERRIDE);
         clampButton = controller.buttonA.prioritize(AxisPriorities.MANUAL_OVERRIDE);
 
-        endPose = arm.getTargetArmConfiguration().getEndPosition();
+        endPose = arm.getCurrentArmConfiguration().getEndPosition();
         grabberRadians
-            = -arm.getTargetArmConfiguration().getEndPosition().inOtherSpace(Arm.ROBOT_TO_TURRET_BASE).getRotation().getY();
+            = -arm.getCurrentArmConfiguration().getEndPosition().inOtherSpace(Arm.ROBOT_TO_TURRET_BASE).getRotation().getY();
         wristRadians 
-            = arm.getTargetArmConfiguration().getWristPosition(POSITION_TYPE.ANGLE);
+            = arm.getCurrentArmConfiguration().getWristPosition(POSITION_TYPE.ANGLE);
+
+        arm.setToConfiguration(arm.getCurrentArmConfiguration());
     }
 
     @Override
@@ -108,6 +108,12 @@ public class ArmMO extends CommandBase {
         if (clampButton.getTrigger().debounce(0.1, DebounceType.kRising).getAsBoolean()) {
             if (arm.getClampSolenoidState()) arm.unclamp(); else arm.clamp(); 
         }
+
+        endPose = arm.getTargetArmConfiguration().getEndPosition();
+        grabberRadians
+            = -arm.getTargetArmConfiguration().getEndPosition().inOtherSpace(Arm.ROBOT_TO_TURRET_BASE).getRotation().getY();
+        wristRadians 
+            = arm.getTargetArmConfiguration().getWristPosition(POSITION_TYPE.ANGLE);
     }
 
     @Override

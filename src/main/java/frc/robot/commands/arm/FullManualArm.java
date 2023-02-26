@@ -50,7 +50,7 @@ public class FullManualArm extends CommandBase {
     @Override
     public void execute() {
         if (type == Type.TURRET) {
-            arm.setTurretMotorVoltage(12 * leftTriggerAxis.get() - 12 * rightTriggerAxis.get());
+            arm.setTurretMotorVoltage((12 * leftTriggerAxis.get() - 12 * rightTriggerAxis.get()) * -1);
         } else if (type == Type.JOINT_1) {
             arm.setJoint1MotorVoltage(12 * leftTriggerAxis.get() - 12 * rightTriggerAxis.get());
         } else if (type == Type.JOINT_2) {

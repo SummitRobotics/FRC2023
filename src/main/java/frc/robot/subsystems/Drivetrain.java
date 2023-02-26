@@ -12,6 +12,7 @@ import com.revrobotics.CANSparkMax.ControlType;
 import com.revrobotics.CANSparkMax.IdleMode;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import com.revrobotics.CANSparkMaxLowLevel.PeriodicFrame;
+import com.revrobotics.SparkMaxPIDController.AccelStrategy;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkMaxPIDController;
 import edu.wpi.first.math.Matrix;
@@ -30,6 +31,7 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.commands.drivetrain.TurnByEncoder;
 import frc.robot.devices.AprilTagCameraWrapper;
 import frc.robot.devices.LEDs.LEDCall;
 import frc.robot.devices.LEDs.LEDRange;
@@ -60,31 +62,26 @@ public class Drivetrain extends SubsystemBase implements Testable, Loggable {
 
     // TODO re tune/calculate all these
     public static final double 
-        LOW_P = 0.0,
-        LOW_I = 0.0,
-        LOW_D = 0.0,
-        LOW_KS = 0.0,
-        LOW_KV = 0.0,
-        LOW_KA = 0.0,
-        HIGH_P = 14.301,
-        HIGH_I = 0.0,
-        HIGH_D = 581.73,
-        HIGH_KS = 0.18976,
-        HIGH_KV = 1.9778,
-        HIGH_KA = 0.16066,
         HIGH_GEAR_RATIO = 9.1,
         LOW_GEAR_RATIO = 19.65,
-        WHEEL_RADIUS_IN_METERS = (0.1524 / 2),
+        WHEEL_RADIUS_IN_METERS = 0.075819,
         WHEEL_CIRCUMFERENCE_IN_METERS = (2 * WHEEL_RADIUS_IN_METERS) * Math.PI,
         MAX_OUTPUT_VOLTAGE = 11,
-        DRIVE_WIDTH = 0.64135,
+        DRIVE_WIDTH = 0.65666,
         SPLINE_MAX_VEL_MPS_HIGH = 3, // MAX:
-        SPLINE_MAX_ACC_MPSSQ_HIGH = 3, // MAX :
-        HIGH_FF_REV_FROM_SYSID = 0.12666/1.3/1.2,
-        HIGH_P_VEL = 8.0836E-05/12/1.3*1.1,
-        HIGH_I_VEL = 0,
-        HIGH_D_VEL = 0,
+        SPLINE_MAX_ACC_MPSSQ_HIGH = 0.5, // MAX :
         NO_FAULT_CODE = 0;
+
+    public static final double
+        HIGH_KS = 0.099848,    // Gains are in volts
+        HIGH_KV = 2.4055,    // Gains are in M/s per vol
+        HIGH_KA = 0.19389,    // Gains are in M/s^2 per volt
+        HIGH_P = 0,
+        HIGH_I = 0,
+        HIGH_D = 0,
+        HIGH_P_VEL = 2.1277E-7/0.4788/9.1,
+        HIGH_I_VEL = 0,
+        HIGH_D_VEL = 0;
 
 
     // left motors
@@ -110,19 +107,11 @@ public class Drivetrain extends SubsystemBase implements Testable, Loggable {
 
     // pid controllers
     private final SparkMaxPIDController leftPID = left.getPIDController();
-    private final SparkMaxPIDController leftMiddlePID = leftMiddle.getPIDController();
-    private final SparkMaxPIDController leftBackPID = leftBack.getPIDController();
     private final SparkMaxPIDController rightPID = right.getPIDController();
-    private final SparkMaxPIDController rightMiddlePID = rightMiddle.getPIDController();
-    private final SparkMaxPIDController rightBackPID = rightBack.getPIDController();
 
     // encoders
     private final RelativeEncoder leftEncoder = left.getEncoder();
-    private final RelativeEncoder leftMiddleEncoder = leftMiddle.getEncoder();
-    private final RelativeEncoder leftBackEncoder = leftBack.getEncoder();
     private final RelativeEncoder rightEncoder = right.getEncoder();
-    private final RelativeEncoder rightMiddleEncoder = rightMiddle.getEncoder();
-    private final RelativeEncoder rightBackEncoder = rightBack.getEncoder();
 
     private final DifferentialDrivePoseEstimator poseEstimator;
 
@@ -134,14 +123,9 @@ public class Drivetrain extends SubsystemBase implements Testable, Loggable {
     public static SimpleMotorFeedforward HighFeedFoward =
         new SimpleMotorFeedforward(HIGH_KS, HIGH_KV, HIGH_KA);
 
-    public static SimpleMotorFeedforward LowFeedFoward =
-        new SimpleMotorFeedforward(LOW_KS, LOW_KV, LOW_KA);
 
     public static DifferentialDriveVoltageConstraint HighVoltageConstraint =
         new DifferentialDriveVoltageConstraint(HighFeedFoward, DriveKinimatics, MAX_OUTPUT_VOLTAGE);
-
-    public static DifferentialDriveVoltageConstraint LowVoltageConstraint =
-        new DifferentialDriveVoltageConstraint(LowFeedFoward, DriveKinimatics, MAX_OUTPUT_VOLTAGE);
 
     private final Solenoid shift;
 
@@ -173,106 +157,48 @@ public class Drivetrain extends SubsystemBase implements Testable, Loggable {
         odometryTime.start();
 
 
-        poseEstimator = new DifferentialDrivePoseEstimator(DriveKinimatics, gyro.getRotation2d(), 0, 0, initialPose);
+        poseEstimator = new DifferentialDrivePoseEstimator(DriveKinimatics, gyro.getRotation2d().unaryMinus(), 0, 0, initialPose);
         poseEstimator.setVisionMeasurementStdDevs((new Matrix<>(Nat.N3(), Nat.N1())).plus(1));
 
         f2d = new Field2d();
         f2d.setRobotPose(poseEstimator.getEstimatedPosition());
 
         // tells other two motors to follow the first
-        
+        leftMiddle.follow(left);
+        leftBack.follow(left);
+
+        rightMiddle.follow(right);
+        rightBack.follow(right);
 
         // inverts right side
-        left.setInverted(true);
-        leftMiddle.setInverted(true);
-        leftBack.setInverted(true);
-        right.setInverted(false);
-        rightMiddle.setInverted(false);
-        rightBack.setInverted(false);
+        left.setInverted(false);
+        right.setInverted(true);
 
-        // sets pid values
         zeroDistance();
 
-        double posP = 0.5;
-
-        double posI = 0;
-
-        double posD = 0.01;
-
         // pid for position
-        leftPID.setP(posP);
-        leftPID.setI(posI);
-        leftPID.setD(posD);
-        leftPID.setOutputRange(-.5, .5);
+        leftPID.setP(HIGH_P, 1);
+        leftPID.setI(HIGH_I, 1);
+        leftPID.setD(HIGH_D, 1);
+        leftPID.setOutputRange(-.5, .5, 1);
 
-        rightPID.setP(posP);
-        rightPID.setI(posI);
-        rightPID.setD(posD);
-        rightPID.setOutputRange(-.5, .5);
-
-        // pid for position
-        leftMiddlePID.setP(posP);
-        leftMiddlePID.setI(posI);
-        leftMiddlePID.setD(posD);
-        leftMiddlePID.setOutputRange(-.5, .5);
-
-        rightMiddlePID.setP(posP);
-        rightMiddlePID.setI(posI);
-        rightMiddlePID.setD(posD);
-        rightMiddlePID.setOutputRange(-.5, .5);
-
-        // pid for position
-        leftBackPID.setP(posP);
-        leftBackPID.setI(posI);
-        leftBackPID.setD(posD);
-        leftBackPID.setOutputRange(-.5, .5);
-
-        rightBackPID.setP(posP);
-        rightBackPID.setI(posI);
-        rightBackPID.setD(posD);
-        rightBackPID.setOutputRange(-.5, .5);
+        rightPID.setP(HIGH_P, 1);
+        rightPID.setI(HIGH_I, 1);
+        rightPID.setD(HIGH_D, 1);
+        rightPID.setOutputRange(-.5, .5, 1);
         
         // pid for velocity
         leftPID.setP(HIGH_P_VEL, 2);
         leftPID.setI(HIGH_I_VEL, 2);
         leftPID.setD(HIGH_D_VEL, 2);
-        leftPID.setFF((HIGH_FF_REV_FROM_SYSID/720), 2);
 
         rightPID.setP(HIGH_P_VEL, 2);
         rightPID.setI(HIGH_I_VEL, 2);
         rightPID.setD(HIGH_D_VEL, 2);
-        rightPID.setFF((HIGH_FF_REV_FROM_SYSID/720), 2);
         
-        // pid for velocity
-        leftMiddlePID.setP(HIGH_P_VEL, 2);
-        leftMiddlePID.setI(HIGH_I_VEL, 2);
-        leftMiddlePID.setD(HIGH_D_VEL, 2);
-        leftMiddlePID.setFF((HIGH_FF_REV_FROM_SYSID/720), 2);
-
-        rightMiddlePID.setP(HIGH_P_VEL, 2);
-        rightMiddlePID.setI(HIGH_I_VEL, 2);
-        rightMiddlePID.setD(HIGH_D_VEL, 2);
-        rightMiddlePID.setFF((HIGH_FF_REV_FROM_SYSID/720), 2);
-
-        // pid for velocity
-        leftBackPID.setP(HIGH_P_VEL, 2);
-        leftBackPID.setI(HIGH_I_VEL, 2);
-        leftBackPID.setD(HIGH_D_VEL, 2);
-        leftBackPID.setFF((HIGH_FF_REV_FROM_SYSID/720), 2);
-
-        rightBackPID.setP(HIGH_P_VEL, 2);
-        rightBackPID.setI(HIGH_I_VEL, 2);
-        rightBackPID.setD(HIGH_D_VEL, 2);
-        rightBackPID.setFF((HIGH_FF_REV_FROM_SYSID/720), 2);
 
         left.disableVoltageCompensation();
         right.disableVoltageCompensation();
-
-        leftMiddle.disableVoltageCompensation();
-        rightMiddle.disableVoltageCompensation();
-
-        leftBack.disableVoltageCompensation();
-        rightBack.disableVoltageCompensation();
 
         left.clearFaults();
         leftMiddle.clearFaults();
@@ -281,6 +207,7 @@ public class Drivetrain extends SubsystemBase implements Testable, Loggable {
         right.clearFaults();
         rightMiddle.clearFaults();
         rightBack.clearFaults();
+
         setClosedRampRate(0);
         setOpenRampRate(0);
 
@@ -302,7 +229,7 @@ public class Drivetrain extends SubsystemBase implements Testable, Loggable {
 
         // We basically don't care about CAN data for follower motors.
         for (CANSparkMax motor : new CANSparkMax[] {leftMiddle, leftBack, rightMiddle, rightBack}) {
-            motor.setPeriodicFramePeriod(PeriodicFrame.kStatus0, 500);
+            motor.setPeriodicFramePeriod(PeriodicFrame.kStatus0, 20);
             motor.setPeriodicFramePeriod(PeriodicFrame.kStatus1, 65535);
             motor.setPeriodicFramePeriod(PeriodicFrame.kStatus2, 65533);
             motor.setPeriodicFramePeriod(PeriodicFrame.kStatus3, 65531);
@@ -330,20 +257,24 @@ public class Drivetrain extends SubsystemBase implements Testable, Loggable {
      * Shifts the robot into high gear.
      */
     public void highGear() {
-        lowGear.cancel();
-        updateDistanceAcum();
-        oldShift = false;
-        shift.set(false);
+        synchronized (shift) {
+            lowGear.cancel();
+            updateDistanceAcum();
+            oldShift = false;
+            shift.set(false);
+        }
     }
 
     /**
      * Shifts the robot into low gear.
      */
     public void lowGear() {
-        lowGear.activate();
-        updateDistanceAcum();
-        oldShift = true;
-        shift.set(true);
+        synchronized (shift) {
+            lowGear.activate();
+            updateDistanceAcum();
+            oldShift = true;
+            shift.set(true);
+        }
     }
 
     /**
@@ -384,8 +315,6 @@ public class Drivetrain extends SubsystemBase implements Testable, Loggable {
     public void setLeftMotorPower(double power) {
         power = Functions.clampDouble(power, 1.0, -1.0);
         left.set(power);
-        leftMiddle.set(power);
-        leftBack.set(power);
     }
 
     /**
@@ -396,8 +325,6 @@ public class Drivetrain extends SubsystemBase implements Testable, Loggable {
     public void setRightMotorPower(double power) {
         power = Functions.clampDouble(power, 1.0, -1.0);
         right.set(power);
-        rightMiddle.set(power);
-        rightBack.set(power);
     }
 
     /**
@@ -408,11 +335,7 @@ public class Drivetrain extends SubsystemBase implements Testable, Loggable {
     public synchronized void setBothMotorPower(double power) {
         power = Functions.clampDouble(power, 1.0, -1.0);
         left.set(power);
-        leftMiddle.set(power);
-        leftBack.set(power);
         right.set(power);
-        rightMiddle.set(power);
-        rightBack.set(power);
     }
 
     /**
@@ -422,8 +345,6 @@ public class Drivetrain extends SubsystemBase implements Testable, Loggable {
      */
     public void setLeftMotorVolts(double volts) {
         left.setVoltage(volts);
-        leftMiddle.setVoltage(volts);
-        leftBack.setVoltage(volts);
     }
 
     /**
@@ -433,8 +354,6 @@ public class Drivetrain extends SubsystemBase implements Testable, Loggable {
      */
     public void setRightMotorVolts(double volts) {
         right.setVoltage(volts);
-        rightMiddle.setVoltage(volts);
-        rightBack.setVoltage(volts);
     }
 
     /**
@@ -456,13 +375,14 @@ public class Drivetrain extends SubsystemBase implements Testable, Loggable {
      * @param rightMS the right motor MPS
      */
     public void setMotorTargetSpeed(double leftMS, double rightMS) {
-        leftPID.setReference(convertMPStoRPM(leftMS), ControlType.kVelocity, 2);
-        leftMiddlePID.setReference(convertMPStoRPM(leftMS), ControlType.kVelocity, 2);
-        leftBackPID.setReference(convertMPStoRPM(leftMS), ControlType.kVelocity, 2);
-        rightPID.setReference(convertMPStoRPM(rightMS), ControlType.kVelocity, 2);
-        rightMiddlePID.setReference(convertMPStoRPM(rightMS), ControlType.kVelocity, 2);
-        rightBackPID.setReference(convertMPStoRPM(rightMS), ControlType.kVelocity, 2);
-        
+
+        highGear();
+
+        double leftFeedForward = HighFeedFoward.calculate(leftMS);
+        double rightFeedForward = HighFeedFoward.calculate(rightMS);
+
+        leftPID.setReference(convertMPStoRPM(leftMS), ControlType.kVelocity, 2, leftFeedForward);
+        rightPID.setReference(convertMPStoRPM(rightMS), ControlType.kVelocity, 2, rightFeedForward);      
     }
 
     /**
@@ -473,11 +393,7 @@ public class Drivetrain extends SubsystemBase implements Testable, Loggable {
      */
     public void setPIDMaxPower(double power) {
         leftPID.setOutputRange(-power, power);
-        leftMiddlePID.setOutputRange(-power, power);
-        leftBackPID.setOutputRange(-power, power);
         rightPID.setOutputRange(-power, power);
-        rightMiddlePID.setOutputRange(-power, power);
-        rightBackPID.setOutputRange(-power, power);
     }
 
     /**
@@ -500,9 +416,8 @@ public class Drivetrain extends SubsystemBase implements Testable, Loggable {
      * @param position the target position in terms of motor rotations
      */
     public synchronized void setLeftMotorTarget(double position) {
-        leftPID.setReference(position, ControlType.kPosition);
-        leftMiddlePID.setReference(position, ControlType.kPosition);
-        leftBackPID.setReference(position, ControlType.kPosition);
+        highGear();
+        leftPID.setReference(position, ControlType.kPosition, 1);
     }
 
     /**
@@ -511,9 +426,8 @@ public class Drivetrain extends SubsystemBase implements Testable, Loggable {
      * @param position the target position in terms of motor rotations
      */
     public synchronized void setRightMotorTarget(double position) {
-        rightPID.setReference(position, ControlType.kPosition);
-        rightMiddlePID.setReference(position, ControlType.kPosition);
-        rightBackPID.setReference(position, ControlType.kPosition);
+        highGear();
+        rightPID.setReference(position, ControlType.kPosition, 1);
     }
 
     /** drives to distance.
@@ -521,6 +435,7 @@ public class Drivetrain extends SubsystemBase implements Testable, Loggable {
      * @param position position to go to in rotations
      */
     public synchronized void setBothMotorTarget(double position) {
+        highGear();
         setLeftMotorTarget(position);
         setRightMotorTarget(position);
     }
@@ -570,8 +485,6 @@ public class Drivetrain extends SubsystemBase implements Testable, Loggable {
      */
     public synchronized void setLeftEncoder(double position) {
         leftEncoder.setPosition(position);
-        leftMiddleEncoder.setPosition(position);
-        leftBackEncoder.setPosition(position);
     }
 
     /**
@@ -582,8 +495,6 @@ public class Drivetrain extends SubsystemBase implements Testable, Loggable {
      */
     public synchronized void setRightEncoder(double position) {
         rightEncoder.setPosition(position);
-        rightMiddleEncoder.setPosition(position);
-        rightBackEncoder.setPosition(position);
         
     }
     
@@ -615,14 +526,6 @@ public class Drivetrain extends SubsystemBase implements Testable, Loggable {
      * @return position of motor in rotations
      */
     public double getRightEncoderPosition() {
-        // ArrayList<Double> x = new ArrayList<Double>(List.of(rightEncoder.getPosition(), rightMiddleEncoder.getPosition(), rightBackEncoder.getPosition()));
-        // for (CANSparkMax motor : allMotors) {
-        //     if (motor.getFault(CANSparkMax.FaultID.kSensorFault)
-        //         || motor.getFault(CANSparkMax.FaultID.kCANRX) || motor.getFault(CANSparkMax.FaultID.kCANTX)
-        //         || motor.getFault(CANSparkMax.FaultID.kMotorFault)) {
-        //         System.out.println("ERRRRRRRRRRRRRRRRRRRRRRRRRRROOOOOOOOOOOOOOOOOOOOOOOORRRRRRRRRRRRRRRRRRR");
-        //     }
-        // }
         return rightEncoder.getPosition();
     }
 
@@ -632,38 +535,14 @@ public class Drivetrain extends SubsystemBase implements Testable, Loggable {
      * @return position of motor in rotations
      */
     public double getLeftEncoderPosition() {
-        // ArrayList<Double> x = new ArrayList<Double>(List.of(leftEncoder.getPosition(), leftMiddleEncoder.getPosition(), leftBackEncoder.getPosition()));
-        // for (CANSparkMax motor : allMotors) {
-        //     if (motor.getFault(CANSparkMax.FaultID.kSensorFault)
-        //         || motor.getFault(CANSparkMax.FaultID.kCANRX) || motor.getFault(CANSparkMax.FaultID.kCANTX)
-        //         || motor.getFault(CANSparkMax.FaultID.kMotorFault)) {
-        //         System.out.println("ERRRRRRRRRRRRRRRRRRRRRRRRRRROOOOOOOOOOOOOOOOOOOOOOOORRRRRRRRRRRRRRRRRRR");
-        //     }
-        // }
         return leftEncoder.getPosition();
     }
 
     public double getLeftRPM() {
-        // ArrayList<Double> x = new ArrayList<Double>(List.of(leftEncoder.getVelocity(), leftMiddleEncoder.getVelocity(), leftBackEncoder.getVelocity()));
-        // for (CANSparkMax motor : allMotors) {
-        //     if (motor.getFault(CANSparkMax.FaultID.kSensorFault)
-        //         || motor.getFault(CANSparkMax.FaultID.kCANRX) || motor.getFault(CANSparkMax.FaultID.kCANTX)
-        //         || motor.getFault(CANSparkMax.FaultID.kMotorFault)) {
-        //         System.out.println("ERRRRRRRRRRRRRRRRRRRRRRRRRRROOOOOOOOOOOOOOOOOOOOOOOORRRRRRRRRRRRRRRRRRR");
-        //     }
-        // }
         return leftEncoder.getVelocity();
     }
 
     public double getRightRPM() {
-        // ArrayList<Double> x = new ArrayList<Double>(List.of(rightEncoder.getVelocity(), rightMiddleEncoder.getVelocity(), rightBackEncoder.getVelocity()));
-        // for (CANSparkMax motor : allMotors) {
-        //     if (motor.getFault(CANSparkMax.FaultID.kSensorFault)
-        //         || motor.getFault(CANSparkMax.FaultID.kCANRX) || motor.getFault(CANSparkMax.FaultID.kCANTX)
-        //         || motor.getFault(CANSparkMax.FaultID.kMotorFault)) {
-        //         System.out.println("ERRRRRRRRRRRRRRRRRRRRRRRRRRROOOOOOOOOOOOOOOOOOOOOOOORRRRRRRRRRRRRRRRRRR");
-        //     }
-        // }
         return rightEncoder.getVelocity();
     }
 
@@ -757,11 +636,11 @@ public class Drivetrain extends SubsystemBase implements Testable, Loggable {
     }
 
     public double getLeftMotorCurrent() {
-        return (left.getOutputCurrent() + leftMiddle.getOutputCurrent() + leftBack.getOutputCurrent()) / 3;
+        return (left.getOutputCurrent());
     }
 
     public double getRightMotorCurrent() {
-        return (right.getOutputCurrent() + rightMiddle.getOutputCurrent() + rightBack.getOutputCurrent()) / 3;
+        return (right.getOutputCurrent());
     }
 
     /**
@@ -769,11 +648,7 @@ public class Drivetrain extends SubsystemBase implements Testable, Loggable {
      */
     public void stop() {
         left.stopMotor();
-        leftMiddle.stopMotor();
-        leftBack.stopMotor();
         right.stopMotor();
-        rightMiddle.stopMotor();
-        rightBack.stopMotor();
     }
 
     public synchronized DifferentialDriveWheelSpeeds getWheelSpeeds() {
@@ -788,7 +663,7 @@ public class Drivetrain extends SubsystemBase implements Testable, Loggable {
     public void setPose(Pose2d pose) {
         synchronized (poseEstimator) {
             zeroDistance();
-            poseEstimator.resetPosition(gyro.getRotation2d(), 0, 0, pose);
+            poseEstimator.resetPosition(gyro.getRotation2d().unaryMinus(), 0, 0, pose);
         }
     }
 
@@ -804,14 +679,8 @@ public class Drivetrain extends SubsystemBase implements Testable, Loggable {
      * @return double array of p,i,d
      */
     public double[] getPid() {
-        if (!getShift()) {
-            double[] out = { HIGH_P, HIGH_I, HIGH_D };
-            return out;
-
-        } else {
-            double[] out = { LOW_P, LOW_I, LOW_D };
-            return out;
-        }
+        double[] out = { HIGH_P, HIGH_I, HIGH_D };
+        return out;
     }
 
     /**
@@ -820,11 +689,7 @@ public class Drivetrain extends SubsystemBase implements Testable, Loggable {
      * @return The motors feed forward.
      */
     public SimpleMotorFeedforward getFeedForward() {
-        if (!getShift()) {
-            return HighFeedFoward;
-        } else {
-            return LowFeedFoward;
-        }
+        return HighFeedFoward;
     }
     
     /**
@@ -833,11 +698,7 @@ public class Drivetrain extends SubsystemBase implements Testable, Loggable {
      * @return the current voltage constraint.
      */
     public DifferentialDriveVoltageConstraint getVoltageConstraint() {
-        if (!getShift()) {
-            return HighVoltageConstraint;
-        } else {
-            return LowVoltageConstraint;
-        }
+        return HighVoltageConstraint;
     }
 
     /**
@@ -845,7 +706,7 @@ public class Drivetrain extends SubsystemBase implements Testable, Loggable {
      */
     public TrajectoryConfig generateTrajectoryConfigHighGear() {
         return new TrajectoryConfig(SPLINE_MAX_VEL_MPS_HIGH, SPLINE_MAX_ACC_MPSSQ_HIGH)
-            .setKinematics(DriveKinimatics).addConstraint(HighVoltageConstraint);
+            .setKinematics(DriveKinimatics).addConstraint(HighVoltageConstraint).setReversed(false);
     }
 
     public Field2d getFieldWidget() {
@@ -861,7 +722,7 @@ public class Drivetrain extends SubsystemBase implements Testable, Loggable {
         synchronized (poseEstimator) {
             //prevemts unnessarly fast updates to the odemetry (2 ms)
             if (odometryTime.get() > 0.002) {
-                poseEstimator.update(gyro.getRotation2d(), getLeftDistance(), getRightDistance());
+                poseEstimator.update(gyro.getRotation2d().unaryMinus(), getLeftDistance(), getRightDistance());
                 odometryTime.reset();
             }
 
@@ -888,7 +749,7 @@ public class Drivetrain extends SubsystemBase implements Testable, Loggable {
     }
 
     public double getRotation() {
-        return gyro.getRotation2d().getDegrees();
+        return gyro.getRotation2d().unaryMinus().getDegrees();
     }
 
     /**
@@ -919,16 +780,16 @@ public class Drivetrain extends SubsystemBase implements Testable, Loggable {
     public void initSendable(SendableBuilder builder) {
         //builder.setSmartDashboardType("Drivetrain");
 
-        //builder.addDoubleProperty("leftDistance", this::getLeftDistance, null);
-        //builder.addDoubleProperty("leftEncoder", this::getLeftEncoderPosition, null);
-        //builder.addDoubleProperty("leftRPM", this::getLeftRPM, null);
-        //builder.addDoubleProperty("leftSpeed", this::getLeftSpeed, null);
+        builder.addDoubleProperty("leftDistance", this::getLeftDistance, null);
+        builder.addDoubleProperty("leftEncoder", this::getLeftEncoderPosition, null);
+        builder.addDoubleProperty("leftRPM", this::getLeftRPM, null);
+        builder.addDoubleProperty("leftSpeed", this::getLeftSpeed, null);
 
-        //builder.addDoubleProperty("rightDistance", this::getRightDistance, null);
-        //builder.addDoubleProperty("rightEncoder", this::getRightEncoderPosition, null);
-        //builder.addDoubleProperty("rightRPM", this::getRightRPM, null);
-        //builder.addDoubleProperty("rightSpeed", this::getRightSpeed, null);
-        //builder.addDoubleProperty("rotation", this::getRotation, null);
+        builder.addDoubleProperty("rightDistance", this::getRightDistance, null);
+        builder.addDoubleProperty("rightEncoder", this::getRightEncoderPosition, null);
+        builder.addDoubleProperty("rightRPM", this::getRightRPM, null);
+        builder.addDoubleProperty("rightSpeed", this::getRightSpeed, null);
+        builder.addDoubleProperty("rotation", this::getRotation, null);
         //f2d.initSendable(builder);
         SmartDashboard.putData(f2d);
         builder.addDoubleProperty("x-pos", () -> this.getPose().getX(), null);

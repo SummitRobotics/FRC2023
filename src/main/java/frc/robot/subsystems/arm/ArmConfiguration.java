@@ -78,7 +78,7 @@ public class ArmConfiguration {
         public static ArmConfiguration fromEndPosition(Positions.Pose3d endPose, double grabberAngleRadians, double wristRotationRadians) {
                 Translation3d endPosition = endPose.inOtherSpace(Arm.ROBOT_TO_TURRET_BASE).getTranslation();
                 // clamp grab angle
-                grabberAngleRadians = Functions.clampDouble(grabberAngleRadians, Math.PI / 2, 0);
+                // grabberAngleRadians = Functions.clampDouble(grabberAngleRadians, Math.PI / 2, 0);
                 // rotate turret to the same plane as pointToGrab
                 double angleToPoint = Math.atan(endPosition.getY() / endPosition.getX());
 
@@ -345,22 +345,27 @@ public class ArmConfiguration {
                                 : this.turretPositionRotations < Arm.ARM_TURRET_REVERSE_SOFT_LIMIT + VALID_POS_OFFSET) {
                         return false;
                 }
+                System.out.println("Turret Valid");
                 if (this.firstJointPositionRotations > currentPos.firstJointPositionRotations ? this.firstJointPositionRotations > Arm.ARM_JOINT_1_FORWARD_SOFT_LIMIT - VALID_POS_OFFSET
                                 : this.firstJointPositionRotations < Arm.ARM_JOINT_1_REVERSE_SOFT_LIMIT + VALID_POS_OFFSET) {
                         return false;
                 }
+                System.out.println("First Joint Valid");
                 if (this.secondJointPositionRotations > currentPos.secondJointPositionRotations ? this.secondJointPositionRotations > Arm.ARM_JOINT_2_FORWARD_SOFT_LIMIT - VALID_POS_OFFSET
                                 : this.secondJointPositionRotations < Arm.ARM_JOINT_2_REVERSE_SOFT_LIMIT + VALID_POS_OFFSET) {
                         return false;
                 }
+                System.out.println("Second Joint Valid");
                 if (this.thirdJointPositionRotations > currentPos.thirdJointPositionRotations ? this.thirdJointPositionRotations > Arm.ARM_JOINT_3_FORWARD_SOFT_LIMIT - VALID_POS_OFFSET
                                 : this.thirdJointPositionRotations < Arm.ARM_JOINT_3_REVERSE_SOFT_LIMIT + VALID_POS_OFFSET) {
                         return false;
                 }
+                System.out.println("Third Joint Valid");
                 if (this.wristPositionRotations > currentPos.wristPositionRotations ? this.wristPositionRotations > Arm.ARM_WRIST_FORWARD_SOFT_LIMIT - VALID_POS_OFFSET
                                 : this.wristPositionRotations < Arm.ARM_WRIST_REVERSE_SOFT_LIMIT + VALID_POS_OFFSET) {
                         return false;
                 }
+                System.out.println("In Soft Limits");
                 if (getEndPosition().inRobotSpace().getZ() <= 0) {
                         return false;
                 }
