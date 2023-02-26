@@ -113,8 +113,8 @@ def get_args():
 
 def main():
 
-    initNetworkTables()
-    fieldElementNetworkTable = NetworkTables.getTable('fieldElements')
+    # initNetworkTables()
+    # fieldElementNetworkTable = NetworkTables.getTable('fieldElements')
 
     args = get_args()
 
@@ -181,7 +181,7 @@ def main():
                             largestContour = c
                             
         # cv2.imshow('Quorb Sight', image)
-        fieldElementNetworkTable.putNumberArray(llpython)
+        # fieldElementNetworkTable.putNumberArray(llpython)
 
         # key = cv2.waitKey(1)
         # if key == 27:  # ESC
