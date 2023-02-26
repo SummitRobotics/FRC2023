@@ -86,7 +86,7 @@ public class FollowDynamicTrajectory extends CommandBase {
         splineLEDs.activate();
         Trajectory trajectory = generateTrajectory.get();
 
-        System.out.println(trajectory.getStates());
+        // System.out.println(trajectory.getStates());
 
         drivetrain.getFieldWidget().getObject("trajectory").setTrajectory(trajectory);
 

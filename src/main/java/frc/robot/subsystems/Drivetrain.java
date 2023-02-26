@@ -67,7 +67,7 @@ public class Drivetrain extends SubsystemBase implements Testable, Loggable {
         WHEEL_RADIUS_IN_METERS = 0.075819,
         WHEEL_CIRCUMFERENCE_IN_METERS = (2 * WHEEL_RADIUS_IN_METERS) * Math.PI,
         MAX_OUTPUT_VOLTAGE = 11,
-        DRIVE_WIDTH = 0.65666,
+        DRIVE_WIDTH = -0.65666,
         SPLINE_MAX_VEL_MPS_HIGH = 3, // MAX:
         SPLINE_MAX_ACC_MPSSQ_HIGH = 0.5, // MAX :
         NO_FAULT_CODE = 0;
@@ -383,7 +383,7 @@ public class Drivetrain extends SubsystemBase implements Testable, Loggable {
         double leftFeedForward = HighFeedFoward.calculate(leftMS);
         double rightFeedForward = HighFeedFoward.calculate(rightMS);
 
-        leftPID.setReference(convertMPStoRPM(leftMS), ControlType.kVelocity, 2, leftFeedForward);
+        leftPID.setReference(convertMPStoRPM(leftMS), ControlType.kVelocity, 2,  leftFeedForward);
         rightPID.setReference(convertMPStoRPM(rightMS), ControlType.kVelocity, 2, rightFeedForward);      
     }
 
@@ -731,6 +731,7 @@ public class Drivetrain extends SubsystemBase implements Testable, Loggable {
             for (EstimatedRobotPose visionPoseEstimate : visionPoseEstimates) {
                 poseEstimator.addVisionMeasurement(visionPoseEstimate.estimatedPose.toPose2d(), visionPoseEstimate.timestampSeconds);
             }
+            f2d.setRobotPose(poseEstimator.getEstimatedPosition());
         }
     }
 
@@ -759,7 +760,6 @@ public class Drivetrain extends SubsystemBase implements Testable, Loggable {
     public void periodic() {
         // Update the odometry in the periodic block
         updateOdometry();
-        f2d.setRobotPose(getPose());
         // System.out.println(getPose());
         // System.out.println(MPStoRPM(getRightSpeed()));
         // System.out.println(rightEncoder.getVelocity());
