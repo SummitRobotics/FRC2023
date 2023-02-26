@@ -146,13 +146,14 @@ public class RobotContainer {
         driverXBox.rightBumper.prioritize(AxisPriorities.DRIVE).getTrigger().onTrue(new InstantCommand(drivetrain::highGear));
         driverXBox.leftBumper.prioritize(AxisPriorities.DRIVE).getTrigger().onTrue(new InstantCommand(drivetrain::lowGear));
 
+        launchpad.missileA.getTrigger().whileTrue(testCommand);
         launchpad.missileB.getTrigger().whileTrue(new StartEndCommand(() -> arm.setAllSoftLimit(false), () -> arm.setAllSoftLimit(true)));
-        launchpad.missileA.getTrigger().whileTrue(balance);
-
+        
+        gunnerXBox.buttonY.getTrigger().whileTrue(new MoveArmHome(arm));
+        
         launchpad.buttonH.getTrigger().whileTrue(homeArm);
         launchpad.buttonH.pressBind();
 
-        gunnerXBox.buttonY.getTrigger().whileTrue(new MoveArmHome(arm));
 
         launchpad.buttonC.getTrigger().toggleOnTrue(turretManual);
         launchpad.buttonC.commandBind(turretManual);
@@ -171,9 +172,6 @@ public class RobotContainer {
 
         launchpad.buttonI.getTrigger().toggleOnTrue(fancyArmMo);
         launchpad.buttonI.commandBind(fancyArmMo);
-
-        launchpad.buttonG.getTrigger().whileTrue(testCommand);
-        launchpad.buttonG.commandBind(testCommand);
 
         launchpad.buttonD.getTrigger().onTrue(new InstantCommand(arm::toggleClamp));
         launchpad.buttonD.booleanSupplierBind(arm::getClampSolenoidState);
