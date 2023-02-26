@@ -80,7 +80,10 @@ public class ArmConfiguration {
                 // clamp grab angle
                 // grabberAngleRadians = Functions.clampDouble(grabberAngleRadians, Math.PI / 2, 0);
                 // rotate turret to the same plane as pointToGrab
-                double angleToPoint = Math.atan(endPosition.getY() / endPosition.getX());
+                double angleToPoint = Math.atan(endPosition.getY() / Math.abs(endPosition.getX()));
+                if (endPosition.getX() < 0) angleToPoint = Math.PI - angleToPoint;
+                if (endPosition.getY() < 0) angleToPoint = angleToPoint - Math.PI * 2;
+                // if (endPosition.getX() < 0) System.out.println("ANGLE TO POINT: " + angleToPoint);
 
                 // convert pointToGrab to 2d space
                 Translation2d pointToGrab2d = endPosition.rotateBy(new Rotation3d(0, 0, -angleToPoint)).rotateBy(new Rotation3d(-Math.PI / 2, 0, 0)).toTranslation2d()

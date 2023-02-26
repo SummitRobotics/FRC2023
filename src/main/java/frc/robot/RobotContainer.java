@@ -6,7 +6,6 @@ package frc.robot;
 
 import java.io.IOException;
 import java.util.ArrayList;
-
 import com.kauailabs.navx.frc.AHRS;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -134,11 +133,11 @@ public class RobotContainer {
         //     new ParallelCommandGroup(new TimedMoveMotor(arm::setWristMotorVoltage, -12, 0.25), new TimedMoveMotor(arm::setJoint3MotorVoltage, -3, 0.25)),
         //     new Home(arm.getHomeables()[2], arm.getHomeables()[1]));
 
-        // testCommand = new SequentialCommandGroup(new MoveArmUnsafe(arm, Positions.Pose3d.fromRobotSpace(new Translation3d(0, -1, 0.75)), 0, (Math.PI / 4)));
-        testCommand = new SequentialCommandGroup(
-            new InstantCommand(() -> drivetrain.setPose(new Pose2d())),
-            new FollowDynamicTrajectory(drivetrain::getPose, () -> new Pose2d(new Translation2d(1, 1), new Rotation2d()), () -> new ArrayList<>(), drivetrain.generateTrajectoryConfigHighGear(), drivetrain)
-        );
+        // testCommand = new SequentialCommandGroup(new MoveArmUnsafe(arm, Positions.Pose3d.fromOtherSpace(new Translation3d(-0.1, -0.5, 0.75), Arm.ROBOT_TO_TURRET_BASE), 0, (Math.PI / 4)));
+        // testCommand = new SequentialCommandGroup(
+        //     new InstantCommand(() -> drivetrain.setPose(new Pose2d())),
+        //     new FollowDynamicTrajectory(drivetrain::getPose, () -> new Pose2d(new Translation2d(1, 1), new Rotation2d()), () -> new ArrayList<>(), drivetrain.generateTrajectoryConfigHighGear(), drivetrain)
+        // );
         // testCommand = new StartEndCommand(() -> drivetrain.setMotorTargetSpeed(0.5, 0.5), drivetrain::stop, drivetrain);
     }
 
