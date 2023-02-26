@@ -378,6 +378,8 @@ public class Drivetrain extends SubsystemBase implements Testable, Loggable {
 
         highGear();
 
+        // System.out.println(String.format("left is: %f, right is %f", leftMS, rightMS));
+
         double leftFeedForward = HighFeedFoward.calculate(leftMS);
         double rightFeedForward = HighFeedFoward.calculate(rightMS);
 
@@ -729,7 +731,6 @@ public class Drivetrain extends SubsystemBase implements Testable, Loggable {
             for (EstimatedRobotPose visionPoseEstimate : visionPoseEstimates) {
                 poseEstimator.addVisionMeasurement(visionPoseEstimate.estimatedPose.toPose2d(), visionPoseEstimate.timestampSeconds);
             }
-            f2d.setRobotPose(poseEstimator.getEstimatedPosition());
         }
     }
 
@@ -758,6 +759,8 @@ public class Drivetrain extends SubsystemBase implements Testable, Loggable {
     public void periodic() {
         // Update the odometry in the periodic block
         updateOdometry();
+        f2d.setRobotPose(getPose());
+        // System.out.println(getPose());
         // System.out.println(MPStoRPM(getRightSpeed()));
         // System.out.println(rightEncoder.getVelocity());
         // System.out.println("------------------------");
