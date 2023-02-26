@@ -497,6 +497,7 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
 
     builder.addStringProperty("PosEstimateRS", () -> this.getCurrentArmConfiguration().getEndPosition().inRobotSpace().toString(), null);
     builder.addStringProperty("PosEstimateOS", () -> this.getCurrentArmConfiguration().getEndPosition().inOtherSpace(ROBOT_TO_TURRET_BASE).toString(), null);
+    builder.addStringProperty("PosEstimateFS", () -> this.getCurrentArmConfiguration().getEndPosition().inFieldSpace().toString(), null);
   }
 
   @Override
