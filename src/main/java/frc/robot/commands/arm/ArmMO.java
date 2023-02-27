@@ -65,6 +65,7 @@ public class ArmMO extends CommandBase {
 
         // convert from robot space, edit based on inputs, and convert back to robot space
         if (launchpad.funRight.getTrigger().getAsBoolean()) {
+            System.out.println("fun right");
             endPose = Positions.Pose3d.fromFieldSpace(
                 new Pose3d(
                     endPose.inFieldSpace().getX() + -yAxis.get() / 200,
@@ -76,6 +77,7 @@ public class ArmMO extends CommandBase {
         }
 
         if (launchpad.funMiddle.getTrigger().getAsBoolean()) {
+            System.out.println("fun middle");
             endPose = Positions.Pose3d.fromRobotSpace(
                 new Pose3d(
                     endPose.inRobotSpace().getX() + -yAxis.get() / 200,
@@ -87,6 +89,7 @@ public class ArmMO extends CommandBase {
         }
 
         if (launchpad.funLeft.getTrigger().getAsBoolean()) {
+            System.out.println("fun left");
             Transform3d thing = new Transform3d(arm.getCurrentArmConfiguration().getEndPosition().inRobotSpace().getTranslation(),arm.getCurrentArmConfiguration().getEndPosition().inRobotSpace().getRotation());
             endPose = Positions.Pose3d.fromOtherSpace(
                 new Pose3d(

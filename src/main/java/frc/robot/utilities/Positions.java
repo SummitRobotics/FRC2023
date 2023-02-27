@@ -58,7 +58,8 @@ public class Positions {
                 return pose;
             } else {
                 edu.wpi.first.math.geometry.Pose3d robotPose = new edu.wpi.first.math.geometry.Pose3d(Drivetrain.getInstance().getPose());
-                return pose.plus(new Transform3d(robotPose.getTranslation(), robotPose.getRotation()));
+                Transform3d robotToField = new Transform3d(robotPose.getTranslation(), robotPose.getRotation());
+                return pose.relativeTo(new edu.wpi.first.math.geometry.Pose3d(robotToField.inverse().getTranslation(), robotToField.inverse().getRotation()));
             }
         }
 

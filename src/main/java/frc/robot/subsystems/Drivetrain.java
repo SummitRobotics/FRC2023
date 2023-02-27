@@ -67,7 +67,7 @@ public class Drivetrain extends SubsystemBase implements Testable, Loggable {
         WHEEL_RADIUS_IN_METERS = 0.075819,
         WHEEL_CIRCUMFERENCE_IN_METERS = (2 * WHEEL_RADIUS_IN_METERS) * Math.PI,
         MAX_OUTPUT_VOLTAGE = 11,
-        DRIVE_WIDTH = -0.65666,
+        DRIVE_WIDTH = -0.64135,
         SPLINE_MAX_VEL_MPS_HIGH = 3, // MAX:
         SPLINE_MAX_ACC_MPSSQ_HIGH = 0.5, // MAX :
         NO_FAULT_CODE = 0;
@@ -79,7 +79,7 @@ public class Drivetrain extends SubsystemBase implements Testable, Loggable {
         HIGH_P = 0,
         HIGH_I = 0,
         HIGH_D = 0,
-        HIGH_P_VEL = 2.1277E-7/0.4788/9.1,
+        HIGH_P_VEL = 2.1277E-7,
         HIGH_I_VEL = 0,
         HIGH_D_VEL = 0;
 
@@ -528,7 +528,9 @@ public class Drivetrain extends SubsystemBase implements Testable, Loggable {
      * @return position of motor in rotations
      */
     public double getRightEncoderPosition() {
-        return rightEncoder.getPosition();
+        synchronized (poseEstimator) {
+            return rightEncoder.getPosition();
+        }
     }
 
     /**
@@ -537,7 +539,9 @@ public class Drivetrain extends SubsystemBase implements Testable, Loggable {
      * @return position of motor in rotations
      */
     public double getLeftEncoderPosition() {
-        return leftEncoder.getPosition();
+        synchronized (poseEstimator) {
+            return leftEncoder.getPosition();
+        }
     }
 
     public double getLeftRPM() {
@@ -554,12 +558,14 @@ public class Drivetrain extends SubsystemBase implements Testable, Loggable {
      * @return the total distance in meters the side as travled sense the last reset
      */
     public double getLeftDistance() {
-        if (!getShift()) {
-            return ((getLeftEncoderPosition() / HIGH_GEAR_RATIO) * WHEEL_CIRCUMFERENCE_IN_METERS)
-                + leftDistanceAcum;
-        } else {
-            return ((getLeftEncoderPosition() / LOW_GEAR_RATIO) * WHEEL_CIRCUMFERENCE_IN_METERS)
-                + leftDistanceAcum;
+        synchronized (poseEstimator) {
+            if (!getShift()) {
+                return ((getLeftEncoderPosition() / HIGH_GEAR_RATIO) * WHEEL_CIRCUMFERENCE_IN_METERS)
+                    + leftDistanceAcum;
+            } else {
+                return ((getLeftEncoderPosition() / LOW_GEAR_RATIO) * WHEEL_CIRCUMFERENCE_IN_METERS)
+                    + leftDistanceAcum;
+            }
         }
     }
 
@@ -568,13 +574,15 @@ public class Drivetrain extends SubsystemBase implements Testable, Loggable {
      *
      * @return the total distance in meters the side as travled sense the last reset
      */
-    public synchronized double getRightDistance() {
-        if (!getShift()) {
-            return ((getRightEncoderPosition() / HIGH_GEAR_RATIO) * WHEEL_CIRCUMFERENCE_IN_METERS)
-                + rightDistanceAcum;
-        } else {
-            return ((getRightEncoderPosition() / LOW_GEAR_RATIO) * WHEEL_CIRCUMFERENCE_IN_METERS)
-                + rightDistanceAcum;
+    public double getRightDistance() {
+        synchronized (poseEstimator) {
+            if (!getShift()) {
+                return ((getRightEncoderPosition() / HIGH_GEAR_RATIO) * WHEEL_CIRCUMFERENCE_IN_METERS)
+                    + rightDistanceAcum;
+            } else {
+                return ((getRightEncoderPosition() / LOW_GEAR_RATIO) * WHEEL_CIRCUMFERENCE_IN_METERS)
+                    + rightDistanceAcum;
+            }
         }
     }
 

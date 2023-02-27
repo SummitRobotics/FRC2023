@@ -25,6 +25,8 @@ import frc.robot.commands.arm.ArmMO;
 import frc.robot.commands.arm.FullManualArm;
 import frc.robot.commands.arm.MoveArmHome;
 import frc.robot.commands.arm.MoveArmUnsafe;
+import frc.robot.commands.automovements.SubstationPickup;
+import frc.robot.commands.automovements.SubstationPickup.Side;
 import frc.robot.commands.drivetrain.ArcadeDrive;
 import frc.robot.commands.drivetrain.ChargeStationBalance;
 import frc.robot.commands.drivetrain.FollowDynamicTrajectory;
@@ -134,10 +136,7 @@ public class RobotContainer {
         //     new Home(arm.getHomeables()[2], arm.getHomeables()[1]));
 
         // testCommand = new SequentialCommandGroup(new MoveArmUnsafe(arm, Positions.Pose3d.fromOtherSpace(new Translation3d(-0.1, -0.5, 0.75), Arm.ROBOT_TO_TURRET_BASE), 0, (Math.PI / 4)));
-        // testCommand = new SequentialCommandGroup(
-        //     new InstantCommand(() -> drivetrain.setPose(new Pose2d())),
-        //     new FollowDynamicTrajectory(drivetrain::getPose, () -> new Pose2d(new Translation2d(1, 1), new Rotation2d()), () -> new ArrayList<>(), drivetrain.generateTrajectoryConfigHighGear(), drivetrain)
-        // );
+        testCommand = new SubstationPickup(drivetrain, arm, Side.Left);
         // testCommand = new StartEndCommand(() -> drivetrain.setMotorTargetSpeed(0.5, 0.5), drivetrain::stop, drivetrain);
     }
 
@@ -149,10 +148,10 @@ public class RobotContainer {
         launchpad.missileB.getTrigger().whileTrue(new StartEndCommand(() -> arm.setAllSoftLimit(false), () -> arm.setAllSoftLimit(true)));
         
         gunnerXBox.buttonY.getTrigger().whileTrue(new MoveArmHome(arm));
-        
+        gunnerXBox.buttonA.getTrigger().onTrue(new InstantCommand(arm::toggleClamp));
+
         launchpad.buttonH.getTrigger().whileTrue(homeArm);
         launchpad.buttonH.pressBind();
-
 
         launchpad.buttonC.getTrigger().toggleOnTrue(turretManual);
         launchpad.buttonC.commandBind(turretManual);
@@ -212,7 +211,9 @@ public class RobotContainer {
     public void autonomousPeriodic() {}
     public void autonomousExit() {}
 
-    public void teleopInit() {}
+    public void teleopInit() {
+        drivetrain.setPose(new Pose2d(new Translation2d(3.39, 7.878), new Rotation2d(-2.852, 0)));
+    }
     public void teleopPeriodic() {}
     public void teleopExit() {}
 

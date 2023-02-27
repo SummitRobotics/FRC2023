@@ -348,27 +348,27 @@ public class ArmConfiguration {
                                 : this.turretPositionRotations < Arm.ARM_TURRET_REVERSE_SOFT_LIMIT + VALID_POS_OFFSET) {
                         return false;
                 }
-                System.out.println("Turret Valid");
+                // System.out.println("Turret Valid");
                 if (this.firstJointPositionRotations > currentPos.firstJointPositionRotations ? this.firstJointPositionRotations > Arm.ARM_JOINT_1_FORWARD_SOFT_LIMIT - VALID_POS_OFFSET
                                 : this.firstJointPositionRotations < Arm.ARM_JOINT_1_REVERSE_SOFT_LIMIT + VALID_POS_OFFSET) {
                         return false;
                 }
-                System.out.println("First Joint Valid");
+                // System.out.println("First Joint Valid");
                 if (this.secondJointPositionRotations > currentPos.secondJointPositionRotations ? this.secondJointPositionRotations > Arm.ARM_JOINT_2_FORWARD_SOFT_LIMIT - VALID_POS_OFFSET
                                 : this.secondJointPositionRotations < Arm.ARM_JOINT_2_REVERSE_SOFT_LIMIT + VALID_POS_OFFSET) {
                         return false;
                 }
-                System.out.println("Second Joint Valid");
+                // System.out.println("Second Joint Valid");
                 if (this.thirdJointPositionRotations > currentPos.thirdJointPositionRotations ? this.thirdJointPositionRotations > Arm.ARM_JOINT_3_FORWARD_SOFT_LIMIT - VALID_POS_OFFSET
                                 : this.thirdJointPositionRotations < Arm.ARM_JOINT_3_REVERSE_SOFT_LIMIT + VALID_POS_OFFSET) {
                         return false;
                 }
-                System.out.println("Third Joint Valid");
+                // System.out.println("Third Joint Valid");
                 if (this.wristPositionRotations > currentPos.wristPositionRotations ? this.wristPositionRotations > Arm.ARM_WRIST_FORWARD_SOFT_LIMIT - VALID_POS_OFFSET
                                 : this.wristPositionRotations < Arm.ARM_WRIST_REVERSE_SOFT_LIMIT + VALID_POS_OFFSET) {
                         return false;
                 }
-                System.out.println("In Soft Limits");
+                // System.out.println("In Soft Limits");
                 if (getEndPosition().inRobotSpace().getZ() <= 0) {
                         return false;
                 }
