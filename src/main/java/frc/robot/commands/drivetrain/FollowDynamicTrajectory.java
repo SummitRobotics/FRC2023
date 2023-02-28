@@ -105,7 +105,6 @@ public class FollowDynamicTrajectory extends CommandBase {
         // Wraps the command, so we can update odometry every cycle.
         Runnable onExecute =
             () -> {
-                drivetrain.updateOdometry();
                 ramseteCommand.execute();
             };
 
@@ -135,6 +134,7 @@ public class FollowDynamicTrajectory extends CommandBase {
         if (command != null) {
             command.execute();
         }
+        // drivetrain.setMotorTargetSpeed(0.5, 0.5);
     }
 
     @Override

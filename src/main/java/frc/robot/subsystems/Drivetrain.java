@@ -68,8 +68,8 @@ public class Drivetrain extends SubsystemBase implements Testable, Loggable {
         WHEEL_CIRCUMFERENCE_IN_METERS = (2 * WHEEL_RADIUS_IN_METERS) * Math.PI,
         MAX_OUTPUT_VOLTAGE = 11,
         DRIVE_WIDTH = -0.64135,
-        SPLINE_MAX_VEL_MPS_HIGH = 3, // MAX:
-        SPLINE_MAX_ACC_MPSSQ_HIGH = 0.5, // MAX :
+        SPLINE_MAX_VEL_MPS_HIGH = 0.75, // MAX:
+        SPLINE_MAX_ACC_MPSSQ_HIGH = 0.75, // MAX :
         NO_FAULT_CODE = 0;
 
     public static final double
@@ -157,7 +157,7 @@ public class Drivetrain extends SubsystemBase implements Testable, Loggable {
         odometryTime.start();
 
 
-        poseEstimator = new DifferentialDrivePoseEstimator(DriveKinimatics, gyro.getRotation2d().unaryMinus(), 0, 0, initialPose);
+        poseEstimator = new DifferentialDrivePoseEstimator(new DifferentialDriveKinematics(-DRIVE_WIDTH), gyro.getRotation2d().unaryMinus(), 0, 0, initialPose);
         poseEstimator.setVisionMeasurementStdDevs((new Matrix<>(Nat.N3(), Nat.N1())).plus(1));
 
         f2d = new Field2d();
@@ -227,21 +227,21 @@ public class Drivetrain extends SubsystemBase implements Testable, Loggable {
         rightMiddle.setIdleMode(IdleMode.kBrake);
         rightBack.setIdleMode(IdleMode.kBrake);
 
-        // We basically don't care about CAN data for follower motors.
-        for (CANSparkMax motor : new CANSparkMax[] {leftMiddle, leftBack, rightMiddle, rightBack}) {
-            motor.setPeriodicFramePeriod(PeriodicFrame.kStatus0, 20);
-            motor.setPeriodicFramePeriod(PeriodicFrame.kStatus1, 65535);
-            motor.setPeriodicFramePeriod(PeriodicFrame.kStatus2, 65533);
-            motor.setPeriodicFramePeriod(PeriodicFrame.kStatus3, 65531);
-            motor.setPeriodicFramePeriod(PeriodicFrame.kStatus4, 65529);
-            motor.setPeriodicFramePeriod(PeriodicFrame.kStatus5, 65527);
-            motor.setPeriodicFramePeriod(PeriodicFrame.kStatus6, 65525);
-        }
+        // // We basically don't care about CAN data for follower motors.
+        // for (CANSparkMax motor : new CANSparkMax[] {leftMiddle, leftBack, rightMiddle, rightBack}) {
+        //     motor.setPeriodicFramePeriod(PeriodicFrame.kStatus0, 20);
+        //     motor.setPeriodicFramePeriod(PeriodicFrame.kStatus1, 65535);
+        //     motor.setPeriodicFramePeriod(PeriodicFrame.kStatus2, 65533);
+        //     motor.setPeriodicFramePeriod(PeriodicFrame.kStatus3, 65531);
+        //     motor.setPeriodicFramePeriod(PeriodicFrame.kStatus4, 65529);
+        //     motor.setPeriodicFramePeriod(PeriodicFrame.kStatus5, 65527);
+        //     motor.setPeriodicFramePeriod(PeriodicFrame.kStatus6, 65525);
+        // }
 
-        // Speeding up frame 0 on the leader motors will increase the rate
-        // at which followers are updated.
-        left.setPeriodicFramePeriod(PeriodicFrame.kStatus0, 5);
-        right.setPeriodicFramePeriod(PeriodicFrame.kStatus0, 5);
+        // // Speeding up frame 0 on the leader motors will increase the rate
+        // // at which followers are updated.
+        // left.setPeriodicFramePeriod(PeriodicFrame.kStatus0, 5);
+        // right.setPeriodicFramePeriod(PeriodicFrame.kStatus0, 5);
     }
 
     /**
@@ -376,7 +376,9 @@ public class Drivetrain extends SubsystemBase implements Testable, Loggable {
      */
     public void setMotorTargetSpeed(double leftMS, double rightMS) {
 
-        highGear();
+        if (oldShift) {
+            highGear();
+        }
 
         // System.out.println(String.format("left is: %f, right is %f", leftMS, rightMS));
 
@@ -418,7 +420,9 @@ public class Drivetrain extends SubsystemBase implements Testable, Loggable {
      * @param position the target position in terms of motor rotations
      */
     public synchronized void setLeftMotorTarget(double position) {
-        highGear();
+        if (oldShift) {
+            highGear();
+        }
         leftPID.setReference(position, ControlType.kPosition, 1);
     }
 
@@ -428,7 +432,9 @@ public class Drivetrain extends SubsystemBase implements Testable, Loggable {
      * @param position the target position in terms of motor rotations
      */
     public synchronized void setRightMotorTarget(double position) {
-        highGear();
+        if (oldShift) {
+            highGear();
+        }
         rightPID.setReference(position, ControlType.kPosition, 1);
     }
 
@@ -437,7 +443,9 @@ public class Drivetrain extends SubsystemBase implements Testable, Loggable {
      * @param position position to go to in rotations
      */
     public synchronized void setBothMotorTarget(double position) {
-        highGear();
+        if (oldShift) {
+            highGear();
+        }
         setLeftMotorTarget(position);
         setRightMotorTarget(position);
     }

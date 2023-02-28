@@ -82,7 +82,7 @@ public class ArmConfiguration {
                 // rotate turret to the same plane as pointToGrab
                 double angleToPoint = Math.atan(endPosition.getY() / Math.abs(endPosition.getX()));
                 if (endPosition.getX() < 0) angleToPoint = Math.PI - angleToPoint;
-                if (endPosition.getY() < 0) angleToPoint = angleToPoint - Math.PI * 2;
+                if (endPosition.getY() < 0 && endPosition.getX() < 0) angleToPoint = angleToPoint - Math.PI * 2;
                 // if (endPosition.getX() < 0) System.out.println("ANGLE TO POINT: " + angleToPoint);
 
                 // convert pointToGrab to 2d space
@@ -344,28 +344,48 @@ public class ArmConfiguration {
          * @return Wheather or not the current configuration is valid and within the soft limits
          */
         public boolean validConfig(ArmConfiguration currentPos) {
-                if (this.turretPositionRotations > currentPos.turretPositionRotations ? this.turretPositionRotations > Arm.ARM_TURRET_FORWARD_SOFT_LIMIT - VALID_POS_OFFSET
-                                : this.turretPositionRotations < Arm.ARM_TURRET_REVERSE_SOFT_LIMIT + VALID_POS_OFFSET) {
+                // System.out.println("CHECKING VALID CONFIG");
+                if (getTurretPosition(POSITION_TYPE.ENCODER_ROTATIONS) < Arm.ARM_TURRET_REVERSE_SOFT_LIMIT || getTurretPosition(POSITION_TYPE.ENCODER_ROTATIONS) > Arm.ARM_TURRET_FORWARD_SOFT_LIMIT) {
                         return false;
                 }
-                // System.out.println("Turret Valid");
-                if (this.firstJointPositionRotations > currentPos.firstJointPositionRotations ? this.firstJointPositionRotations > Arm.ARM_JOINT_1_FORWARD_SOFT_LIMIT - VALID_POS_OFFSET
-                                : this.firstJointPositionRotations < Arm.ARM_JOINT_1_REVERSE_SOFT_LIMIT + VALID_POS_OFFSET) {
+                // System.out.println("IN TURRET");
+                if (getFirstJointPosition(POSITION_TYPE.ENCODER_ROTATIONS) < Arm.ARM_JOINT_1_REVERSE_SOFT_LIMIT
+                                || getFirstJointPosition(POSITION_TYPE.ENCODER_ROTATIONS) > Arm.ARM_JOINT_1_FORWARD_SOFT_LIMIT) {
                         return false;
                 }
-                // System.out.println("First Joint Valid");
-                if (this.secondJointPositionRotations > currentPos.secondJointPositionRotations ? this.secondJointPositionRotations > Arm.ARM_JOINT_2_FORWARD_SOFT_LIMIT - VALID_POS_OFFSET
-                                : this.secondJointPositionRotations < Arm.ARM_JOINT_2_REVERSE_SOFT_LIMIT + VALID_POS_OFFSET) {
+                // System.out.println("IN FIRST");
+                if (getSecondJointPosition(POSITION_TYPE.ENCODER_ROTATIONS) < Arm.ARM_JOINT_2_REVERSE_SOFT_LIMIT
+                                || getSecondJointPosition(POSITION_TYPE.ENCODER_ROTATIONS) > Arm.ARM_JOINT_2_FORWARD_SOFT_LIMIT) {
                         return false;
                 }
-                // System.out.println("Second Joint Valid");
-                if (this.thirdJointPositionRotations > currentPos.thirdJointPositionRotations ? this.thirdJointPositionRotations > Arm.ARM_JOINT_3_FORWARD_SOFT_LIMIT - VALID_POS_OFFSET
-                                : this.thirdJointPositionRotations < Arm.ARM_JOINT_3_REVERSE_SOFT_LIMIT + VALID_POS_OFFSET) {
+                // System.out.println("IN SECOND");
+                if (getThirdJointPosition(POSITION_TYPE.ENCODER_ROTATIONS) < Arm.ARM_JOINT_3_REVERSE_SOFT_LIMIT
+                                || getThirdJointPosition(POSITION_TYPE.ENCODER_ROTATIONS) > Arm.ARM_JOINT_3_FORWARD_SOFT_LIMIT) {
                         return false;
                 }
-                // System.out.println("Third Joint Valid");
-                if (this.wristPositionRotations > currentPos.wristPositionRotations ? this.wristPositionRotations > Arm.ARM_WRIST_FORWARD_SOFT_LIMIT - VALID_POS_OFFSET
-                                : this.wristPositionRotations < Arm.ARM_WRIST_REVERSE_SOFT_LIMIT + VALID_POS_OFFSET) {
+                // System.out.println("IN THIRD");
+                if (getWristPosition(POSITION_TYPE.ENCODER_ROTATIONS) < Arm.ARM_WRIST_REVERSE_SOFT_LIMIT || getWristPosition(POSITION_TYPE.ENCODER_ROTATIONS) > Arm.ARM_WRIST_FORWARD_SOFT_LIMIT) {
+                        return false;
+                }
+                // System.out.println("IN WRIST");
+
+                if (Double.isNaN(getTurretPosition(POSITION_TYPE.ENCODER_ROTATIONS))) {
+                        return false;
+                }
+
+                if (Double.isNaN(getFirstJointPosition(POSITION_TYPE.ENCODER_ROTATIONS))) {
+                        return false;
+                }
+
+                if (Double.isNaN(getSecondJointPosition(POSITION_TYPE.ENCODER_ROTATIONS))) {
+                        return false;
+                }
+
+                if (Double.isNaN(getThirdJointPosition(POSITION_TYPE.ENCODER_ROTATIONS))) {
+                        return false;
+                }
+
+                if (Double.isNaN(getWristPosition(POSITION_TYPE.ENCODER_ROTATIONS))) {
                         return false;
                 }
                 // System.out.println("In Soft Limits");

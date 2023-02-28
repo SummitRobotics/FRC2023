@@ -49,6 +49,9 @@ public class Positions {
             if (space == Space.ROBOT) {
                 return pose;
             } else {
+                // System.out.println("Converting from field space to robot space");
+                // System.out.println(pose);
+                // System.out.println(Drivetrain.getInstance().getPose());
                 return pose.relativeTo(new edu.wpi.first.math.geometry.Pose3d(Drivetrain.getInstance().getPose()));
             }
         }

@@ -403,9 +403,9 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
    * Sets the arm to a specific configuration.
    */
   public void setToConfiguration(ArmConfiguration configuration) {
-    System.out.println("Setting arm to configuration");
+    // System.out.println("Setting arm to configuration");
     if (!configuration.validConfig(getCurrentArmConfiguration())) return;
-    System.out.println("Valid configuration");
+    // System.out.println("Valid configuration");
 
     setToConfigurationUnsafe(configuration);
   }

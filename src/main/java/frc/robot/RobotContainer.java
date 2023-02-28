@@ -6,6 +6,8 @@ package frc.robot;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.function.BooleanSupplier;
+
 import com.kauailabs.navx.frc.AHRS;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -17,14 +19,18 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.FunctionalCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.StartEndCommand;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.commands.arm.ArmMO;
 import frc.robot.commands.arm.FullManualArm;
+import frc.robot.commands.arm.MoveArmHighAspect;
 import frc.robot.commands.arm.MoveArmHome;
 import frc.robot.commands.arm.MoveArmUnsafe;
+import frc.robot.commands.arm.MovePositionsLaunchpad;
 import frc.robot.commands.automovements.SubstationPickup;
 import frc.robot.commands.automovements.SubstationPickup.Side;
 import frc.robot.commands.drivetrain.ArcadeDrive;
@@ -43,6 +49,7 @@ import frc.robot.subsystems.Drivetrain;
 import frc.robot.utilities.Positions;
 import frc.robot.utilities.lists.AxisPriorities;
 import frc.robot.utilities.lists.Colors;
+import frc.robot.utilities.lists.FieldElementPositions;
 import frc.robot.utilities.lists.Ports;
 import frc.robot.commands.Home;
 import frc.robot.commands.LogComponents;
@@ -75,9 +82,13 @@ public class RobotContainer {
     private Command wristManual;
     private Command fancyArmMo;
 
+    private Command launchPadArmSelector;
+
     private Command homeArm;
 
     private Command testCommand;
+
+    private boolean altMode = false;
 
     // private AprilTagCameraWrapper backLeft;
     // private AprilTagCameraWrapper backRight;
@@ -115,7 +126,7 @@ public class RobotContainer {
     }
 
     private void createCommands() {
-        arcadeDrive = new ArcadeDrive(drivetrain, driverXBox.rightTrigger, driverXBox.leftTrigger, driverXBox.leftX, driverXBox.dPadAny);
+        arcadeDrive = new ArcadeDrive(drivetrain, driverXBox.rightTrigger, driverXBox.leftTrigger, driverXBox.leftX, driverXBox.buttonY);
         balance = new ChargeStationBalance(drivetrain, navx);
 
         turretManual = new FullManualArm(arm, FullManualArm.Type.TURRET, gunnerXBox);
@@ -125,11 +136,13 @@ public class RobotContainer {
         wristManual = new FullManualArm(arm, FullManualArm.Type.WRIST, gunnerXBox);
         fancyArmMo = new ArmMO(arm, gunnerXBox, launchpad);
 
-        homeArm = new SequentialCommandGroup(new Home(arm.getHomeables()[4]), new Home(arm.getHomeables()[3]),
+        homeArm = new SequentialCommandGroup(new Home(gunnerXBox.buttonB.getTrigger()::getAsBoolean, arm.getHomeables()[4]), new Home(arm.getHomeables()[3]),
             new ParallelCommandGroup(new TimedMoveMotor(arm::setWristMotorVoltage, -12, 0.25), new TimedMoveMotor(arm::setJoint3MotorVoltage, -3, 0.25)),
             new Home(arm.getHomeables()[2], arm.getHomeables()[1]),
-            new ParallelCommandGroup(new TimedMoveMotor(arm::setJoint1MotorVoltage, 2, 0.2), new TimedMoveMotor(arm::setJoint2MotorVoltage, 2, 0.2)), new Home(arm.getHomeables()[0]),
+            new ParallelCommandGroup(new TimedMoveMotor(arm::setJoint1MotorVoltage, 2, 0.2), new TimedMoveMotor(arm::setJoint2MotorVoltage, 2, 0.2)), new Home(gunnerXBox.buttonB.getTrigger()::getAsBoolean, arm.getHomeables()[0]),
             new TimedMoveMotor(arm::setTurretMotorVoltage, 5, 0.1), new MoveArmHome(arm));
+
+        launchPadArmSelector = new MovePositionsLaunchpad(arm, launchpad, this);
 
         // homeArm = new SequentialCommandGroup(new Home(arm.getHomeables()[4]), new Home(arm.getHomeables()[3]),
         //     new ParallelCommandGroup(new TimedMoveMotor(arm::setWristMotorVoltage, -12, 0.25), new TimedMoveMotor(arm::setJoint3MotorVoltage, -3, 0.25)),
@@ -137,41 +150,49 @@ public class RobotContainer {
 
         // testCommand = new SequentialCommandGroup(new MoveArmUnsafe(arm, Positions.Pose3d.fromOtherSpace(new Translation3d(-0.1, -0.5, 0.75), Arm.ROBOT_TO_TURRET_BASE), 0, (Math.PI / 4)));
         testCommand = new SubstationPickup(drivetrain, arm, Side.Left);
-        // testCommand = new StartEndCommand(() -> drivetrain.setMotorTargetSpeed(0.5, 0.5), drivetrain::stop, drivetrain);
+        // testCommand = new FollowDynamicTrajectory(drivetrain::getPose, () -> new Pose2d(new Translation2d(1, 1), new Rotation2d()), () -> new ArrayList<>(), drivetrain.generateTrajectoryConfigHighGear(), drivetrain);
     }
 
     private void configureBindings() {
         driverXBox.rightBumper.prioritize(AxisPriorities.DRIVE).getTrigger().onTrue(new InstantCommand(drivetrain::highGear));
         driverXBox.leftBumper.prioritize(AxisPriorities.DRIVE).getTrigger().onTrue(new InstantCommand(drivetrain::lowGear));
 
+        // driverXBox.buttonA.getTrigger().onTrue(new MoveArmUnsafe(arm,Positions.Pose3d.fromFieldSpace(FieldElementPositions.RED_LEFT_SUBSTATION),0.0,0.0));
+
+        driverXBox.dPadLeft.getTrigger().onTrue(new SequentialCommandGroup(
+            new InstantCommand(arm::unclamp),
+            new MoveArmUnsafe(arm,Positions.Pose3d.fromFieldSpace(FieldElementPositions.RED_LEFT_SUBSTATION),0.0,0.0),
+            new InstantCommand(arm::clamp),
+            new WaitCommand(0.5),
+            new MoveArmHighAspect(arm)
+        ));
+
         launchpad.missileA.getTrigger().whileTrue(testCommand);
         launchpad.missileB.getTrigger().whileTrue(new StartEndCommand(() -> arm.setAllSoftLimit(false), () -> arm.setAllSoftLimit(true)));
         
         gunnerXBox.buttonY.getTrigger().whileTrue(new MoveArmHome(arm));
         gunnerXBox.buttonA.getTrigger().onTrue(new InstantCommand(arm::toggleClamp));
+        gunnerXBox.buttonX.getTrigger().whileTrue(new MoveArmHighAspect(arm));
 
-        launchpad.buttonH.getTrigger().whileTrue(homeArm);
-        launchpad.buttonH.pressBind();
-
-        launchpad.buttonC.getTrigger().toggleOnTrue(turretManual);
-        launchpad.buttonC.commandBind(turretManual);
-
-        launchpad.buttonB.getTrigger().toggleOnTrue(joint1Manual);
-        launchpad.buttonB.commandBind(joint1Manual);
-
-        launchpad.buttonA.getTrigger().toggleOnTrue(joint2Manual);
-        launchpad.buttonA.commandBind(joint2Manual);
-
-        launchpad.buttonF.getTrigger().toggleOnTrue(joint3Manual);
-        launchpad.buttonF.commandBind(joint3Manual);
-
-        launchpad.buttonE.getTrigger().toggleOnTrue(wristManual);
-        launchpad.buttonE.commandBind(wristManual);
-
-        launchpad.buttonI.getTrigger().toggleOnTrue(fancyArmMo);
-        launchpad.buttonI.commandBind(fancyArmMo);
-
+        launchpad.buttonA.getTrigger().and(this::notAltMode).toggleOnTrue(joint2Manual);
+        launchpad.buttonB.getTrigger().and(this::notAltMode).toggleOnTrue(joint1Manual);
+        launchpad.buttonC.getTrigger().and(this::notAltMode).toggleOnTrue(turretManual);
         launchpad.buttonD.getTrigger().onTrue(new InstantCommand(arm::toggleClamp));
+        launchpad.buttonE.getTrigger().and(this::notAltMode).toggleOnTrue(wristManual);
+        launchpad.buttonF.getTrigger().and(this::notAltMode).toggleOnTrue(joint3Manual);
+        launchpad.buttonH.getTrigger().and(this::notAltMode).whileTrue(homeArm);
+        launchpad.buttonI.getTrigger().and(this::notAltMode).toggleOnTrue(fancyArmMo);
+
+        launchpad.buttonG.getTrigger().toggleOnTrue(launchPadArmSelector);
+        launchpad.buttonG.commandBind(launchPadArmSelector);
+
+        launchpad.buttonH.commandBind(homeArm);
+        launchpad.buttonB.commandBind(joint1Manual);
+        launchpad.buttonC.commandBind(turretManual);
+        launchpad.buttonA.commandBind(joint2Manual);
+        launchpad.buttonF.commandBind(joint3Manual);
+        launchpad.buttonE.commandBind(wristManual);
+        launchpad.buttonI.commandBind(fancyArmMo);
         launchpad.buttonD.booleanSupplierBind(arm::getClampSolenoidState);
     }
 
@@ -213,6 +234,7 @@ public class RobotContainer {
 
     public void teleopInit() {
         drivetrain.setPose(new Pose2d(new Translation2d(3.39, 7.878), new Rotation2d(-2.852, 0)));
+        // drivetrain.setPose(new Pose2d(new Translation2d(0, 0), new Rotation2d()));
     }
     public void teleopPeriodic() {}
     public void teleopExit() {}
@@ -220,4 +242,20 @@ public class RobotContainer {
     public void testInit() {}
     public void testPeriodic() {}
     public void testExit() {}
+
+    private boolean altMode() {
+        return altMode;
+    }
+
+    private boolean notAltMode() {
+        return !altMode();
+    }
+
+    public void disableAltMode() {
+        altMode = false;
+    }
+
+    public void enableAltMode() {
+        altMode = true;
+    }
 }
