@@ -356,7 +356,7 @@ window.electronAPI.onUpdate((_: any, key: string, value: any) => {
 
     let handled = true;
     if (key === '/SmartDashboard/Arm/turretAngle') {
-        turret.rotation.y = -value;
+        turret.rotation.y = value;
     } else if (key === '/SmartDashboard/Arm/firstJointAngle') {
         joint1.rotation.z = -value;
     } else if (key === '/SmartDashboard/Arm/secondJointAngle') {
@@ -364,7 +364,7 @@ window.electronAPI.onUpdate((_: any, key: string, value: any) => {
     } else if (key === '/SmartDashboard/Arm/thirdJointAngle') {
         joint3.rotation.z = -value;
     } else if (key === '/SmartDashboard/Arm/wristAngle') {
-        wrist.rotation.y = -value;
+        wrist.rotation.y = value;
     } else if (key === '/SmartDashboard/Arm/grabberClamp') {
         setClampOpen(value === 'Open');
     } else {
