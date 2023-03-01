@@ -283,6 +283,11 @@ const gui = new GUI();
 gui.close();
 
 const baseFolder = gui.addFolder('Base');
+let [fieldWidth, fieldHeight] = fieldConfig['field-size']
+fieldWidth = feetToMeters(fieldWidth);
+fieldHeight = feetToMeters(fieldHeight);
+baseFolder.add(base.position, 'x', -fieldWidth / 2, fieldWidth / 2, 0.01).name('X-Pos');
+baseFolder.add(base.position, 'z', -fieldHeight / 2, fieldHeight / 2, 0.01).name('Y-Pos');
 baseFolder.add(base.rotation, 'y', -Math.PI, Math.PI, 0.01).name('Rotation');
 baseFolder.open();
 
@@ -324,6 +329,8 @@ let resetCount = 0;
 const controller = {
     reset: () => {
         base.rotation.y = 0;
+        base.position.x = 0;
+        base.position.z = 0;
         turret.rotation.y = 0;
         joint1.rotation.z = 0;
         joint2.rotation.z = 0;
@@ -367,6 +374,12 @@ window.electronAPI.onUpdate((_: any, key: string, value: any) => {
         wrist.rotation.y = value;
     } else if (key === '/SmartDashboard/Arm/grabberClamp') {
         setClampOpen(value === 'Open');
+    } else if (key === '/SmartDashboard/Drivetrain/x-pos') {
+        base.position.x = value;
+    } else if (key === '/SmartDashboard/Drivetrain/y-pos') {
+        base.position.y = value;
+    } else if (key === '/SmartDashboard/Drivetrian/rot-degrees') {
+        base.rotation.y = degToRad(value);
     } else {
         handled = false;
     }
