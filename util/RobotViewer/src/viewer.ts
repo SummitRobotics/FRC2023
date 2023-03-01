@@ -208,19 +208,25 @@ loader.load(`../assets/${fieldConfig['field-image']}`, (texture) => {
  *                          grabber
  */
 
-// Base: 32x32x9" origin at center bottom
-const base = createBox(inchesToMeters(32), inchesToMeters(6), inchesToMeters(32));
+// Base: 31.5x27x6" origin at center bottom
+const base = createBox(inchesToMeters(31.5), inchesToMeters(6), inchesToMeters(27));
 base.geometry.translate(0, inchesToMeters(3), 0);
 scene.add(base);
 
-// Turret: 8x2" origin at center bottom, offset forward
-const turret = createCylinder(inchesToMeters(8), inchesToMeters(2), { color: 0xffff00 });
-turret.geometry.translate(0, inchesToMeters(-1), 0);
-turret.position.set(inchesToMeters(-8), inchesToMeters(8), 0);
+// Turret: 8x1.2" origin at center top, offset forward
+const turret = createCylinder(inchesToMeters(8), inchesToMeters(1.2), { color: 0xffff00 });
+turret.geometry.translate(0, inchesToMeters(-0.6), 0);
+turret.position.set(-0.2413, inchesToMeters(7.2), 0);
 base.add(turret);
+
+// Turret Stand: 8"
+const stand = createBox(inchesToMeters(5), inchesToMeters(8), inchesToMeters(5), { color: 0xcc33cc });
+stand.position.y = inchesToMeters(4);
+turret.add(stand);
 
 // Joint1: 31" long arm, origin at pivot with Turret, rotated vertically
 const joint1 = createBox(inchesToMeters(31), inchesToMeters(4), inchesToMeters(4), { color: 0xff0000 });
+joint1.position.y = inchesToMeters(8);
 joint1.geometry.rotateZ(Math.PI / 2);
 joint1.geometry.translate(0, inchesToMeters(15.5), inchesToMeters(0));
 turret.add(joint1);
@@ -375,10 +381,9 @@ window.electronAPI.onUpdate((_: any, key: string, value: any) => {
     } else if (key === '/SmartDashboard/Arm/grabberClamp') {
         setClampOpen(value === 'Open');
     } else if (key === '/SmartDashboard/Drivetrain/x-pos') {
-        console.log(value);
-        base.position.x = value - fieldWidth/2;
+        base.position.x = value - (fieldWidth / 2);
     } else if (key === '/SmartDashboard/Drivetrain/y-pos') {
-        base.position.z = fieldHeight/2 - value;
+        base.position.z = (fieldHeight / 2) - value;
     } else if (key === '/SmartDashboard/Drivetrain/rot-degrees') {
         base.rotation.y = degToRad(value);
     } else {
