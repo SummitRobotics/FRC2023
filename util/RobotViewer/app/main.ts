@@ -32,9 +32,9 @@ async function main() {
             '/SmartDashboard/Arm/thirdJointAngle',
             '/SmartDashboard/Arm/wristAngle',
             '/SmartDashboard/Arm/grabberClamp',
-            '/SmartDashboard/Drivetrian/x-pos',
-            '/SmartDashboard/Drivetrian/y-pos',
-            '/SmartDashboard/Drivetrian/rot-degrees'
+            '/SmartDashboard/Drivetrain/x-pos',
+            '/SmartDashboard/Drivetrain/y-pos',
+            '/SmartDashboard/Drivetrain/rot-degrees'
         ];
 
         names.forEach((name: string) => {
