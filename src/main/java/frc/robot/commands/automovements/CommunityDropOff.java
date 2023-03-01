@@ -11,9 +11,10 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import frc.robot.commands.arm.MoveArm;
-import frc.robot.commands.arm.MoveArmHome;
+import frc.robot.commands.arm.MoveArmUnsafe;
 import frc.robot.commands.drivetrain.FollowDynamicTrajectoryThreaded;
 import frc.robot.subsystems.arm.Arm;
+import frc.robot.subsystems.arm.ArmPositions.ARM_POSITION;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.utilities.Positions;
 import frc.robot.utilities.lists.FieldElementPositions;
@@ -88,7 +89,7 @@ public class CommunityDropOff extends SequentialCommandGroup {
             }
 
             addCommands(
-                new MoveArmHome(arm).unless(() -> arm.isWithinRange(node, GRABBER_ANGLE, WRIST_ANGLE)),
+                new MoveArmUnsafe(arm, ARM_POSITION.HOME).unless(() -> arm.isWithinRange(node, GRABBER_ANGLE, WRIST_ANGLE)),
                 new InstantCommand(() -> drivetrain.highGear()).unless(() -> arm.isWithinRange(node, GRABBER_ANGLE, WRIST_ANGLE)),
                 new FollowDynamicTrajectoryThreaded(
                     drivetrain::getPose,
@@ -105,7 +106,7 @@ public class CommunityDropOff extends SequentialCommandGroup {
                     WRIST_ANGLE
                 ),
                 new InstantCommand(() -> arm.unclamp()),
-                new MoveArmHome(arm)
+                new MoveArmUnsafe(arm, ARM_POSITION.HOME)
             );
         }
     }

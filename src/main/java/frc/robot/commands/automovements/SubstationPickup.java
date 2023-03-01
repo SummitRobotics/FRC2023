@@ -10,11 +10,11 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.PrintCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import frc.robot.commands.arm.MoveArm;
-import frc.robot.commands.arm.MoveArmHome;
 import frc.robot.commands.arm.MoveArmUnsafe;
 import frc.robot.commands.drivetrain.FollowDynamicTrajectory;
 import frc.robot.commands.drivetrain.FollowDynamicTrajectoryThreaded;
 import frc.robot.subsystems.arm.Arm;
+import frc.robot.subsystems.arm.ArmPositions.ARM_POSITION;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.utilities.Positions;
 import frc.robot.utilities.lists.FieldElementPositions;
@@ -55,7 +55,7 @@ public class SubstationPickup extends SequentialCommandGroup {
         }
 
         addCommands(
-            new MoveArmHome(arm),
+            new MoveArmUnsafe(arm, ARM_POSITION.HOME),
             new InstantCommand(() -> drivetrain.highGear()),
             new FollowDynamicTrajectory(
                 drivetrain::getPose,

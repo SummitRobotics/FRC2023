@@ -2,7 +2,7 @@ const { app, BrowserWindow, ipcMain } = require('electron');
 const EventEmitter = require('events');
 const path = require('path');
 const { NetworkTables, NetworkTablesTypeInfos } = require('ntcore-ts-client');
-const ntcore = NetworkTables.getInstanceByURI("127.0.0.1");
+const ntcore = NetworkTables.getInstanceByURI("10.54.68.2");
 
 if (require('electron-squirrel-startup')) app.quit();
 

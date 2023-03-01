@@ -8,28 +8,9 @@ import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.RobotContainer;
 import frc.robot.oi.drivers.LaunchpadDriver;
 import frc.robot.subsystems.arm.Arm;
-import frc.robot.subsystems.arm.ArmConfiguration;
+import frc.robot.subsystems.arm.ArmPositions.ARM_POSITION;
 
 public class MovePositionsLaunchpad extends CommandBase {
-
-  enum LOCATION {
-    MIDDLE_LOW(90.27,49.4,24.86,-3.21,-40.02),
-    MIDDLE_MEDIUM(94.003,80.28,94.83,-20.33,-40.02),
-    MIDDLE_HIGH(94.00,102.52,136.56,-36.07,-40.02),
-    LEFT_LOW(34.9282,46.3091,12.000,-8.26,-50.2618),
-    LEFT_MEDIUM(34.9282,9.7619,60.70,-39.9520,-50.2618),
-    LEFT_HIGH(34.9282,76.8835,121.43,-51.1905,-50.2618),
-    RIGHT_LOW(150.71,46.3091,12.000,-8.26,-50.2618),
-    RIGHT_MEDIUM(155.471,9.7619,60.70,-39.9520,-50.2618),
-    RIGHT_HIGH(155.471,76.8835,121.43,-51.1905,-50.2618),
-    HOME(95.5, 2, 2, -14.5, -41);
-
-    public ArmConfiguration config;
-    LOCATION(double turret, double joint1, double joint2, double joint3, double wrist) {
-      config = new ArmConfiguration(turret, joint1, joint2, joint3, wrist, ArmConfiguration.POSITION_TYPE.ENCODER_ROTATIONS);
-    }
-  }
-
   enum HEIGHT {
     LOW, MEDIUM, HIGH, NONE
   }
@@ -63,7 +44,7 @@ public class MovePositionsLaunchpad extends CommandBase {
   @Override
   public void initialize() {
     robotContainer.enableAltMode();
-    arm.setToConfiguration(LOCATION.HOME.config);
+    arm.setToConfiguration(ARM_POSITION.HOME.config);
     this.height = HEIGHT.NONE;
     this.position = POSITION.NONE;
     launchpadDriver.buttonB.setLED(false);
@@ -140,30 +121,30 @@ public class MovePositionsLaunchpad extends CommandBase {
     }
 
     if (height == HEIGHT.NONE || position == POSITION.NONE) {
-      arm.setToConfiguration(LOCATION.HOME.config);
+      arm.setToConfiguration(ARM_POSITION.HOME.config);
     } else if (height == HEIGHT.LOW) {
       if (position == POSITION.LEFT) {
-        arm.setToConfiguration(LOCATION.LEFT_LOW.config);
+        arm.setToConfiguration(ARM_POSITION.LEFT_LOW.config);
       } else if (position == POSITION.MIDDLE) {
-        arm.setToConfiguration(LOCATION.MIDDLE_LOW.config);
+        arm.setToConfiguration(ARM_POSITION.MIDDLE_LOW.config);
       } else if (position == POSITION.RIGHT) {
-        arm.setToConfiguration(LOCATION.RIGHT_LOW.config);
+        arm.setToConfiguration(ARM_POSITION.RIGHT_LOW.config);
       }
     } else if (height == HEIGHT.MEDIUM) {
       if (position == POSITION.LEFT) {
-        arm.setToConfiguration(LOCATION.LEFT_MEDIUM.config);
+        arm.setToConfiguration(ARM_POSITION.LEFT_MEDIUM.config);
       } else if (position == POSITION.MIDDLE) {
-        arm.setToConfiguration(LOCATION.MIDDLE_MEDIUM.config);
+        arm.setToConfiguration(ARM_POSITION.MIDDLE_MEDIUM.config);
       } else if (position == POSITION.RIGHT) {
-        arm.setToConfiguration(LOCATION.RIGHT_MEDIUM.config);
+        arm.setToConfiguration(ARM_POSITION.RIGHT_MEDIUM.config);
       }
     } else if (height == HEIGHT.HIGH) {
       if (position == POSITION.LEFT) {
-        arm.setToConfiguration(LOCATION.LEFT_HIGH.config);
+        arm.setToConfiguration(ARM_POSITION.LEFT_HIGH.config);
       } else if (position == POSITION.MIDDLE) {
-        arm.setToConfiguration(LOCATION.MIDDLE_HIGH.config);
+        arm.setToConfiguration(ARM_POSITION.MIDDLE_HIGH.config);
       } else if (position == POSITION.RIGHT) {
-        arm.setToConfiguration(LOCATION.RIGHT_HIGH.config);
+        arm.setToConfiguration(ARM_POSITION.RIGHT_HIGH.config);
       }
     }
   }

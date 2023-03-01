@@ -38,8 +38,8 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
   public static final Transform3d ROBOT_TO_TURRET_BASE = new Transform3d(new Translation3d(-0.2413, 0, 0.18265), new Rotation3d());
   // public static final Transform3d ROBOT_TO_TURRET_BASE = new Transform3d(new Translation3d(), new Rotation3d());
   public static final double
-    TURRET_P = 4E-5,
-    TURRET_I = 2E-7,
+    TURRET_P = 5E-5,
+    TURRET_I = 1E-6,
     TURRET_D = 0,
 
     ARM_JOINT_1_P = 5E-5,
@@ -75,23 +75,23 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
 
     public static final float
 
-    ARM_TURRET_FORWARD_SOFT_LIMIT = 186,
+    ARM_TURRET_FORWARD_SOFT_LIMIT = 61.75f,
     ARM_TURRET_REVERSE_SOFT_LIMIT = 1,
     ARM_JOINT_1_FORWARD_SOFT_LIMIT = 118,
     ARM_JOINT_1_REVERSE_SOFT_LIMIT = 1,
     ARM_JOINT_2_FORWARD_SOFT_LIMIT = 138,
     ARM_JOINT_2_REVERSE_SOFT_LIMIT = 1,
-    ARM_JOINT_3_FORWARD_SOFT_LIMIT = -1,
-    ARM_JOINT_3_REVERSE_SOFT_LIMIT = -145,
+    ARM_JOINT_3_FORWARD_SOFT_LIMIT = -10,
+    ARM_JOINT_3_REVERSE_SOFT_LIMIT = -175,
     ARM_WRIST_FORWARD_SOFT_LIMIT = -6,
     ARM_WRIST_REVERSE_SOFT_LIMIT = -100;
 
     public static final double
 
-    TURRET_GEAR_RATIO_OVERALL = 81 * 3.09523809524, // Ratio Example a 9:1 would be 9
+    TURRET_GEAR_RATIO_OVERALL = 27 * 3.09523809524, // Ratio Example a 9:1 would be 9
     TURRET_HOME_ANGLE = 2.394019735, // Angle in radians where 0 is straight forward and positive is counter clockwise.
 
-    ARM_JOINT_1_LEADSCREW_HOME_LENGTH = 0.244475, // Length in meters
+    ARM_JOINT_1_LEADSCREW_HOME_LENGTH = 0.2635, // Length in meters
     ARM_JOINT_1_PIVOT_TO_MOTOR_LENGTH = 0.1016, // Length in meters
     ARM_JOINT_1_PIVOT_TO_LEADSCREW_LENGTH = 0.2270125, // Length in meters
     ARM_JOINT_1_PIVOT_TO_MOTOR_HORIZONTAL_ANGLE_OFFSET = Math.toRadians(14.8) - 0.11472846, // Angle in radians
@@ -105,8 +105,8 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
     ARM_JOINT_2_MOTOR_GEAR_RATIO = 5, // Ratio Example a 9:1 gear ratio would be 9
     ARM_JOINT_2_LEADSCREW_PITCH = 0.00635, // Length in meters. The distance the lead screw moves per revolution
 
-    ARM_JOINT_3_GEAR_RATIO_OVERALL = 348.949552, // Ratio Example a 9:1 would be 9
-    ARM_JOINT_3_HOME_ANGLE = -1.09195, // Angle in radians where 0 is straight forward and positive is counter clockwise.
+    ARM_JOINT_3_GEAR_RATIO_OVERALL = 350, // Ratio Example a 9:1 would be 9
+    ARM_JOINT_3_HOME_ANGLE = -1.62301, // Angle in radians where 0 is straight forward and positive is counter clockwise.
 
     WRIST_GEAR_RATIO_OVERALL = (5*5*4) * (77/42), // Ratio Example a 9:1 would be 9
     WRIST_HOME_ANGLE = -2.96953297; // Angle in radians where 0 is straight forward and positive is counter clockwise.
@@ -162,7 +162,7 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
     turretPIDController.setOutputRange(-1, 1, 0);
     turretPIDController.setSmartMotionAccelStrategy(AccelStrategy.kTrapezoidal, 0);
     turretPIDController.setSmartMotionMaxAccel(1000, 0);
-    turretPIDController.setSmartMotionMaxVelocity(12000, 0);
+    turretPIDController.setSmartMotionMaxVelocity(6000, 0);
 
     joint1PIDController.setP(ARM_JOINT_1_P, 0);
     joint1PIDController.setI(ARM_JOINT_1_I, 0);
@@ -229,8 +229,8 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
     wristMotor.setSoftLimit(SoftLimitDirection.kForward, ARM_WRIST_FORWARD_SOFT_LIMIT);
     wristMotor.setSoftLimit(SoftLimitDirection.kReverse, ARM_WRIST_REVERSE_SOFT_LIMIT);
 
-    turretMotor.enableSoftLimit(SoftLimitDirection.kForward, false);
-    turretMotor.enableSoftLimit(SoftLimitDirection.kReverse, false);
+    turretMotor.enableSoftLimit(SoftLimitDirection.kForward, true);
+    turretMotor.enableSoftLimit(SoftLimitDirection.kReverse, true);
 
     joint1Motor.enableSoftLimit(SoftLimitDirection.kForward, true);
     joint1Motor.enableSoftLimit(SoftLimitDirection.kReverse, true);
@@ -436,23 +436,23 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
    * Actuates the clamp on the end of the arm
   */
   public void clamp() {
-    clampSolenoid.set(true);
-    clampSolenoidState = true;
+    clampSolenoid.set(false);
+    clampSolenoidState = false;
   }
 
   /**
    * Releases the clamp on the end of the arm
    */
   public void unclamp() {
-    clampSolenoid.set(false);
-    clampSolenoidState = false;
+    clampSolenoid.set(true);
+    clampSolenoidState = true;
   }
 
   public void toggleClamp() {
     if (clampSolenoidState) {
-      unclamp();
-    } else {
       clamp();
+    } else {
+      unclamp();
     }
   }
 
@@ -469,7 +469,7 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
   @Override
   public HomeableCANSparkMax[] getHomeables() {
     return new HomeableCANSparkMax[] {
-      new HomeableCANSparkMax(turretMotor, this, -0.2, 35.0, ARM_TURRET_FORWARD_SOFT_LIMIT, ARM_TURRET_REVERSE_SOFT_LIMIT, 0),
+      new HomeableCANSparkMax(turretMotor, this, -0.1, 20.0, ARM_TURRET_FORWARD_SOFT_LIMIT, ARM_TURRET_REVERSE_SOFT_LIMIT, 0),
       new HomeableCANSparkMax(joint1Motor, this, -0.1, 30.0, ARM_JOINT_1_FORWARD_SOFT_LIMIT, ARM_JOINT_1_REVERSE_SOFT_LIMIT, 1),
       new HomeableCANSparkMax(joint2Motor, this, -0.1, 30.0, ARM_JOINT_2_FORWARD_SOFT_LIMIT, ARM_JOINT_2_REVERSE_SOFT_LIMIT, 1),
       new HomeableCANSparkMax(joint3Motor, this, 0.1, 10.0, ARM_JOINT_3_FORWARD_SOFT_LIMIT, ARM_JOINT_3_REVERSE_SOFT_LIMIT, 2),
@@ -482,7 +482,7 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
   @Override
   public void initSendable(SendableBuilder builder) {
     // builder.addStringProperty("armConfiguration", getCurrentArmConfiguration()::toString, null);
-    builder.addStringProperty("grabberClamp", () -> clampSolenoidState ? "Closed" : "Open", null);
+    builder.addStringProperty("grabberClamp", () -> clampSolenoidState ? "Open" : "Closed", null);
     builder.addDoubleProperty("turretEncoder", this::getTurretEncoderPosition, null);
     builder.addDoubleProperty("firstJointEncoder", this::getFirstJointEncoderPosition, null);
     builder.addDoubleProperty("secondJointEncoder", this::getSecondJointEncoderPosition, null);

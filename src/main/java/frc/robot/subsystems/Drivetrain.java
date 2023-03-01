@@ -20,6 +20,7 @@ import edu.wpi.first.math.Nat;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.estimator.DifferentialDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.kinematics.DifferentialDriveKinematics;
 import edu.wpi.first.math.kinematics.DifferentialDriveWheelSpeeds;
 import edu.wpi.first.math.trajectory.TrajectoryConfig;
@@ -33,6 +34,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.commands.drivetrain.TurnByEncoder;
 import frc.robot.devices.AprilTagCameraWrapper;
+import frc.robot.devices.AprilTagCameraWrapper.EstimatedRobotPoseWithSD;
 import frc.robot.devices.LEDs.LEDCall;
 import frc.robot.devices.LEDs.LEDRange;
 import frc.robot.utilities.Functions;
@@ -736,7 +738,7 @@ public class Drivetrain extends SubsystemBase implements Testable, Loggable {
      * Updates odometry.
      * It only updates at a rate of 500hz maximum.
      */
-    public void updateOdometry(ArrayList<EstimatedRobotPose> visionPoseEstimates) {
+    public void updateOdometry(ArrayList<EstimatedRobotPoseWithSD> visionPoseEstimates) {
         synchronized (poseEstimator) {
             //prevemts unnessarly fast updates to the odemetry (2 ms)
             if (odometryTime.get() > 0.002) {
@@ -744,19 +746,25 @@ public class Drivetrain extends SubsystemBase implements Testable, Loggable {
                 odometryTime.reset();
             }
 
-            for (EstimatedRobotPose visionPoseEstimate : visionPoseEstimates) {
-                poseEstimator.addVisionMeasurement(visionPoseEstimate.estimatedPose.toPose2d(), visionPoseEstimate.timestampSeconds);
+            Pose3d currentPose = new Pose3d(poseEstimator.getEstimatedPosition());
+            for (EstimatedRobotPoseWithSD visionPoseEstimate : visionPoseEstimates) {
+                if (currentPose.minus(visionPoseEstimate.estimatedRobotPose.estimatedPose).getTranslation().getNorm() < 100) {
+                    poseEstimator.setVisionMeasurementStdDevs((new Matrix<>(Nat.N3(), Nat.N1())).plus(visionPoseEstimate.sd));
+                    poseEstimator.addVisionMeasurement(visionPoseEstimate.estimatedRobotPose.estimatedPose.toPose2d(), visionPoseEstimate.estimatedRobotPose.timestampSeconds);
+                }
             }
             f2d.setRobotPose(poseEstimator.getEstimatedPosition());
         }
     }
 
     public void updateOdometry() {
-        ArrayList<EstimatedRobotPose> visionPoseEstimates = new ArrayList<>();
+        ArrayList<EstimatedRobotPoseWithSD> visionPoseEstimates = new ArrayList<>();
         for (AprilTagCameraWrapper visionCamera : visionCameras) {
             Optional<EstimatedRobotPose> visionRobotPose = visionCamera.getEstimatedGlobalPose(getPose());
             visionRobotPose.ifPresent(poseEstimate -> {
-                visionPoseEstimates.add(poseEstimate);
+                double distance = visionCamera.getTargetDistance();
+                double SD = 0.15 * distance * distance;
+                visionPoseEstimates.add(new EstimatedRobotPoseWithSD(poseEstimate, SD));
             });
         }
         updateOdometry(visionPoseEstimates);

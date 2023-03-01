@@ -4,9 +4,9 @@
       "DockNode          ID=0x00000005 Pos=2,18 Size=1915,1035 Split=Y",
       "DockNode        ID=0x00000002 Parent=0x00000005 SizeRef=1188,436 Split=X",
       "DockNode      ID=0x0000000A Parent=0x00000002 SizeRef=292,528 Split=Y",
-      "DockNode    ID=0x00000006 Parent=0x0000000A SizeRef=92,113 Selected=0x39AD1970",
-      "DockNode    ID=0x00000007 Parent=0x0000000A SizeRef=92,321 Split=Y Selected=0xD58031C5",
-      "DockNode  ID=0x00000008 Parent=0x00000007 SizeRef=159,171 Selected=0xC8493FD8",
+      "DockNode    ID=0x00000006 Parent=0x0000000A SizeRef=92,193 Selected=0x39AD1970",
+      "DockNode    ID=0x00000007 Parent=0x0000000A SizeRef=92,241 Split=Y Selected=0xD58031C5",
+      "DockNode  ID=0x00000008 Parent=0x00000007 SizeRef=159,91 Selected=0xC8493FD8",
       "DockNode  ID=0x00000009 Parent=0x00000007 SizeRef=159,148 Selected=0xD58031C5",
       "DockNode      ID=0x00000001 Parent=0x00000002 SizeRef=712,528 Selected=0x6AE6D891",
       "DockNode        ID=0x00000003 Parent=0x00000005 SizeRef=1188,597 Selected=0x2D9B9756"
@@ -51,8 +51,8 @@
     "###FMS": {
       "Collapsed": "0",
       "DockId": "0x00000008,0",
-      "Pos": "2,133",
-      "Size": "556,171"
+      "Pos": "2,213",
+      "Size": "556,91"
     },
     "###Joysticks": {
       "Collapsed": "0",
@@ -115,7 +115,7 @@
       "Collapsed": "0",
       "DockId": "0x00000006,0",
       "Pos": "2,18",
-      "Size": "556,113"
+      "Size": "556,193"
     }
   }
 }
