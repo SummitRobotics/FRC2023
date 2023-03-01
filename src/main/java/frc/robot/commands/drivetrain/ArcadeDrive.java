@@ -13,7 +13,6 @@ import frc.robot.utilities.Functions;
 import frc.robot.utilities.RollingAverage;
 import frc.robot.utilities.lists.AxisPriorities;
 import frc.robot.utilities.lists.Colors;
-import frc.robot.utilities.lists.LEDPriorities;
 
 /**
  * Command for Arcade Drive.
@@ -77,11 +76,6 @@ public class ArcadeDrive extends CommandBase {
         switchfoot.prioritize(AxisPriorities.DRIVE).getTrigger().onTrue(
             new InstantCommand(() -> {
                 activateSwitchfoot = !activateSwitchfoot;
-                if (activateSwitchfoot) {
-                    LEDs.getInstance().addCall("reversed", new LEDCall(LEDPriorities.DRIVE_REV, LEDRange.All).ffh(Colors.YELLOW, Colors.OFF));  
-                } else {
-                    LEDs.getInstance().removeCall("reversed");
-                }
             }
         ));
     }
@@ -113,11 +107,6 @@ public class ArcadeDrive extends CommandBase {
         switchfoot.prioritize(AxisPriorities.DRIVE).getTrigger().onTrue(
             new InstantCommand(() -> {
                 activateSwitchfoot = !activateSwitchfoot;
-                if (activateSwitchfoot) {
-                    LEDs.getInstance().addCall("reversed", new LEDCall(LEDPriorities.DRIVE_REV, LEDRange.All).ffh(Colors.YELLOW, Colors.OFF));  
-                } else {
-                    LEDs.getInstance().removeCall("reversed");
-                }
             }
         ));
     }
@@ -175,10 +164,6 @@ public class ArcadeDrive extends CommandBase {
         //System.out.println(turn);
 
         if (activateSwitchfoot) {
-            //dumb stuff is dumb
-            if (!ledsOn) {
-                LEDs.getInstance().addCall("reversed", new LEDCall(LEDPriorities.DRIVE_REV, LEDRange.All).ffh(Colors.YELLOW, Colors.OFF));   
-            }
             turn = -turn;
         }
 

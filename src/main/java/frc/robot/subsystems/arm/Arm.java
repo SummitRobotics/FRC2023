@@ -24,6 +24,7 @@ import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.devices.Lidar;
 import frc.robot.subsystems.arm.ArmConfiguration.POSITION_TYPE;
 import frc.robot.utilities.FancyArmFeedForward;
 import frc.robot.utilities.Functions;
@@ -109,8 +110,10 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
     ARM_JOINT_3_HOME_ANGLE = -1.62301, // Angle in radians where 0 is straight forward and positive is counter clockwise.
 
     WRIST_GEAR_RATIO_OVERALL = (5*5*4) * (77/42), // Ratio Example a 9:1 would be 9
-    WRIST_HOME_ANGLE = -2.96953297; // Angle in radians where 0 is straight forward and positive is counter clockwise.
+    WRIST_HOME_ANGLE = -2.96953297, // Angle in radians where 0 is straight forward and positive is counter clockwise.
 
+    LIDAR_CLAMP_NEAR = 55,
+    LIDAR_CLAMP_FAR = 60;
   
   private final CANSparkMax
     turretMotor = new CANSparkMax(Ports.Arm.TURRET, MotorType.kBrushless),
@@ -145,6 +148,8 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
   private final Solenoid clampSolenoid = new Solenoid(Ports.Other.PCM, PneumaticsModuleType.REVPH, Ports.Arm.CLAMP_SOLENOID);
   private boolean clampSolenoidState;
 
+  private final Lidar lidar;
+
   /** 
    * Creates a new Arm.
    * The arm consists of a turret and Four joints.
@@ -154,7 +159,10 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
    * The two final joints use servos and this provides for
    * better position control as PID is not needed.
    */
-  public Arm() {
+  public Arm(Lidar lidar) {
+
+    this.lidar = lidar;
+
     turretPIDController.setP(TURRET_P, 0);
     turretPIDController.setI(TURRET_I, 0);
     turretPIDController.setD(TURRET_D, 0);
@@ -587,5 +595,9 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
       return false;
     }
     return true;
+  }
+
+  public double getLidarDistance() {
+    return lidar.getDistance();
   }
 }

@@ -6,6 +6,7 @@ package frc.robot.commands.arm;
 
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.RobotContainer;
+import frc.robot.devices.LEDs.LEDCalls;
 import frc.robot.oi.drivers.LaunchpadDriver;
 import frc.robot.subsystems.arm.Arm;
 import frc.robot.subsystems.arm.ArmPositions.ARM_POSITION;
@@ -24,7 +25,12 @@ public class MovePositionsLaunchpad extends CommandBase {
   RobotContainer robotContainer;
 
   HEIGHT height;
+  HEIGHT activeLED;
+
   POSITION position;
+  POSITION prevPosition;
+
+  boolean shouldClamp = true;
 
 
   /** Creates a new MovePositionsLaunchpad. */
@@ -34,7 +40,9 @@ public class MovePositionsLaunchpad extends CommandBase {
     this.launchpadDriver = launchpad;
     this.robotContainer = robotContainer;
     this.height = HEIGHT.NONE;
+    this.activeLED = HEIGHT.NONE;
     this.position = POSITION.NONE;
+    prevPosition = POSITION.NONE;
     // Use addRequirements() here to declare subsystem dependencies.
 
     addRequirements(arm);
@@ -54,11 +62,58 @@ public class MovePositionsLaunchpad extends CommandBase {
     launchpadDriver.buttonF.setLED(false);
     launchpadDriver.buttonI.setLED(false);
     launchpadDriver.buttonA.setLED(true);
+
+    if (Arm.LIDAR_CLAMP_NEAR < arm.getLidarDistance() && arm.getLidarDistance() < Arm.LIDAR_CLAMP_FAR) {
+      shouldClamp = false;
+    }
   }
 
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
+
+    if (arm.getClampSolenoidState() && shouldClamp && Arm.LIDAR_CLAMP_NEAR < arm.getLidarDistance() && arm.getLidarDistance() < Arm.LIDAR_CLAMP_FAR) {
+      arm.clamp();
+      shouldClamp = false;
+    }
+    if (arm.getClampSolenoidState() && !shouldClamp && (Arm.LIDAR_CLAMP_NEAR > arm.getLidarDistance() || arm.getLidarDistance() > Arm.LIDAR_CLAMP_FAR)) {
+      shouldClamp = true;
+    }
+
+    if (prevPosition != position) {
+      if (position != POSITION.NONE) {
+        LEDCalls.CARDIANL_SELECT.activate();
+      }
+      prevPosition = position;
+    }
+
+    if (height == HEIGHT.NONE && activeLED != HEIGHT.NONE) {
+      LEDCalls.ARM_LOW.cancel();
+      LEDCalls.ARM_MID.cancel();
+      LEDCalls.ARM_HIGH.cancel();
+      activeLED = HEIGHT.NONE;
+    }
+
+    if (height == HEIGHT.LOW && activeLED != HEIGHT.LOW) {
+      LEDCalls.ARM_LOW.activate();
+      LEDCalls.ARM_MID.cancel();
+      LEDCalls.ARM_HIGH.cancel();
+      activeLED = HEIGHT.LOW;
+    }
+
+    if (height == HEIGHT.MEDIUM && activeLED != HEIGHT.MEDIUM) {
+      LEDCalls.ARM_LOW.cancel();
+      LEDCalls.ARM_MID.activate();
+      LEDCalls.ARM_HIGH.cancel();
+      activeLED = HEIGHT.MEDIUM;
+    }
+
+    if (height == HEIGHT.HIGH && activeLED != HEIGHT.HIGH) {
+      LEDCalls.ARM_LOW.cancel();
+      LEDCalls.ARM_MID.cancel();
+      LEDCalls.ARM_HIGH.activate();
+      activeLED = HEIGHT.HIGH;
+    }
 
     if (launchpadDriver.buttonC.getTrigger().getAsBoolean()) {
       this.height = HEIGHT.HIGH;
@@ -161,6 +216,9 @@ public class MovePositionsLaunchpad extends CommandBase {
     launchpadDriver.buttonA.setLED(false);
     robotContainer.disableAltMode();
     arm.stop();
+    LEDCalls.ARM_LOW.cancel();
+    LEDCalls.ARM_MID.cancel();
+    LEDCalls.ARM_HIGH.cancel();
   }
 
   // Returns true when the command should end.

@@ -375,10 +375,11 @@ window.electronAPI.onUpdate((_: any, key: string, value: any) => {
     } else if (key === '/SmartDashboard/Arm/grabberClamp') {
         setClampOpen(value === 'Open');
     } else if (key === '/SmartDashboard/Drivetrain/x-pos') {
-        base.position.x = value;
+        console.log(value);
+        base.position.x = value - fieldWidth/2;
     } else if (key === '/SmartDashboard/Drivetrain/y-pos') {
-        base.position.y = value;
-    } else if (key === '/SmartDashboard/Drivetrian/rot-degrees') {
+        base.position.z = fieldHeight/2 - value;
+    } else if (key === '/SmartDashboard/Drivetrain/rot-degrees') {
         base.rotation.y = degToRad(value);
     } else {
         handled = false;

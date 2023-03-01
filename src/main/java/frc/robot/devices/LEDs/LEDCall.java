@@ -162,6 +162,43 @@ public class LEDCall implements LEDHandler {
     }
 
     /**
+     * Creates a new LEDCall with getColor overloaded. Makes LEDs in its range flash color ON, then
+     * color OFF, the color ON, then color OFF, then color ON, then ends the call.
+     *
+     * @param onColor  color ON
+     * @param offColor color OFF
+     * @return the modified LEDCall
+     */
+    public LEDCall fff(Color8Bit onColor, Color8Bit offColor) {
+        return new LEDCall(priority, range) {
+            @Override
+            public Color8Bit getColor(int loop, int led) {
+                if (startLoop == 0) {
+                    startLoop = loop;
+                }
+                int time = loop - startLoop;
+                if (time <= 8) {
+                    return onColor;
+
+                } else if (time <= 16) {
+                    return offColor;
+
+                } else if (time <= 24) {
+                    return onColor;
+                } else if (time <= 32) {
+                    return offColor;
+
+                } else if (time <= 40){
+                    return onColor;
+                } else {
+                    cancel();
+                    return offColor;
+                }
+            }
+        };
+    }
+
+    /**
      * Creates a new LEDCall with getColor overloaded. Makes LEDs in its range do a wave?
      *
      * @param color the color to do something with?

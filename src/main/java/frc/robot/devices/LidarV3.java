@@ -48,7 +48,8 @@ public class LidarV3 implements Lidar, Sendable {
         port = (byte) Port.kOnboard.value;
         I2CJNI.i2CInitialize(port);
 
-        rollingAverage = new RollingAverage(50, true);
+        rollingAverage = new RollingAverage(5, true);
+        rollingAverage.update(0);
 
         thread = new Notifier(proximityReader);
         startMeasuring();

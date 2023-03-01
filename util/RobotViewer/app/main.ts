@@ -2,7 +2,7 @@ import { app, BrowserWindow, ipcMain, ipcRenderer } from 'electron'
 import path from 'path';
 import { NetworkTables, NetworkTablesTypeInfos } from 'ntcore-ts-client';
 
-const DEBUG = false;
+const DEBUG = true;
 
 const createWindow = (): BrowserWindow => {
     const win = new BrowserWindow({
@@ -32,9 +32,9 @@ async function main() {
             '/SmartDashboard/Arm/thirdJointAngle',
             '/SmartDashboard/Arm/wristAngle',
             '/SmartDashboard/Arm/grabberClamp',
-            '/SmartDashboard/Drivetrian/x-pos',
-            '/SmartDashboard/Drivetrian/y-pos',
-            '/SmartDashboard/Drivetrian/rot-degrees'
+            '/SmartDashboard/Drivetrain/x-pos',
+            '/SmartDashboard/Drivetrain/y-pos',
+            '/SmartDashboard/Drivetrain/rot-degrees'
         ];
 
         names.forEach((name: string) => {

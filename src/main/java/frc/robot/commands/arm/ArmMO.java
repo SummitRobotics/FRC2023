@@ -4,6 +4,7 @@ import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.wpilibj2.command.CommandBase;
+import frc.robot.devices.LEDs.LEDCalls;
 import frc.robot.oi.drivers.ControllerDriver;
 import frc.robot.oi.drivers.LaunchpadDriver;
 import frc.robot.oi.inputs.OIAxis.PrioritizedAxis;
@@ -58,6 +59,8 @@ public class ArmMO extends CommandBase {
             = arm.getCurrentArmConfiguration().getWristPosition(POSITION_TYPE.ANGLE);
 
         arm.setToConfiguration(arm.getCurrentArmConfiguration());
+
+        LEDCalls.MO.activate();
     }
 
     @Override
@@ -130,5 +133,6 @@ public class ArmMO extends CommandBase {
         wristUp.destroy();
         wristDown.destroy();
         arm.stop();
+        LEDCalls.MO.cancel();
     }
 }

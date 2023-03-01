@@ -10,7 +10,6 @@ import frc.robot.devices.LEDs.LEDCall;
 import frc.robot.devices.LEDs.LEDRange;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.utilities.lists.Colors;
-import frc.robot.utilities.lists.LEDPriorities;
 
 /**
  * Command to follow a trajectory.
@@ -23,9 +22,6 @@ public class FollowTrajectoryThreaded extends CommandBase {
     private final Drivetrain drivetrain;
     private final int period;
     private CommandThreader commandThreader;
-
-    private final LEDCall splineLEDs = new LEDCall(LEDPriorities.SPLINES, LEDRange.All)
-            .sine(Colors.PURPLE);
 
     /**
      * command to follow a trajectory object.
@@ -48,7 +44,6 @@ public class FollowTrajectoryThreaded extends CommandBase {
 
     @Override
     public void initialize() {
-        splineLEDs.activate();
 
         drivetrain.getFieldWidget().getObject("trajectory").setTrajectory(trajectory);
 
@@ -101,7 +96,5 @@ public class FollowTrajectoryThreaded extends CommandBase {
 
         // stops the drivetrain motors
         drivetrain.stop();
-
-        splineLEDs.cancel();
     }
 }

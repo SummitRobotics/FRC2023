@@ -14,7 +14,6 @@ import frc.robot.devices.LEDs.LEDCall;
 import frc.robot.devices.LEDs.LEDRange;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.utilities.lists.Colors;
-import frc.robot.utilities.lists.LEDPriorities;
 import java.util.List;
 import java.util.function.Supplier;
 
@@ -29,9 +28,6 @@ public class FollowDynamicTrajectory extends CommandBase {
     private Command command;
 
     private final Supplier<Trajectory> generateTrajectory;
-
-    private final LEDCall splineLEDs = new LEDCall(LEDPriorities.SPLINES, LEDRange.All)
-        .sine(Colors.PURPLE);
 
     /**
      * Command to follow a trajectory object with a dynamic starting, midpoint and end pos.
@@ -83,7 +79,6 @@ public class FollowDynamicTrajectory extends CommandBase {
 
     @Override
     public void initialize() {
-        splineLEDs.activate();
         Trajectory trajectory = generateTrajectory.get();
 
         // System.out.println(trajectory.getStates());
@@ -147,7 +142,5 @@ public class FollowDynamicTrajectory extends CommandBase {
 
         // stops the drivetrain motors
         drivetrain.stop();
-
-        splineLEDs.cancel();
     }
 }

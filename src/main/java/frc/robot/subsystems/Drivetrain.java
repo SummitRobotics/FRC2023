@@ -36,12 +36,12 @@ import frc.robot.commands.drivetrain.TurnByEncoder;
 import frc.robot.devices.AprilTagCameraWrapper;
 import frc.robot.devices.AprilTagCameraWrapper.EstimatedRobotPoseWithSD;
 import frc.robot.devices.LEDs.LEDCall;
+import frc.robot.devices.LEDs.LEDCalls;
 import frc.robot.devices.LEDs.LEDRange;
 import frc.robot.utilities.Functions;
 import frc.robot.utilities.Loggable;
 import frc.robot.utilities.Testable;
 import frc.robot.utilities.lists.Colors;
-import frc.robot.utilities.lists.LEDPriorities;
 import frc.robot.utilities.lists.Ports;
 
 /**
@@ -141,8 +141,6 @@ public class Drivetrain extends SubsystemBase implements Testable, Loggable {
 
     private final Field2d f2d;
     private final ArrayList<AprilTagCameraWrapper> visionCameras = new ArrayList<>();
-
-    private LEDCall lowGear = new LEDCall(LEDPriorities.LOW_GEAR, LEDRange.All).sine(Colors.RED);
     
     /**
      * i am in PAIN wow this is BAD.
@@ -260,7 +258,7 @@ public class Drivetrain extends SubsystemBase implements Testable, Loggable {
      */
     public void highGear() {
         synchronized (shift) {
-            lowGear.cancel();
+            LEDCalls.LOW_GEAR.activate();
             updateDistanceAcum();
             oldShift = false;
             shift.set(false);
@@ -272,7 +270,7 @@ public class Drivetrain extends SubsystemBase implements Testable, Loggable {
      */
     public void lowGear() {
         synchronized (shift) {
-            lowGear.activate();
+            LEDCalls.LOW_GEAR.activate();
             updateDistanceAcum();
             oldShift = true;
             shift.set(true);

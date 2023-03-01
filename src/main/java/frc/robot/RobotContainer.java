@@ -17,6 +17,8 @@ import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -38,8 +40,11 @@ import frc.robot.commands.automovements.SubstationPickup.Side;
 import frc.robot.commands.drivetrain.ArcadeDrive;
 import frc.robot.commands.drivetrain.ChargeStationBalance;
 import frc.robot.devices.AprilTagCameraWrapper;
+import frc.robot.devices.Lidar;
+import frc.robot.devices.LidarV3;
 import frc.robot.devices.PCM;
 import frc.robot.devices.LEDs.LEDCall;
+import frc.robot.devices.LEDs.LEDCalls;
 import frc.robot.devices.LEDs.LEDRange;
 import frc.robot.devices.LEDs.LEDs;
 import frc.robot.oi.drivers.ControllerDriver;
@@ -62,6 +67,7 @@ public class RobotContainer {
     private CommandScheduler scheduler;
     private AHRS navx;
     private PCM pcm;
+    private Lidar gripperLidar;
 
     // OI
     private ControllerDriver driverXBox;
@@ -93,6 +99,7 @@ public class RobotContainer {
 
     private AprilTagCameraWrapper backLeft;
     private AprilTagCameraWrapper backRight;
+    private AprilTagCameraWrapper front;
 
     public RobotContainer() throws IOException {
         scheduler = CommandScheduler.getInstance();
@@ -104,21 +111,21 @@ public class RobotContainer {
 
         // Devices
         navx = new AHRS();
+        gripperLidar = new LidarV3();
         
         // Subsystems
         drivetrain = Drivetrain.init(navx, new Pose2d());
-        arm = new Arm();
+        arm = new Arm(gripperLidar);
 
         pcm = new PCM(Ports.Other.PCM, drivetrain);
 
-        Vector<N3> backLeftVec = VecBuilder.fill(7.246, 17.216, 7.148);
-        Vector<N3> backRightVec = VecBuilder.fill(7.246, -17.216, 7.148);
-        Vector<N3> basis = VecBuilder.fill(1, 0, 0);
+        // backLeft = new AprilTagCameraWrapper("backLeft", new Transform3d(new Translation3d(-0.3175,0.307137,0.231978+0.003175), new Rotation3d(basis, backLeftVec)));   //68.7
+        // backRight = new AprilTagCameraWrapper("backRight", new Transform3d(new Translation3d(-0.3175,-0.307137,0.231978+0.003175), new Rotation3d(basis, backRightVec)));  //68.7
 
-        backLeft = new AprilTagCameraWrapper("backLeft", new Transform3d(new Translation3d(-0.3175,0.307137,0.231978+0.003175), new Rotation3d(basis, backLeftVec).plus(new Rotation3d(Math.toRadians(6.8),0,0))));   //68.7
-        backRight = new AprilTagCameraWrapper("backRight", new Transform3d(new Translation3d(-0.3175,-0.307137,0.231978+0.003175), new Rotation3d(basis, backRightVec).plus(new Rotation3d(Math.toRadians(-6.8),0,0))));  //68.7
+        backRight = new AprilTagCameraWrapper("backRight", new Transform3d(new Translation3d(-0.3302,-0.307137,0.235153), new Rotation3d(0,Math.toRadians(-25.3), Math.toRadians(-90))));  //68.7
+        front = new AprilTagCameraWrapper("front", new Transform3d(new Translation3d(0.3683,0.2159,0.24765), new Rotation3d(0,Math.toRadians(-15), 0)));  //68.7
 
-        drivetrain.addVisionCamera(backLeft);
+        drivetrain.addVisionCamera(front);
         drivetrain.addVisionCamera(backRight);
 
         createCommands();
@@ -231,9 +238,25 @@ public class RobotContainer {
 
     public void robotInit() {
         pcm.enableCompressorAnalog(80, 120);
-        LEDs.getInstance().addCall("Robot On", new LEDCall(20, LEDRange.All).solid(Colors.GREEN));
+        LEDCalls.ON.activate();
     }
-    public void robotPeriodic() {}
+    public void robotPeriodic() {
+        String HP_LED = NetworkTableInstance.getDefault()
+        .getTable("customDS").getEntry("indicator").getString("");
+
+        // System.out.println(HP_LED);
+
+        if (HP_LED == "cube") {
+            LEDCalls.CUBE_HP.activate();
+            LEDCalls.CONE_HP.cancel();
+        } else if (HP_LED == "cone") {
+            LEDCalls.CUBE_HP.cancel();
+            LEDCalls.CONE_HP.activate();
+        } else {
+            LEDCalls.CUBE_HP.cancel();
+            LEDCalls.CONE_HP.cancel();
+        }
+    }
 
     public void disabledInit() {
         scheduler.cancelAll();
@@ -248,21 +271,9 @@ public class RobotContainer {
     public void autonomousExit() {}
 
     public void teleopInit() {
-        drivetrain.setPose(new Pose2d(new Translation2d(3.39, 7.878), new Rotation2d(-2.852, 0)));
-        // drivetrain.setPose(new Pose2d(new Translation2d(0, 0), new Rotation2d()));
-        Vector<N3> test = VecBuilder.fill(7.246, 17.216, 7.148);
-        Vector<N3> basis = VecBuilder.fill(1, 0, 0);
-
-        Rotation3d backLeft = new Rotation3d(Math.toRadians(6.8),0,0).plus(new Rotation3d(basis, test));
-        Rotation3d backLeft2 = new Rotation3d(basis, test).plus(new Rotation3d(Math.toRadians(6.8),0,0));
-        Rotation3d OtherTest = new Rotation3d(test, Math.toRadians(6.8));
-        Rotation3d real = new Rotation3d(0,Math.toRadians(-24),Math.toRadians(68.8));
-
-        Rotation3d diff = real.minus(backLeft);
-
-        System.out.println(String.format("AngleDiff: %.2f", Math.toDegrees(diff.getAngle())));
     }
-    public void teleopPeriodic() {}
+    public void teleopPeriodic() {
+    }
     public void teleopExit() {}
 
     public void testInit() {

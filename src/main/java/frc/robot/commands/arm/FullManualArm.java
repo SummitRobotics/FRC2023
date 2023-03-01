@@ -1,6 +1,7 @@
 package frc.robot.commands.arm;
 
 import edu.wpi.first.wpilibj2.command.CommandBase;
+import frc.robot.devices.LEDs.LEDCalls;
 import frc.robot.oi.drivers.ControllerDriver;
 import frc.robot.oi.inputs.OIAxis.PrioritizedAxis;
 import frc.robot.subsystems.arm.Arm;
@@ -45,6 +46,7 @@ public class FullManualArm extends CommandBase {
         } else if (type == Type.WRIST) {
             // arm.setWristSoftLimit(false);
         }
+        LEDCalls.MO.activate();
     }
 
     @Override
@@ -82,5 +84,6 @@ public class FullManualArm extends CommandBase {
             arm.setWristMotorVoltage(0);
             // arm.setWristSoftLimit(true);
         }
+        LEDCalls.MO.cancel();
     }
 }

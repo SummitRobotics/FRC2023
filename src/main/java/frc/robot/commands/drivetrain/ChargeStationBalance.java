@@ -39,13 +39,13 @@ public class ChargeStationBalance extends CommandBase {
 
     @Override
     public void execute() {
-        if (gyro.getRoll() > 5 && !isAtPlatform) {
+        if (gyro.getPitch() < -5 && !isAtPlatform) {
             isAtPlatform = true;
         }
 
         if (isAtPlatform) {
             double power = -Functions.clampDouble(
-                controller.calculate(gyro.getRoll() + gyro.getPitch()),
+                controller.calculate(-gyro.getPitch()),
                 0.75,
                 -0.75);
             drivetrain.setBothMotorPower(power);
