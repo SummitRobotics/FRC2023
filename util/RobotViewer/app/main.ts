@@ -17,8 +17,8 @@ const createWindow = (): BrowserWindow => {
 }
 
 async function main() {
-    const ntClient = NetworkTables.getInstanceByURI('127.0.0.1');
-    // const ntClient = NetworkTables.getInstanceByURI('10.54.68.2');
+    // const ntClient = NetworkTables.getInstanceByURI('127.0.0.1');
+    const ntClient = NetworkTables.getInstanceByURI('10.54.68.2');
 
     await app.whenReady();
     const win = createWindow();
@@ -32,6 +32,9 @@ async function main() {
             '/SmartDashboard/Arm/thirdJointAngle',
             '/SmartDashboard/Arm/wristAngle',
             '/SmartDashboard/Arm/grabberClamp',
+            '/SmartDashboard/Drivetrain/x-pos',
+            '/SmartDashboard/Drivetrain/y-pos',
+            '/SmartDashboard/Drivetrain/rot-degrees'
         ];
 
         names.forEach((name: string) => {

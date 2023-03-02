@@ -4,11 +4,20 @@
 
 package frc.robot;
 
+import java.io.IOException;
+
 import com.kauailabs.navx.frc.AHRS;
+
+import edu.wpi.first.math.VecBuilder;
+import edu.wpi.first.math.Vector;
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
@@ -20,20 +29,28 @@ import edu.wpi.first.wpilibj2.command.StartEndCommand;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.commands.arm.ArmMO;
 import frc.robot.commands.arm.FullManualArm;
-import frc.robot.commands.arm.MoveArmHome;
+import frc.robot.commands.arm.MoveArmToNode;
 import frc.robot.commands.arm.MoveArmUnsafe;
+import frc.robot.commands.arm.MovePositionsLaunchpad;
+import frc.robot.commands.arm.MoveToPickupSubstation;
+import frc.robot.commands.automovements.SubstationPickup;
+import frc.robot.commands.automovements.SubstationPickup.Side;
 import frc.robot.commands.drivetrain.ArcadeDrive;
 import frc.robot.commands.drivetrain.ChargeStationBalance;
+import frc.robot.devices.AprilTagCameraWrapper;
 import frc.robot.devices.PCM;
+import frc.robot.devices.LEDs.LEDCall;
+import frc.robot.devices.LEDs.LEDRange;
+import frc.robot.devices.LEDs.LEDs;
 import frc.robot.oi.drivers.ControllerDriver;
 import frc.robot.oi.drivers.LaunchpadDriver;
 import frc.robot.subsystems.arm.Arm;
-import frc.robot.subsystems.arm.ArmConfiguration;
-import frc.robot.subsystems.arm.MovementMap;
-import frc.robot.subsystems.arm.ArmConfiguration.POSITION_TYPE;
+import frc.robot.subsystems.arm.ArmPositions.ARM_POSITION;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.utilities.Positions;
 import frc.robot.utilities.lists.AxisPriorities;
+import frc.robot.utilities.lists.Colors;
+import frc.robot.utilities.lists.FieldElementPositions;
 import frc.robot.utilities.lists.Ports;
 import frc.robot.commands.Home;
 import frc.robot.commands.LogComponents;
@@ -66,11 +83,18 @@ public class RobotContainer {
     private Command wristManual;
     private Command fancyArmMo;
 
+    private Command launchPadArmSelector;
+
     private Command homeArm;
 
     private Command testCommand;
 
-    public RobotContainer() {
+    private boolean altMode = false;
+
+    private AprilTagCameraWrapper backLeft;
+    private AprilTagCameraWrapper backRight;
+
+    public RobotContainer() throws IOException {
         scheduler = CommandScheduler.getInstance();
 
         // OI
@@ -87,6 +111,16 @@ public class RobotContainer {
 
         pcm = new PCM(Ports.Other.PCM, drivetrain);
 
+        Vector<N3> backLeftVec = VecBuilder.fill(7.246, 17.216, 7.148);
+        Vector<N3> backRightVec = VecBuilder.fill(7.246, -17.216, 7.148);
+        Vector<N3> basis = VecBuilder.fill(1, 0, 0);
+
+        backLeft = new AprilTagCameraWrapper("backLeft", new Transform3d(new Translation3d(-0.3175,0.307137,0.231978+0.003175), new Rotation3d(basis, backLeftVec).plus(new Rotation3d(Math.toRadians(6.8),0,0))));   //68.7
+        backRight = new AprilTagCameraWrapper("backRight", new Transform3d(new Translation3d(-0.3175,-0.307137,0.231978+0.003175), new Rotation3d(basis, backRightVec).plus(new Rotation3d(Math.toRadians(-6.8),0,0))));  //68.7
+
+        drivetrain.addVisionCamera(backLeft);
+        drivetrain.addVisionCamera(backRight);
+
         createCommands();
         setDefaultCommands();
         configureBindings();
@@ -97,7 +131,7 @@ public class RobotContainer {
     }
 
     private void createCommands() {
-        arcadeDrive = new ArcadeDrive(drivetrain, driverXBox.leftTrigger, driverXBox.rightTrigger, driverXBox.leftX, driverXBox.dPadAny);
+        arcadeDrive = new ArcadeDrive(drivetrain, driverXBox.rightTrigger, driverXBox.leftTrigger, driverXBox.leftX, driverXBox.buttonY);
         balance = new ChargeStationBalance(drivetrain, navx);
 
         turretManual = new FullManualArm(arm, FullManualArm.Type.TURRET, gunnerXBox);
@@ -107,50 +141,74 @@ public class RobotContainer {
         wristManual = new FullManualArm(arm, FullManualArm.Type.WRIST, gunnerXBox);
         fancyArmMo = new ArmMO(arm, gunnerXBox, launchpad);
 
-        homeArm = new SequentialCommandGroup(new Home(arm.getHomeables()[4]), new Home(arm.getHomeables()[3]),
-                        new ParallelCommandGroup(new TimedMoveMotor(arm::setWristMotorVoltage, -12, 0.25), new TimedMoveMotor(arm::setJoint3MotorVoltage, -3, 0.25)),
-                        new Home(arm.getHomeables()[2], arm.getHomeables()[1]),
-                        new ParallelCommandGroup(new TimedMoveMotor(arm::setJoint1MotorVoltage, 2, 0.2), new TimedMoveMotor(arm::setJoint2MotorVoltage, 2, 0.2)), new Home(arm.getHomeables()[0]),
-                        new TimedMoveMotor(arm::setTurretMotorVoltage, 5, 0.1), new MoveArmHome(arm));
+        homeArm = new SequentialCommandGroup(new Home(gunnerXBox.buttonB.getTrigger()::getAsBoolean, arm.getHomeables()[4]), new Home(arm.getHomeables()[3]),
+            new ParallelCommandGroup(new TimedMoveMotor(arm::setWristMotorVoltage, -12, 0.25), new TimedMoveMotor(arm::setJoint3MotorVoltage, -3, 0.25)),
+            new Home(arm.getHomeables()[2], arm.getHomeables()[1]),
+            new ParallelCommandGroup(new TimedMoveMotor(arm::setJoint1MotorVoltage, 2, 0.2), new TimedMoveMotor(arm::setJoint2MotorVoltage, 2, 0.2)), new Home(gunnerXBox.buttonB.getTrigger()::getAsBoolean, arm.getHomeables()[0]),
+            new TimedMoveMotor(arm::setTurretMotorVoltage, 5, 0.1), new MoveArmUnsafe(arm, ARM_POSITION.HOME));
 
-        testCommand = new SequentialCommandGroup(new MoveArmUnsafe(arm, Positions.Pose3d.fromRobotSpace(new Translation3d(0, 1, 0.75)), 100, 0));
+        launchPadArmSelector = new MovePositionsLaunchpad(arm, launchpad, this);
+
+        // homeArm = new SequentialCommandGroup(new Home(arm.getHomeables()[4]), new Home(arm.getHomeables()[3]),
+        //     new ParallelCommandGroup(new TimedMoveMotor(arm::setWristMotorVoltage, -12, 0.25), new TimedMoveMotor(arm::setJoint3MotorVoltage, -3, 0.25)),
+        //     new Home(arm.getHomeables()[2], arm.getHomeables()[1]));
+
+        // testCommand = new SequentialCommandGroup(new MoveArmUnsafe(arm, Positions.Pose3d.fromOtherSpace(new Translation3d(-0.1, -0.5, 0.75), Arm.ROBOT_TO_TURRET_BASE), 0, (Math.PI / 4)));
+        testCommand = new SubstationPickup(drivetrain, arm, Side.Left);
+        // testCommand = new FollowDynamicTrajectory(drivetrain::getPose, () -> new Pose2d(new Translation2d(1, 1), new Rotation2d()), () -> new ArrayList<>(), drivetrain.generateTrajectoryConfigHighGear(), drivetrain);
     }
 
     private void configureBindings() {
         driverXBox.rightBumper.prioritize(AxisPriorities.DRIVE).getTrigger().onTrue(new InstantCommand(drivetrain::highGear));
         driverXBox.leftBumper.prioritize(AxisPriorities.DRIVE).getTrigger().onTrue(new InstantCommand(drivetrain::lowGear));
 
+        driverXBox.dPadLeft.getTrigger().onTrue(new SequentialCommandGroup(
+            new InstantCommand(arm::unclamp),
+            new MoveToPickupSubstation(arm, frc.robot.commands.arm.MoveToPickupSubstation.Side.LEFT),
+            new InstantCommand(arm::clamp),
+            new WaitCommand(0.5),
+            new MoveArmUnsafe(arm, ARM_POSITION.HIGH_ASPECT)
+        ));
+
+        driverXBox.dPadRight.getTrigger().onTrue(new SequentialCommandGroup(
+            new InstantCommand(arm::unclamp),
+            new MoveToPickupSubstation(arm, frc.robot.commands.arm.MoveToPickupSubstation.Side.RIGHT),
+            new InstantCommand(arm::clamp),
+            new WaitCommand(0.5),
+            new MoveArmUnsafe(arm, ARM_POSITION.HIGH_ASPECT)
+        ));
+
+        driverXBox.buttonB.getTrigger().whileTrue(new MoveArmUnsafe(arm, ARM_POSITION.HOME));
+
+        driverXBox.buttonX.getTrigger().whileTrue(new MoveArmToNode(arm));
+
+        launchpad.missileA.getTrigger().whileTrue(testCommand);
         launchpad.missileB.getTrigger().whileTrue(new StartEndCommand(() -> arm.setAllSoftLimit(false), () -> arm.setAllSoftLimit(true)));
-        launchpad.missileA.getTrigger().whileTrue(balance);
+        
+        gunnerXBox.buttonY.getTrigger().whileTrue(new MoveArmUnsafe(arm, ARM_POSITION.HOME));
+        gunnerXBox.buttonA.getTrigger().onTrue(new InstantCommand(arm::toggleClamp));
+        gunnerXBox.buttonX.getTrigger().whileTrue(new MoveArmUnsafe(arm, ARM_POSITION.HIGH_ASPECT));
 
-        driverXBox.buttonBack.getTrigger().whileTrue(homeArm);
-
-        launchpad.buttonC.getTrigger().toggleOnTrue(turretManual);
-        launchpad.buttonC.commandBind(turretManual);
-
-        launchpad.buttonB.getTrigger().toggleOnTrue(joint1Manual);
-        launchpad.buttonB.commandBind(joint1Manual);
-
-        launchpad.buttonA.getTrigger().toggleOnTrue(joint2Manual);
-        launchpad.buttonA.commandBind(joint2Manual);
-
-        launchpad.buttonF.getTrigger().toggleOnTrue(joint3Manual);
-        launchpad.buttonF.commandBind(joint3Manual);
-
-        launchpad.buttonE.getTrigger().toggleOnTrue(wristManual);
-        launchpad.buttonE.commandBind(wristManual);
-
-        launchpad.buttonI.getTrigger().toggleOnTrue(fancyArmMo);
-        launchpad.buttonI.commandBind(fancyArmMo);
-
-        launchpad.buttonG.getTrigger().whileTrue(testCommand);
-        launchpad.buttonG.commandBind(testCommand);
-
+        launchpad.buttonA.getTrigger().and(this::notAltMode).toggleOnTrue(joint2Manual);
+        launchpad.buttonB.getTrigger().and(this::notAltMode).toggleOnTrue(joint1Manual);
+        launchpad.buttonC.getTrigger().and(this::notAltMode).toggleOnTrue(turretManual);
         launchpad.buttonD.getTrigger().onTrue(new InstantCommand(arm::toggleClamp));
-        launchpad.buttonD.booleanSupplierBind(arm::getClampSolenoidState);
+        launchpad.buttonE.getTrigger().and(this::notAltMode).toggleOnTrue(wristManual);
+        launchpad.buttonF.getTrigger().and(this::notAltMode).toggleOnTrue(joint3Manual);
+        launchpad.buttonH.getTrigger().and(this::notAltMode).whileTrue(homeArm);
+        launchpad.buttonI.getTrigger().and(this::notAltMode).toggleOnTrue(fancyArmMo);
 
-        launchpad.buttonH.getTrigger().whileTrue(new MoveArmHome(arm));
-        launchpad.buttonH.pressBind();
+        launchpad.buttonG.getTrigger().toggleOnTrue(launchPadArmSelector);
+        launchpad.buttonG.commandBind(launchPadArmSelector);
+
+        launchpad.buttonH.commandBind(homeArm);
+        launchpad.buttonB.commandBind(joint1Manual);
+        launchpad.buttonC.commandBind(turretManual);
+        launchpad.buttonA.commandBind(joint2Manual);
+        launchpad.buttonF.commandBind(joint3Manual);
+        launchpad.buttonE.commandBind(wristManual);
+        launchpad.buttonI.commandBind(fancyArmMo);
+        launchpad.buttonD.booleanSupplierBind(arm::getClampSolenoidState);
     }
 
     private void setDefaultCommands() {
@@ -164,13 +222,17 @@ public class RobotContainer {
     private void initTelemetry() {
         SmartDashboard.putData("Arm", arm);
         SmartDashboard.putData("Drivetrain", drivetrain);
+        SmartDashboard.putData("PCM", pcm);
     }
 
     public Command getAutonomousCommand() {
         return Commands.print("No autonomous command configured");
     }
 
-    public void robotInit() {}
+    public void robotInit() {
+        pcm.enableCompressorAnalog(80, 120);
+        LEDs.getInstance().addCall("Robot On", new LEDCall(20, LEDRange.All).solid(Colors.GREEN));
+    }
     public void robotPeriodic() {}
 
     public void disabledInit() {
@@ -185,11 +247,45 @@ public class RobotContainer {
     public void autonomousPeriodic() {}
     public void autonomousExit() {}
 
-    public void teleopInit() {}
+    public void teleopInit() {
+        drivetrain.setPose(new Pose2d(new Translation2d(3.39, 7.878), new Rotation2d(-2.852, 0)));
+        // drivetrain.setPose(new Pose2d(new Translation2d(0, 0), new Rotation2d()));
+        Vector<N3> test = VecBuilder.fill(7.246, 17.216, 7.148);
+        Vector<N3> basis = VecBuilder.fill(1, 0, 0);
+
+        Rotation3d backLeft = new Rotation3d(Math.toRadians(6.8),0,0).plus(new Rotation3d(basis, test));
+        Rotation3d backLeft2 = new Rotation3d(basis, test).plus(new Rotation3d(Math.toRadians(6.8),0,0));
+        Rotation3d OtherTest = new Rotation3d(test, Math.toRadians(6.8));
+        Rotation3d real = new Rotation3d(0,Math.toRadians(-24),Math.toRadians(68.8));
+
+        Rotation3d diff = real.minus(backLeft);
+
+        System.out.println(String.format("AngleDiff: %.2f", Math.toDegrees(diff.getAngle())));
+    }
     public void teleopPeriodic() {}
     public void teleopExit() {}
 
-    public void testInit() {}
+    public void testInit() {
+       (new MoveArmUnsafe(arm, ARM_POSITION.STARTING_CONFIG, true)).initialize();
+    }
     public void testPeriodic() {}
-    public void testExit() {}
+    public void testExit() {
+        arm.stop();
+    }
+
+    private boolean altMode() {
+        return altMode;
+    }
+
+    private boolean notAltMode() {
+        return !altMode();
+    }
+
+    public void disableAltMode() {
+        altMode = false;
+    }
+
+    public void enableAltMode() {
+        altMode = true;
+    }
 }

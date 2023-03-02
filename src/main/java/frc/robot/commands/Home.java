@@ -2,6 +2,8 @@ package frc.robot.commands;
 
 import java.util.ArrayList;
 import java.util.PriorityQueue;
+import java.util.function.BooleanSupplier;
+
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.utilities.homing.HomeableCANSparkMax;
 import frc.robot.utilities.homing.HomeableSubsystem;
@@ -15,15 +17,26 @@ public class Home extends CommandBase {
 
     private final HomeableCANSparkMax[] homeableArray;
 
+    private final BooleanSupplier forceAtHome;
+
     public Home(HomeableCANSparkMax... toHome) {
         homeableArray = toHome;
         for (HomeableCANSparkMax homeable : toHome) {
             addRequirements(homeable.getSubsystemObject());
         }
+        this.forceAtHome = () -> false;
     }
 
     public Home(HomeableSubsystem subsystem) {
         this(subsystem.getHomeables());
+    }
+
+    public Home(BooleanSupplier forceAtHome, HomeableCANSparkMax... toHome) {
+        homeableArray = toHome;
+        for (HomeableCANSparkMax homeable : toHome) {
+            addRequirements(homeable.getSubsystemObject());
+        }
+        this.forceAtHome = forceAtHome;
     }
 
     @Override
@@ -41,10 +54,11 @@ public class Home extends CommandBase {
     @Override
     public void execute() {
 
+        System.out.println(forceAtHome.getAsBoolean());
         // remove homeables from activeHoming as they finish
         for (HomeableCANSparkMax homeable : new ArrayList<>(activeHoming)) {
             homeable.updateStopCondition();
-            if (homeable.isFinished()) {
+            if (homeable.isFinished() || forceAtHome.getAsBoolean()) {
                 activeHoming.remove(homeable);
                 homeable.end();
             }
@@ -64,7 +78,7 @@ public class Home extends CommandBase {
 
         for (HomeableCANSparkMax homeable : activeHoming) {
             if (homeable.getType() == Type.ByCurrent) homeable.updateCurrent();
-            if (homeable.isFinished()) homeable.setPower(0); else homeable.setPower();
+            if (homeable.isFinished() || forceAtHome.getAsBoolean()) homeable.setPower(0); else homeable.setPower();
         }
     }
 

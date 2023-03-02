@@ -16,9 +16,6 @@ declare const window: any;
 * [ ] get build flow improved
 * [ ] update readme
 * [ ] get proper bindings to networktable controls
-
-- https://threejs.org/docs/index.html#api/en/geometries/CircleGeometry
-- https://threejs.org/docs/index.html#api/en/geometries/RingGeometry
 */
 
 const inchesToMeters = (inches: number) => {
@@ -50,6 +47,7 @@ controls.maxPolarAngle = Math.PI / 2;
 const loader = new THREE.TextureLoader();
 const controlsGizmo = new OrbitControlsGizmo(controls, { size: 100, padding: 8 });
 document.body.appendChild(controlsGizmo.domElement);
+controlsGizmo.domElement.hidden = true;
 
 // Add a grid to the scene
 const size = 20;
@@ -90,6 +88,14 @@ const createBox = (width: number, height: number, depth: number, options: any = 
 const createCylinder = (radius: number, height: number, options: any = {}) => {
     const cylinder = new THREE.CylinderGeometry(radius, radius, height, options.segments ?? 20);
     return finalizeObject(cylinder, options);
+}
+
+const createObj = () => {
+    const obj = new THREE.Object3D();
+    if (DEBUG) {
+        obj.add(new THREE.AxesHelper(0.1));
+    }
+    return obj;
 }
 
 // Add some lighting to the scene
@@ -190,71 +196,126 @@ loader.load(`../assets/${fieldConfig['field-image']}`, (texture) => {
 });
 
 /**
- * Hierarchy of joints. +X forward, +Y right, +Z up. Default pose has arm
- * segments vertical. Turret is back from robot base to accommodate the forward
- * intake.
+ * Hierarchy of joints (mixed with geometry). +X forward, +Y right, +Z up. Default
+ * pose has arm segments vertical. Turret is back from robot base to accommodate the
+ * forward intake.
  *  base \
  *      turret \
- *          arm1 \
- *              arm2 \
- *                  arm3: \
- *                      grabber
+ *          joint1 \
+ *              joint2 \
+ *                  joint3 \
+ *                      wrist \
+ *                          grabber
  */
 
-// Base: 32x32x9" origin at center bottom
-const base = createBox(inchesToMeters(32), inchesToMeters(6), inchesToMeters(32));
+// Base: 31.5x27x6" origin at center bottom
+const base = createBox(inchesToMeters(31.5), inchesToMeters(6), inchesToMeters(27));
 base.geometry.translate(0, inchesToMeters(3), 0);
 scene.add(base);
 
-// Turret: 8x2" origin at center bottom, offset forward
-const turret = createCylinder(inchesToMeters(8), inchesToMeters(2), { color: 0xffff00 });
-turret.geometry.translate(0, inchesToMeters(-1), 0);
-turret.position.set(inchesToMeters(-8), inchesToMeters(8), 0);
+// Turret: 8x1.2" origin at center top, offset forward
+const turret = createCylinder(inchesToMeters(8), inchesToMeters(1.2), { color: 0xffff00 });
+turret.geometry.translate(0, inchesToMeters(-0.6), 0);
+turret.position.set(-0.2413, inchesToMeters(7.2), 0);
 base.add(turret);
 
-// Arm1: 31" long, origin at pivot with Turret, rotated vertically
-const arm1 = createBox(inchesToMeters(31), inchesToMeters(4), inchesToMeters(4), { color: 0xff0000 });
-arm1.geometry.rotateZ(Math.PI / 2);
-arm1.geometry.translate(0, inchesToMeters(15.5), inchesToMeters(0));
-turret.add(arm1);
+// Turret Stand: 8"
+const stand = createBox(inchesToMeters(5), inchesToMeters(8), inchesToMeters(5), { color: 0xcc33cc });
+stand.position.y = inchesToMeters(4);
+turret.add(stand);
 
-// Arm2: 29" long, origin at pivot with Arm1, rotated vertically
-const arm2 = createBox(inchesToMeters(29), inchesToMeters(4), inchesToMeters(4), { color: 0x0000ff });
-arm2.geometry.rotateZ(Math.PI / 2);
-arm2.geometry.translate(0, inchesToMeters(14.5), 0);
-arm2.position.set(0, inchesToMeters(31), 0);
-arm1.add(arm2);
+// Joint1: 31" long arm, origin at pivot with Turret, rotated vertically
+const joint1 = createBox(inchesToMeters(31), inchesToMeters(4), inchesToMeters(4), { color: 0xff0000 });
+joint1.position.y = inchesToMeters(8);
+joint1.geometry.rotateZ(Math.PI / 2);
+joint1.geometry.translate(0, inchesToMeters(15.5), inchesToMeters(0));
+turret.add(joint1);
 
-// Arm3: 18" long, origin at pivot with Arm2 (range of motion: 63deg up, ~90deg down)
-const arm3 = createBox(inchesToMeters(18), inchesToMeters(4), inchesToMeters(4))
-arm3.geometry.rotateZ(Math.PI / 2);
-arm3.geometry.translate(0, inchesToMeters(9), 0);
-arm3.position.set(0, inchesToMeters(29), 0);
-arm2.add(arm3);
+// Joint2: 29" long arm, origin at pivot with Joint1, rotated vertically
+const joint2 = createBox(inchesToMeters(29), inchesToMeters(4), inchesToMeters(4), { color: 0x0000ff });
+joint2.geometry.rotateZ(Math.PI / 2);
+joint2.geometry.translate(0, inchesToMeters(14.5), 0);
+joint2.position.set(0, inchesToMeters(31), 0);
+joint1.add(joint2);
+
+// Joint3: start of the grabber mechanism
+const joint3 = createObj();
+joint3.position.set(0, inchesToMeters(29), 0);
+joint2.add(joint3);
+
+// Wrist: origin at joint3
+const wrist = createCylinder(inchesToMeters(4), inchesToMeters(1), { color: 0x00ffff });
+wrist.geometry.translate(0, inchesToMeters(0.5), 0);
+joint3.add(wrist);
+
+// Grabber: origin atop wrist, 17" in total length (4" base, 13" clamps)
+const grabber = createObj();
+grabber.position.set(0, inchesToMeters(1), 0);
+wrist.add(grabber);
+
+const grabberBase = createBox(inchesToMeters(4), inchesToMeters(3), inchesToMeters(3));
+grabberBase.geometry.rotateZ(Math.PI / 2);
+grabberBase.geometry.translate(0, inchesToMeters(2), 0);
+grabber.add(grabberBase);
+
+const grabberClamp1 = createBox(inchesToMeters(13), inchesToMeters(3), inchesToMeters(1), { color: 0xcc00cc });
+grabberClamp1.geometry.rotateZ(Math.PI / 2);
+grabberClamp1.geometry.translate(0, inchesToMeters(6.5), 0);
+grabberClamp1.position.set(0, inchesToMeters(4), 0);
+grabber.add(grabberClamp1);
+
+const grabberClamp2 = createBox(inchesToMeters(13), inchesToMeters(3), inchesToMeters(1), { color: 0xcc00cc });
+grabberClamp2.geometry.rotateZ(Math.PI / 2);
+grabberClamp2.geometry.translate(0, inchesToMeters(6.5), 0);
+grabberClamp2.position.set(0, inchesToMeters(4), 0);
+grabber.add(grabberClamp2);
+
+// Open/close the clamps. Just moves positions to 18" when open, 4" when closed
+let clampOpen = false;
+const setClampOpen = (open: boolean) => {
+    if (open) {
+        grabberClamp1.position.setZ(inchesToMeters(-9));
+        grabberClamp2.position.setZ(inchesToMeters(9));
+    } else {
+        grabberClamp1.position.setZ(inchesToMeters(-2));
+        grabberClamp2.position.setZ(inchesToMeters(2));
+    }
+    clampOpen = open;
+}
+setClampOpen(true);
 
 // Create GUI for viewing/tweaking values
 const gui = new GUI();
 gui.close();
 
 const baseFolder = gui.addFolder('Base');
+let [fieldWidth, fieldHeight] = fieldConfig['field-size']
+fieldWidth = feetToMeters(fieldWidth);
+fieldHeight = feetToMeters(fieldHeight);
+baseFolder.add(base.position, 'x', -fieldWidth / 2, fieldWidth / 2, 0.01).name('X-Pos');
+baseFolder.add(base.position, 'z', -fieldHeight / 2, fieldHeight / 2, 0.01).name('Y-Pos');
 baseFolder.add(base.rotation, 'y', -Math.PI, Math.PI, 0.01).name('Rotation');
 baseFolder.open();
 
 const turretFolder = gui.addFolder('Turret');
-turretFolder.add(turret.rotation, 'y', degToRad(-135), degToRad(135), 0.01).name('Rotation');
+turretFolder.add(turret.rotation, 'y', degToRad(-180), degToRad(180), 0.01).name('Rotation');
 turretFolder.open();
 
-const arm1Folder = gui.addFolder('Arm1');
-arm1Folder.add(arm1.rotation, 'z', degToRad(-60), degToRad(10), 0.01).name('Angle');
-arm1Folder.open();
+const joint1Folder = gui.addFolder('Joint1');
+joint1Folder.add(joint1.rotation, 'z', degToRad(-180), degToRad(180), 0.01).name('Angle');
+joint1Folder.open();
 
-const arm2Folder = gui.addFolder('Arm2');
-arm2Folder.add(arm2.rotation, 'z', degToRad(-60), degToRad(10), 0.01).name('Angle');
-arm2Folder.open();
+const joint2Folder = gui.addFolder('Joint2');
+joint2Folder.add(joint2.rotation, 'z', degToRad(-180), degToRad(180), 0.01).name('Angle');
+joint2Folder.open();
 
-const arm3Folder = gui.addFolder('Arm3');
-arm3Folder.add(arm3.rotation, 'z', degToRad(-60), degToRad(10), 0.01).name('Angle');
-arm3Folder.open();
+const joint3Folder = gui.addFolder('Joint3');
+joint3Folder.add(joint3.rotation, 'z', degToRad(-180), degToRad(180), 0.01).name('Angle');
+joint3Folder.open();
+
+const wristFolder = gui.addFolder('Wrist');
+wristFolder.add(wrist.rotation, 'y', degToRad(-180), degToRad(180), 0.01).name('Angle');
+wristFolder.open();
 
 // Default camera to look at our bot
 camera.position.set(3, 3, 3);
@@ -274,42 +335,57 @@ let resetCount = 0;
 const controller = {
     reset: () => {
         base.rotation.y = 0;
+        base.position.x = 0;
+        base.position.z = 0;
         turret.rotation.y = 0;
-        arm1.rotation.z = 0;
-        arm2.rotation.z = 0;
-        arm3.rotation.z = 0;
+        joint1.rotation.z = 0;
+        joint2.rotation.z = 0;
+        joint3.rotation.z = 0;
+        wrist.rotation.y = 0;
+        setClampOpen(true);
         updateGuiControllers();
 
         // Send to main/ntClient (example)
         window.electronAPI.set('resetCount', resetCount++);
+    },
+    toggleClamp: () => {
+        setClampOpen(!clampOpen);
     },
 };
 
 const actionsFolder = gui.addFolder('Actions');
 actionsFolder.add(gridHelper, 'visible').name('Toggle Grid');
 actionsFolder.add(controlsGizmo.domElement, 'hidden').name('Hide Orbit Controls');
+actionsFolder.add(controller, 'toggleClamp').name('Toggle Clamp');
 actionsFolder.add(controller, 'reset').name('Reset');
 actionsFolder.open();
 
 // Configure interprocess hooks
 window.electronAPI.onUpdate((_: any, key: string, value: any) => {
-    // Coerce NaN value to zero
-    if (value !== value) {
-        value = 0;
+    // Ignore NaN / Null values
+    if (value !== value || value === null) {
+        return;
     }
+
     let handled = true;
     if (key === '/SmartDashboard/Arm/turretAngle') {
-        turret.rotation.y = -value;
+        turret.rotation.y = value;
     } else if (key === '/SmartDashboard/Arm/firstJointAngle') {
-        arm1.rotation.z = -value;
+        joint1.rotation.z = -value;
     } else if (key === '/SmartDashboard/Arm/secondJointAngle') {
-        arm2.rotation.z = -value;
+        joint2.rotation.z = -value;
     } else if (key === '/SmartDashboard/Arm/thirdJointAngle') {
-        arm3.rotation.z = -value;
+        joint3.rotation.z = -value;
     } else if (key === '/SmartDashboard/Arm/wristAngle') {
-        // TODO
+        wrist.rotation.y = value;
     } else if (key === '/SmartDashboard/Arm/grabberClamp') {
-        // TODO
+        setClampOpen(value === 'Open');
+    } else if (key === '/SmartDashboard/Drivetrain/x-pos') {
+        base.position.x = value - (fieldWidth / 2);
+    } else if (key === '/SmartDashboard/Drivetrain/y-pos') {
+        base.position.z = (fieldHeight / 2) - value;
+    } else if (key === '/SmartDashboard/Drivetrain/rot-degrees') {
+        base.rotation.y = degToRad(value);
     } else {
         handled = false;
     }

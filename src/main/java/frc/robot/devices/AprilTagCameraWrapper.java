@@ -35,6 +35,7 @@ import org.photonvision.EstimatedRobotPose;
 import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonPoseEstimator;
 import org.photonvision.PhotonPoseEstimator.PoseStrategy;
+import org.photonvision.targeting.PhotonPipelineResult;
  
 public class AprilTagCameraWrapper {
      public PhotonCamera photonCamera;
@@ -62,6 +63,29 @@ public class AprilTagCameraWrapper {
      public Optional<EstimatedRobotPose> getEstimatedGlobalPose(Pose2d prevEstimatedRobotPose) {
          photonPoseEstimator.setReferencePose(prevEstimatedRobotPose);
          return photonPoseEstimator.update();
+     }
+
+     public double getTargetDistance() {
+        PhotonPipelineResult result = photonCamera.getLatestResult();
+        if (!result.hasTargets()) {
+                return 100;
+        }
+
+        return result.getBestTarget().getBestCameraToTarget().getTranslation().getNorm();
+     }
+
+     public void forceDisableDriverMode() {
+         photonCamera.setDriverMode(false);
+     }
+
+     public static class EstimatedRobotPoseWithSD {
+        public final EstimatedRobotPose estimatedRobotPose;
+        public final double sd;
+
+        public EstimatedRobotPoseWithSD(EstimatedRobotPose estimatedRobotPose, double sd) {
+            this.estimatedRobotPose = estimatedRobotPose;
+            this.sd = sd;
+        }
      }
  }
  
