@@ -16,8 +16,10 @@
     }
   },
   "NetworkTables": {
-    "Persistent Values": {
-      "open": false
+    "retained": {
+      "gameElements": {
+        "open": true
+      }
     },
     "transitory": {
       "Shuffleboard": {

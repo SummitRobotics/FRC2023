@@ -8,18 +8,17 @@
       "DockNode    ID=0x00000007 Parent=0x0000000A SizeRef=92,241 Split=Y Selected=0xD58031C5",
       "DockNode  ID=0x00000008 Parent=0x00000007 SizeRef=159,91 Selected=0xC8493FD8",
       "DockNode  ID=0x00000009 Parent=0x00000007 SizeRef=159,148 Selected=0xD58031C5",
-      "DockNode      ID=0x00000001 Parent=0x00000002 SizeRef=712,528 Selected=0x6AE6D891",
-      "DockNode        ID=0x00000003 Parent=0x00000005 SizeRef=1188,597 Selected=0x2D9B9756"
+      "DockNode      ID=0x00000001 Parent=0x00000005 SizeRef=712,528 Selected=0x6AE6D891"
     ]
   },
   "MainWindow": {
     "GLOBAL": {
       "fps": "120",
-      "height": "2084",
+      "height": "704",
       "maximized": "1",
       "style": "0",
       "userScale": "2",
-      "width": "1892",
+      "width": "1292",
       "xpos": "2560",
       "ypos": "150"
     }
@@ -51,6 +50,7 @@
     "###FMS": {
       "Collapsed": "0",
       "DockId": "0x00000008,0",
+
       "Pos": "2,213",
       "Size": "556,91"
     },
@@ -58,24 +58,24 @@
       "Collapsed": "0",
       "DockId": "0x00000001,3",
       "Pos": "560,18",
-      "Size": "1357,436"
+      "Size": "1357,1035"
     },
     "###Keyboard 0 Settings": {
       "Collapsed": "0",
       "DockId": "0x00000001,0",
       "Pos": "560,18",
-      "Size": "1357,436"
+      "Size": "1357,1035"
     },
     "###Keyboard 1 Settings": {
       "Collapsed": "0",
       "DockId": "0x00000001,1",
       "Pos": "560,18",
-      "Size": "1357,436"
+      "Size": "1357,1035"
     },
     "###NetworkTables": {
       "Collapsed": "0",
       "DockId": "0x00000003,0",
-      "Pos": "2,456",
+      "Pos": "2,26",
       "Size": "1915,597"
     },
     "###NetworkTables Info": {
@@ -87,7 +87,7 @@
       "Collapsed": "0",
       "DockId": "0x00000001,2",
       "Pos": "560,18",
-      "Size": "1357,436"
+      "Size": "1357,1035"
     },
     "###RoboRIO": {
       "Collapsed": "0",
@@ -98,13 +98,13 @@
       "Collapsed": "0",
       "DockId": "0x00000001,4",
       "Pos": "560,18",
-      "Size": "1357,436"
+      "Size": "1357,1035"
     },
     "###Timing": {
       "Collapsed": "0",
       "DockId": "0x00000009,0",
-      "Pos": "2,306",
-      "Size": "556,148"
+      "Pos": "2,699",
+      "Size": "556,354"
     },
     "Debug##Default": {
       "Collapsed": "0",
