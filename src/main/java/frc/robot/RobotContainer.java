@@ -19,6 +19,7 @@ import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.StringSubscriber;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -35,13 +36,16 @@ import frc.robot.commands.arm.MoveArmToNode;
 import frc.robot.commands.arm.MoveArmUnsafe;
 import frc.robot.commands.arm.MovePositionsLaunchpad;
 import frc.robot.commands.arm.MoveToPickupSubstation;
+import frc.robot.commands.auto.ArmOutOfStart;
 import frc.robot.commands.automovements.SubstationPickup;
 import frc.robot.commands.automovements.SubstationPickup.Side;
 import frc.robot.commands.drivetrain.ArcadeDrive;
 import frc.robot.commands.drivetrain.ChargeStationBalance;
 import frc.robot.devices.AprilTagCameraWrapper;
 import frc.robot.devices.Lidar;
+import frc.robot.devices.LidarTest;
 import frc.robot.devices.LidarV3;
+import frc.robot.devices.LidarV4;
 import frc.robot.devices.PCM;
 import frc.robot.devices.LEDs.LEDCall;
 import frc.robot.devices.LEDs.LEDCalls;
@@ -101,8 +105,12 @@ public class RobotContainer {
     private AprilTagCameraWrapper backRight;
     private AprilTagCameraWrapper front;
 
+    StringSubscriber HPSelector;
+
     public RobotContainer() throws IOException {
         scheduler = CommandScheduler.getInstance();
+
+        HPSelector = NetworkTableInstance.getDefault().getTable("customDS").getStringTopic("indicator").subscribe("");
 
         // OI
         driverXBox = new ControllerDriver(Ports.OI.DRIVER_XBOX_PORT);
@@ -122,11 +130,9 @@ public class RobotContainer {
         // backLeft = new AprilTagCameraWrapper("backLeft", new Transform3d(new Translation3d(-0.3175,0.307137,0.231978+0.003175), new Rotation3d(basis, backLeftVec)));   //68.7
         // backRight = new AprilTagCameraWrapper("backRight", new Transform3d(new Translation3d(-0.3175,-0.307137,0.231978+0.003175), new Rotation3d(basis, backRightVec)));  //68.7
 
+        backLeft = new AprilTagCameraWrapper("backLeft", new Transform3d(new Translation3d(-0.3302,0.307137,0.235153), new Rotation3d(0,Math.toRadians(-25.3), Math.toRadians(90))));  //68.7
         backRight = new AprilTagCameraWrapper("backRight", new Transform3d(new Translation3d(-0.3302,-0.307137,0.235153), new Rotation3d(0,Math.toRadians(-25.3), Math.toRadians(-90))));  //68.7
         front = new AprilTagCameraWrapper("front", new Transform3d(new Translation3d(0.3683,0.2159,0.24765), new Rotation3d(0,Math.toRadians(-15), 0)));  //68.7
-
-        drivetrain.addVisionCamera(front);
-        drivetrain.addVisionCamera(backRight);
 
         createCommands();
         setDefaultCommands();
@@ -148,11 +154,15 @@ public class RobotContainer {
         wristManual = new FullManualArm(arm, FullManualArm.Type.WRIST, gunnerXBox);
         fancyArmMo = new ArmMO(arm, gunnerXBox, launchpad);
 
-        homeArm = new SequentialCommandGroup(new Home(gunnerXBox.buttonB.getTrigger()::getAsBoolean, arm.getHomeables()[4]), new Home(arm.getHomeables()[3]),
+        homeArm = new SequentialCommandGroup(
+            new InstantCommand(() -> arm.setDistanceCheck(false)),
+            new Home(gunnerXBox.buttonB.getTrigger()::getAsBoolean, arm.getHomeables()[4]), new Home(arm.getHomeables()[3]),
             new ParallelCommandGroup(new TimedMoveMotor(arm::setWristMotorVoltage, -12, 0.25), new TimedMoveMotor(arm::setJoint3MotorVoltage, -3, 0.25)),
             new Home(arm.getHomeables()[2], arm.getHomeables()[1]),
             new ParallelCommandGroup(new TimedMoveMotor(arm::setJoint1MotorVoltage, 2, 0.2), new TimedMoveMotor(arm::setJoint2MotorVoltage, 2, 0.2)), new Home(gunnerXBox.buttonB.getTrigger()::getAsBoolean, arm.getHomeables()[0]),
-            new TimedMoveMotor(arm::setTurretMotorVoltage, 5, 0.1), new MoveArmUnsafe(arm, ARM_POSITION.HOME));
+            new TimedMoveMotor(arm::setTurretMotorVoltage, 5, 0.1), new MoveArmUnsafe(arm, ARM_POSITION.HOME),
+            new InstantCommand(() -> arm.setDistanceCheck(true))
+            );
 
         launchPadArmSelector = new MovePositionsLaunchpad(arm, launchpad, this);
 
@@ -227,13 +237,20 @@ public class RobotContainer {
     }
 
     private void initTelemetry() {
+        LidarTest test = new LidarTest();
+        test.enable(true);
         SmartDashboard.putData("Arm", arm);
         SmartDashboard.putData("Drivetrain", drivetrain);
         SmartDashboard.putData("PCM", pcm);
+        SmartDashboard.putData("Lidar", gripperLidar);
+        SmartDashboard.putData("LIDARTEST", test);
     }
 
     public Command getAutonomousCommand() {
-        return Commands.print("No autonomous command configured");
+        return new SequentialCommandGroup(
+            new ArmOutOfStart(arm),
+            new MoveArmUnsafe(arm, ARM_POSITION.AUTO_LEFT_HIGH)
+        );
     }
 
     public void robotInit() {
@@ -241,15 +258,12 @@ public class RobotContainer {
         LEDCalls.ON.activate();
     }
     public void robotPeriodic() {
-        String HP_LED = NetworkTableInstance.getDefault()
-        .getTable("customDS").getEntry("indicator").getString("");
+        String val = HPSelector.get();
 
-        // System.out.println(HP_LED);
-
-        if (HP_LED == "cube") {
+        if (val.equalsIgnoreCase("cube")) {
             LEDCalls.CUBE_HP.activate();
             LEDCalls.CONE_HP.cancel();
-        } else if (HP_LED == "cone") {
+        } else if (val.equalsIgnoreCase("cone")) {
             LEDCalls.CUBE_HP.cancel();
             LEDCalls.CONE_HP.activate();
         } else {
@@ -271,8 +285,15 @@ public class RobotContainer {
     public void autonomousExit() {}
 
     public void teleopInit() {
+        front.forceDisableDriverMode();
+        backRight.forceDisableDriverMode();
+        backLeft.forceDisableDriverMode();
+        drivetrain.addVisionCamera(front);
+        drivetrain.addVisionCamera(backRight);
+        drivetrain.addVisionCamera(backLeft);
     }
     public void teleopPeriodic() {
+        // System.out.println(gripperLidar.getAverageDistance());
     }
     public void teleopExit() {}
 

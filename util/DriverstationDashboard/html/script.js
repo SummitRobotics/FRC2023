@@ -63,7 +63,7 @@ async function main() {
     buttonsDiv.innerHTML = innerHtml;
 
     const selectorDiv = document.getElementById('signaler');
-    selectorDiv.innerHTML = '<div class="button cone" id="cone"></div><div class="button cube" id="cube"></div>';
+    selectorDiv.innerHTML = '<div class="button cone" id="cone"></div><div class="button any" id="none"></div><div class="button cube" id="cube"></div>';
 
     const buttons = document.getElementsByClassName('item');
 

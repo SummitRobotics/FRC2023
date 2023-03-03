@@ -1,5 +1,6 @@
 package frc.robot.subsystems.arm;
 
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
@@ -389,7 +390,32 @@ public class ArmConfiguration {
                         return false;
                 }
                 // System.out.println("In Soft Limits");
-                if (getEndPosition().inRobotSpace().getZ() <= 0) {
+                if (!withinDistance()) {
+                        return false;
+                }
+                return true;
+        }
+
+        public boolean withinDistance() {
+                Pose3d pos = getEndPosition().inRobotSpace();
+                Pose3d joint3Pose = getJoint3Pose().inRobotSpace();
+
+                if (pos.getX() > Arm.MAX_DISTANCE || pos.getX() < -Arm.MAX_DISTANCE) {
+                        return false;
+                }
+                if (pos.getY() > Arm.MAX_DISTANCE || pos.getY() < -Arm.MAX_DISTANCE) {
+                        return false;
+                }
+                if (pos.getZ() > Arm.MAX_HEIGHT || pos.getZ() < 0) {
+                        return false;
+                }
+                if (joint3Pose.getX() > Arm.MAX_DISTANCE || joint3Pose.getX() < -Arm.MAX_DISTANCE) {
+                        return false;
+                }
+                if (joint3Pose.getY() > Arm.MAX_DISTANCE || joint3Pose.getY() < -Arm.MAX_DISTANCE) {
+                        return false;
+                }
+                if (joint3Pose.getZ() > Arm.MAX_HEIGHT || joint3Pose.getZ() < 0) {
                         return false;
                 }
                 return true;

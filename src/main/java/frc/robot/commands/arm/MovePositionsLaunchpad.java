@@ -72,8 +72,11 @@ public class MovePositionsLaunchpad extends CommandBase {
   @Override
   public void execute() {
 
+    // System.out.println(arm.getClampSolenoidState());
+    // System.out.println(shouldClamp);
+    // System.out.println(arm.getLidarDistance());
     if (arm.getClampSolenoidState() && shouldClamp && Arm.LIDAR_CLAMP_NEAR < arm.getLidarDistance() && arm.getLidarDistance() < Arm.LIDAR_CLAMP_FAR) {
-      arm.clamp();
+      // arm.clamp();
       shouldClamp = false;
     }
     if (arm.getClampSolenoidState() && !shouldClamp && (Arm.LIDAR_CLAMP_NEAR > arm.getLidarDistance() || arm.getLidarDistance() > Arm.LIDAR_CLAMP_FAR)) {

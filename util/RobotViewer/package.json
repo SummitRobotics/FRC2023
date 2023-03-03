@@ -1,12 +1,15 @@
 {
   "name": "robotviewer",
   "version": "1.0.0",
-  "description": "",
+  "description": "Robot Viewer Progrma for FRC team 5468",
+  "author": "John",
   "main": "app/main.js",
   "scripts": {
     "build": "npx tsc --build",
-    "start": "electron .",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "electron-forge start",
+    "make": "electron-forge make --platform=win32",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "package": "electron-forge package"
   },
   "dependencies": {
     "@types/dat.gui": "^0.7.7",
@@ -14,9 +17,36 @@
     "@types/node": "^18.14.0",
     "@types/three": "^0.149.0",
     "dat.gui": "^0.7.9",
-    "electron": "^23.1.0",
+    "electron-squirrel-startup": "^1.0.0",
     "ntcore-ts-client": "^0.2.0",
     "three": "^0.149.0",
     "typescript": "^4.9.5"
+  },
+  "config": {
+    "forge": {
+      "makers": [
+        {
+          "name": "@electron-forge/maker-zip",
+          "platforms": [
+            "darwin",
+            "linux"
+          ]
+        },
+        {
+          "name": "@electron-forge/maker-squirrel",
+          "config": {
+            "name": "RobotViewer"
+          }
+        }
+      ]
+    }
+  },
+  "devDependencies": {
+    "@electron-forge/cli": "^6.0.5",
+    "@electron-forge/maker-deb": "^6.0.5",
+    "@electron-forge/maker-rpm": "^6.0.5",
+    "@electron-forge/maker-squirrel": "^6.0.5",
+    "@electron-forge/maker-zip": "^6.0.5",
+    "electron": "^23.1.1"
   }
 }

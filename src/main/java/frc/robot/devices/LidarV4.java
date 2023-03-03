@@ -120,7 +120,6 @@ public class LidarV4 implements Lidar, Sendable {
      *
      * @return The amount of time, in milliseconds, that it took to measure distance
      */
-    @Override
     public double getLoopTimeMilliseconds() {
         synchronized (loopLock) {
             return measuredLoopTime * 1000;

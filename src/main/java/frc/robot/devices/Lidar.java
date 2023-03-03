@@ -1,15 +1,15 @@
 package frc.robot.devices;
 
+import edu.wpi.first.util.sendable.Sendable;
+
 /**
  * Interface for Lidar sensors on the robot.
  * There are both LidarV3 and V4 on the robot.
  */
-public interface Lidar {
+public interface Lidar extends Sendable{
     int getDistance();
 
     int getAverageDistance();
-
-    double getLoopTimeMilliseconds();
 
     /**
      * Compensated the lidar distance for the lidar mount angle in inches.

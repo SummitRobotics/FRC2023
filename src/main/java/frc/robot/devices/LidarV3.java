@@ -45,7 +45,7 @@ public class LidarV3 implements Lidar, Sendable {
      */
     public LidarV3() {
 
-        port = (byte) Port.kOnboard.value;
+        port = (byte) Port.kMXP.value;
         I2CJNI.i2CInitialize(port);
 
         rollingAverage = new RollingAverage(5, true);
@@ -95,7 +95,6 @@ public class LidarV3 implements Lidar, Sendable {
      *
      * @return The amount of time, in milliseconds, that it took to measure distance
      */
-    @Override
     public double getLoopTimeMilliseconds() {
         synchronized (loopLock) {
             return measuredLoopTime * 1000;

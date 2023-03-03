@@ -22,6 +22,8 @@ public class MoveArmUnsafe extends CommandBase {
   private boolean fromPose = false;
   private boolean extraUnsafe = false;
 
+  private boolean homeMove = false;
+
   public MoveArmUnsafe(Arm arm, Positions.Pose3d endPosition, double grabberAngleRadians, double wristRotationRadians) {
     this.arm = arm;
     this.pose = endPosition;
@@ -39,6 +41,9 @@ public class MoveArmUnsafe extends CommandBase {
 
   public MoveArmUnsafe(Arm arm, ARM_POSITION location) {
     this(arm, location.config);
+    if (location == ARM_POSITION.HOME) {
+      homeMove = true;
+    }
   }
 
   public MoveArmUnsafe(Arm arm, ARM_POSITION location, boolean extraUnsafe) {
@@ -50,6 +55,9 @@ public class MoveArmUnsafe extends CommandBase {
   @Override
   public void initialize() {
     System.out.println("MOVETHING");
+    if (homeMove) {
+      arm.setDistanceCheck(false);
+    }
     if (armConfiguration == null || fromPose) {
       System.out.println(pose.inRobotSpace());
       armConfiguration = ArmConfiguration.fromEndPosition(pose, grabberAngle, wristAngle);
@@ -71,6 +79,7 @@ public class MoveArmUnsafe extends CommandBase {
   @Override
   public void end(boolean interrupted) {
     // System.out.println("HERE1");
+    arm.setDistanceCheck(true);
     arm.stop();
   }
 

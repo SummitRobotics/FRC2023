@@ -23,9 +23,13 @@ async function main() {
         ipcMain.handle('setIndicator', (_, val) => indicatorTopic.setValue(val));
         ipcMain.handle('ready', () => ntcore.isRobotConnected());
         ipcMain.handle('publish', () => {
-            stationSelectorTopic.announce();
+            if (!stationSelectorTopic.announced) {
+                stationSelectorTopic.announce();
+            }
             stationSelectorTopic.publish();
-            indicatorTopic.announce();
+            if (!indicatorTopic.announced) {
+                indicatorTopic.announce();
+            }
             indicatorTopic.publish();
         })
         win.loadFile('./html/index.html');

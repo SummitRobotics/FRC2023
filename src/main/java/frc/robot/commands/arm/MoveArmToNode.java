@@ -6,6 +6,7 @@ package frc.robot.commands.arm;
 
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.StringSubscriber;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.CommandBase;
@@ -21,17 +22,20 @@ public class MoveArmToNode extends CommandBase {
   private Positions.Pose3d node;
   private ArmConfiguration armConfiguration;
 
+  StringSubscriber subscriber;
+
   /** Creates a new MoveArmToNode. */
   public MoveArmToNode(Arm arm) {
     this.arm = arm;
     addRequirements(arm);
+
+    subscriber = NetworkTableInstance.getDefault().getTable("customDS").getStringTopic("location").subscribe("00");
   }
 
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
-    final int value = Integer.parseInt(NetworkTableInstance.getDefault()
-    .getTable("customDS").getEntry("location").getString("00"));
+    final int value = Integer.parseInt(subscriber.get());
 
     System.out.println(value);
 
@@ -57,7 +61,11 @@ public class MoveArmToNode extends CommandBase {
       node = Positions.Pose3d.fromFieldSpace(new Translation3d(10, 10, 10));
     }
 
-    armConfiguration = ArmConfiguration.fromEndPosition(node, 0, 0);
+    if (xCoordIndex == 3) {
+      armConfiguration = ArmConfiguration.fromEndPosition(node, - (Math.PI / 4), 0);
+    } else {
+      armConfiguration = ArmConfiguration.fromEndPosition(node, 0, 0);
+    }
 
     arm.setToConfiguration(armConfiguration);
   }

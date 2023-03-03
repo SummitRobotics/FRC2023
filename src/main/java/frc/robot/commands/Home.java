@@ -5,6 +5,7 @@ import java.util.PriorityQueue;
 import java.util.function.BooleanSupplier;
 
 import edu.wpi.first.wpilibj2.command.CommandBase;
+import frc.robot.subsystems.arm.Arm;
 import frc.robot.utilities.homing.HomeableCANSparkMax;
 import frc.robot.utilities.homing.HomeableSubsystem;
 import frc.robot.utilities.homing.HomeableCANSparkMax.Type;
@@ -49,6 +50,7 @@ public class Home extends CommandBase {
         for (HomeableCANSparkMax homeable : homeables) {
             homeable.updateCurrent();
         }
+        Arm.setDistanceCheck(false);
     }
 
     @Override
@@ -90,5 +92,6 @@ public class Home extends CommandBase {
         for (HomeableCANSparkMax homeable : activeHoming) {
             homeable.end();
         }
+        Arm.setDistanceCheck(true);
     }
 }

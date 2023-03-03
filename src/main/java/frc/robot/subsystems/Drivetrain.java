@@ -258,7 +258,7 @@ public class Drivetrain extends SubsystemBase implements Testable, Loggable {
      */
     public void highGear() {
         synchronized (shift) {
-            LEDCalls.LOW_GEAR.activate();
+            LEDCalls.LOW_GEAR.cancel();();
             updateDistanceAcum();
             oldShift = false;
             shift.set(false);
