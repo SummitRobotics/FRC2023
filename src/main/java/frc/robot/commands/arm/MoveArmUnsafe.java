@@ -56,7 +56,7 @@ public class MoveArmUnsafe extends CommandBase {
   public void initialize() {
     System.out.println("MOVETHING");
     if (homeMove) {
-      arm.setDistanceCheck(false);
+      Arm.setDistanceCheck(false);
     }
     if (armConfiguration == null || fromPose) {
       System.out.println(pose.inRobotSpace());
@@ -79,7 +79,7 @@ public class MoveArmUnsafe extends CommandBase {
   @Override
   public void end(boolean interrupted) {
     // System.out.println("HERE1");
-    arm.setDistanceCheck(true);
+    Arm.setDistanceCheck(true);
     arm.stop();
   }
 

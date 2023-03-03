@@ -2,8 +2,6 @@ package frc.robot.commands.drivetrain;
 
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
-import frc.robot.devices.LEDs.LEDCall;
-import frc.robot.devices.LEDs.LEDRange;
 import frc.robot.devices.LEDs.LEDs;
 import frc.robot.oi.inputs.OIAxis;
 import frc.robot.oi.inputs.OITrigger;
@@ -12,7 +10,6 @@ import frc.robot.utilities.ChangeRateLimiter;
 import frc.robot.utilities.Functions;
 import frc.robot.utilities.RollingAverage;
 import frc.robot.utilities.lists.AxisPriorities;
-import frc.robot.utilities.lists.Colors;
 
 /**
  * Command for Arcade Drive.
@@ -45,8 +42,6 @@ public class ArcadeDrive extends CommandBase {
 
     private final boolean isSingleAxis;
 
-    private boolean ledsOn = false;
-
     /**
      * teleop driver control.
      *
@@ -71,7 +66,6 @@ public class ArcadeDrive extends CommandBase {
 
         addRequirements(drivetrain);
         isSingleAxis = false;
-        ledsOn = false;
 
         switchfoot.prioritize(AxisPriorities.DRIVE).getTrigger().onTrue(
             new InstantCommand(() -> {
@@ -102,7 +96,6 @@ public class ArcadeDrive extends CommandBase {
 
         addRequirements(drivetrain);
         isSingleAxis = true;
-        ledsOn = false;
 
         switchfoot.prioritize(AxisPriorities.DRIVE).getTrigger().onTrue(
             new InstantCommand(() -> {

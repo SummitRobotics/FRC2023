@@ -1,7 +1,6 @@
 package frc.robot.devices;
 
 import edu.wpi.first.hal.I2CJNI;
-import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.I2C.Port;
 import edu.wpi.first.wpilibj.Notifier;
@@ -12,7 +11,7 @@ import java.nio.ByteBuffer;
 /**
  * Device to manage the Lidar3.
  */
-public class LidarV3 implements Lidar, Sendable {
+public class LidarV3 implements Lidar {
 
     private final RollingAverage rollingAverage;
 

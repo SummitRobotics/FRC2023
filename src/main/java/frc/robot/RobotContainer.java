@@ -8,23 +8,15 @@ import java.io.IOException;
 
 import com.kauailabs.navx.frc.AHRS;
 
-import edu.wpi.first.math.VecBuilder;
-import edu.wpi.first.math.Vector;
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
-import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
-import edu.wpi.first.math.numbers.N3;
-import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StringSubscriber;
-import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
@@ -37,29 +29,21 @@ import frc.robot.commands.arm.MoveArmUnsafe;
 import frc.robot.commands.arm.MovePositionsLaunchpad;
 import frc.robot.commands.arm.MoveToPickupSubstation;
 import frc.robot.commands.auto.ArmOutOfStart;
-import frc.robot.commands.automovements.SubstationPickup;
-import frc.robot.commands.automovements.SubstationPickup.Side;
 import frc.robot.commands.drivetrain.ArcadeDrive;
 import frc.robot.commands.drivetrain.ChargeStationBalance;
 import frc.robot.devices.AprilTagCameraWrapper;
 import frc.robot.devices.Lidar;
 import frc.robot.devices.LidarTest;
 import frc.robot.devices.LidarV3;
-import frc.robot.devices.LidarV4;
 import frc.robot.devices.PCM;
-import frc.robot.devices.LEDs.LEDCall;
 import frc.robot.devices.LEDs.LEDCalls;
-import frc.robot.devices.LEDs.LEDRange;
-import frc.robot.devices.LEDs.LEDs;
 import frc.robot.oi.drivers.ControllerDriver;
 import frc.robot.oi.drivers.LaunchpadDriver;
+import frc.robot.oi.drivers.ShuffleboardDriver;
 import frc.robot.subsystems.arm.Arm;
 import frc.robot.subsystems.arm.ArmPositions.ARM_POSITION;
 import frc.robot.subsystems.Drivetrain;
-import frc.robot.utilities.Positions;
 import frc.robot.utilities.lists.AxisPriorities;
-import frc.robot.utilities.lists.Colors;
-import frc.robot.utilities.lists.FieldElementPositions;
 import frc.robot.utilities.lists.Ports;
 import frc.robot.commands.Home;
 import frc.robot.commands.LogComponents;
@@ -97,7 +81,7 @@ public class RobotContainer {
 
     private Command homeArm;
 
-    private Command testCommand;
+    // private Command testCommand;
 
     private boolean altMode = false;
 
@@ -135,6 +119,7 @@ public class RobotContainer {
         front = new AprilTagCameraWrapper("front", new Transform3d(new Translation3d(0.3683,0.2159,0.24765), new Rotation3d(0,Math.toRadians(-15), 0)));  //68.7
 
         createCommands();
+        createAutoCommands();
         setDefaultCommands();
         configureBindings();
 
@@ -155,13 +140,11 @@ public class RobotContainer {
         fancyArmMo = new ArmMO(arm, gunnerXBox, launchpad);
 
         homeArm = new SequentialCommandGroup(
-            new InstantCommand(() -> arm.setDistanceCheck(false)),
             new Home(gunnerXBox.buttonB.getTrigger()::getAsBoolean, arm.getHomeables()[4]), new Home(arm.getHomeables()[3]),
             new ParallelCommandGroup(new TimedMoveMotor(arm::setWristMotorVoltage, -12, 0.25), new TimedMoveMotor(arm::setJoint3MotorVoltage, -3, 0.25)),
             new Home(arm.getHomeables()[2], arm.getHomeables()[1]),
             new ParallelCommandGroup(new TimedMoveMotor(arm::setJoint1MotorVoltage, 2, 0.2), new TimedMoveMotor(arm::setJoint2MotorVoltage, 2, 0.2)), new Home(gunnerXBox.buttonB.getTrigger()::getAsBoolean, arm.getHomeables()[0]),
-            new TimedMoveMotor(arm::setTurretMotorVoltage, 5, 0.1), new MoveArmUnsafe(arm, ARM_POSITION.HOME),
-            new InstantCommand(() -> arm.setDistanceCheck(true))
+            new TimedMoveMotor(arm::setTurretMotorVoltage, 5, 0.1), new MoveArmUnsafe(arm, ARM_POSITION.HOME)
             );
 
         launchPadArmSelector = new MovePositionsLaunchpad(arm, launchpad, this);
@@ -169,9 +152,8 @@ public class RobotContainer {
         // homeArm = new SequentialCommandGroup(new Home(arm.getHomeables()[4]), new Home(arm.getHomeables()[3]),
         //     new ParallelCommandGroup(new TimedMoveMotor(arm::setWristMotorVoltage, -12, 0.25), new TimedMoveMotor(arm::setJoint3MotorVoltage, -3, 0.25)),
         //     new Home(arm.getHomeables()[2], arm.getHomeables()[1]));
-
         // testCommand = new SequentialCommandGroup(new MoveArmUnsafe(arm, Positions.Pose3d.fromOtherSpace(new Translation3d(-0.1, -0.5, 0.75), Arm.ROBOT_TO_TURRET_BASE), 0, (Math.PI / 4)));
-        testCommand = new SubstationPickup(drivetrain, arm, Side.Left);
+        // testCommand = new SubstationPickup(drivetrain, arm, Side.Left);
         // testCommand = new FollowDynamicTrajectory(drivetrain::getPose, () -> new Pose2d(new Translation2d(1, 1), new Rotation2d()), () -> new ArrayList<>(), drivetrain.generateTrajectoryConfigHighGear(), drivetrain);
     }
 
@@ -199,7 +181,7 @@ public class RobotContainer {
 
         driverXBox.buttonX.getTrigger().whileTrue(new MoveArmToNode(arm));
 
-        launchpad.missileA.getTrigger().whileTrue(testCommand);
+        launchpad.missileA.getTrigger().whileTrue(balance);
         launchpad.missileB.getTrigger().whileTrue(new StartEndCommand(() -> arm.setAllSoftLimit(false), () -> arm.setAllSoftLimit(true)));
         
         gunnerXBox.buttonY.getTrigger().whileTrue(new MoveArmUnsafe(arm, ARM_POSITION.HOME));
@@ -246,11 +228,18 @@ public class RobotContainer {
         SmartDashboard.putData("LIDARTEST", test);
     }
 
-    public Command getAutonomousCommand() {
-        return new SequentialCommandGroup(
+
+    public void createAutoCommands() {
+        ShuffleboardDriver.autoChooser.addOption("Hove Out of Starting Config", new ArmOutOfStart(arm));
+        ShuffleboardDriver.autoChooser.addOption("Move Arm Test",
+            new SequentialCommandGroup(
             new ArmOutOfStart(arm),
-            new MoveArmUnsafe(arm, ARM_POSITION.AUTO_LEFT_HIGH)
-        );
+            new MoveArmUnsafe(arm, ARM_POSITION.AUTO_DROP_OFF)
+            ));
+    }
+
+    public Command getAutonomousCommand() {
+        return ShuffleboardDriver.autoChooser.getSelected();
     }
 
     public void robotInit() {

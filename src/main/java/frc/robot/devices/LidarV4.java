@@ -1,6 +1,5 @@
 package frc.robot.devices;
 
-import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.I2C;
 import edu.wpi.first.wpilibj.I2C.Port;
@@ -11,7 +10,7 @@ import frc.robot.utilities.RollingAverage;
 /**
  * Class for using the lidar v4.
  */
-public class LidarV4 implements Lidar, Sendable {
+public class LidarV4 implements Lidar {
 
     @SuppressWarnings("CheckStyle")
     private final I2C portI2C;

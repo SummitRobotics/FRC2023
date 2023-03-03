@@ -18,9 +18,8 @@ public class ArmPositions {
         HIGH_ASPECT(32.0711, 36.8805, 93.622, -77.502, -41.09),
         STARTING_CONFIG(31.8330, 44.8804, 22.7617, -158.8284, -52.2382),
         PRE_HOME(10,10,10,-10,-10),
-        AUTO_RIGHT_HIGH(0,114.7627,137.0931,-92.4323,-46.7615),
-        AUTO_LEFT_HIGH(11.3095,114.7627,137.0931,-92.4323,-46.7615);
-    
+        AUTO_DROP_OFF(52.3565,114.7627,137.0931,-92.4323,-46.7615);
+            
         public ArmConfiguration config;
         ARM_POSITION(double turret, double joint1, double joint2, double joint3, double wrist) {
           config = new ArmConfiguration(turret, joint1, joint2, joint3, wrist, ArmConfiguration.POSITION_TYPE.ENCODER_ROTATIONS);

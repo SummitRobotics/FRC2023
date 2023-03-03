@@ -1,12 +1,10 @@
 package frc.robot.subsystems.arm;
 
-import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
-import frc.robot.utilities.Functions;
 import frc.robot.utilities.Positions;
 import frc.robot.utilities.FancyArmFeedForward.FFData;
 

@@ -12,7 +12,6 @@ import com.revrobotics.CANSparkMax.ControlType;
 import com.revrobotics.CANSparkMax.IdleMode;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import com.revrobotics.CANSparkMaxLowLevel.PeriodicFrame;
-import com.revrobotics.SparkMaxPIDController.AccelStrategy;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkMaxPIDController;
 import edu.wpi.first.math.Matrix;
@@ -32,16 +31,12 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.commands.drivetrain.TurnByEncoder;
 import frc.robot.devices.AprilTagCameraWrapper;
 import frc.robot.devices.AprilTagCameraWrapper.EstimatedRobotPoseWithSD;
-import frc.robot.devices.LEDs.LEDCall;
 import frc.robot.devices.LEDs.LEDCalls;
-import frc.robot.devices.LEDs.LEDRange;
 import frc.robot.utilities.Functions;
 import frc.robot.utilities.Loggable;
 import frc.robot.utilities.Testable;
-import frc.robot.utilities.lists.Colors;
 import frc.robot.utilities.lists.Ports;
 
 /**
@@ -227,21 +222,21 @@ public class Drivetrain extends SubsystemBase implements Testable, Loggable {
         rightMiddle.setIdleMode(IdleMode.kBrake);
         rightBack.setIdleMode(IdleMode.kBrake);
 
-        // // We basically don't care about CAN data for follower motors.
-        // for (CANSparkMax motor : new CANSparkMax[] {leftMiddle, leftBack, rightMiddle, rightBack}) {
-        //     motor.setPeriodicFramePeriod(PeriodicFrame.kStatus0, 20);
-        //     motor.setPeriodicFramePeriod(PeriodicFrame.kStatus1, 65535);
-        //     motor.setPeriodicFramePeriod(PeriodicFrame.kStatus2, 65533);
-        //     motor.setPeriodicFramePeriod(PeriodicFrame.kStatus3, 65531);
-        //     motor.setPeriodicFramePeriod(PeriodicFrame.kStatus4, 65529);
-        //     motor.setPeriodicFramePeriod(PeriodicFrame.kStatus5, 65527);
-        //     motor.setPeriodicFramePeriod(PeriodicFrame.kStatus6, 65525);
-        // }
+        // We basically don't care about CAN data for follower motors.
+        for (CANSparkMax motor : new CANSparkMax[] {leftMiddle, leftBack, rightMiddle, rightBack}) {
+            motor.setPeriodicFramePeriod(PeriodicFrame.kStatus0, 20);
+            motor.setPeriodicFramePeriod(PeriodicFrame.kStatus1, 65535);
+            motor.setPeriodicFramePeriod(PeriodicFrame.kStatus2, 65533);
+            motor.setPeriodicFramePeriod(PeriodicFrame.kStatus3, 65531);
+            motor.setPeriodicFramePeriod(PeriodicFrame.kStatus4, 65529);
+            motor.setPeriodicFramePeriod(PeriodicFrame.kStatus5, 65527);
+            motor.setPeriodicFramePeriod(PeriodicFrame.kStatus6, 65525);
+        }
 
-        // // Speeding up frame 0 on the leader motors will increase the rate
-        // // at which followers are updated.
-        // left.setPeriodicFramePeriod(PeriodicFrame.kStatus0, 5);
-        // right.setPeriodicFramePeriod(PeriodicFrame.kStatus0, 5);
+        // Speeding up frame 0 on the leader motors will increase the rate
+        // at which followers are updated.
+        left.setPeriodicFramePeriod(PeriodicFrame.kStatus0, 5);
+        right.setPeriodicFramePeriod(PeriodicFrame.kStatus0, 5);
     }
 
     /**
@@ -258,7 +253,7 @@ public class Drivetrain extends SubsystemBase implements Testable, Loggable {
      */
     public void highGear() {
         synchronized (shift) {
-            LEDCalls.LOW_GEAR.cancel();();
+            LEDCalls.LOW_GEAR.cancel();
             updateDistanceAcum();
             oldShift = false;
             shift.set(false);

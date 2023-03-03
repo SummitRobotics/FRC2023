@@ -6,10 +6,7 @@ import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.FunctionalCommand;
 import edu.wpi.first.wpilibj2.command.RamseteCommand;
 import frc.robot.commands.CommandThreader;
-import frc.robot.devices.LEDs.LEDCall;
-import frc.robot.devices.LEDs.LEDRange;
 import frc.robot.subsystems.Drivetrain;
-import frc.robot.utilities.lists.Colors;
 
 /**
  * Command to follow a trajectory.
