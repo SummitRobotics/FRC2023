@@ -5,6 +5,7 @@
 package frc.robot;
 
 import java.io.IOException;
+import java.nio.file.Path;
 
 import com.kauailabs.navx.frc.AHRS;
 
@@ -12,8 +13,11 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.math.trajectory.Trajectory;
+import edu.wpi.first.math.trajectory.TrajectoryUtil;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StringSubscriber;
+import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
@@ -29,6 +33,7 @@ import frc.robot.commands.arm.MoveArmUnsafe;
 import frc.robot.commands.arm.MovePositionsLaunchpad;
 import frc.robot.commands.arm.MoveToPickupSubstation;
 import frc.robot.commands.auto.ArmOutOfStart;
+import frc.robot.commands.auto.Auto;
 import frc.robot.commands.drivetrain.ArcadeDrive;
 import frc.robot.commands.drivetrain.ChargeStationBalance;
 import frc.robot.devices.AprilTagCameraWrapper;
@@ -89,6 +94,14 @@ public class RobotContainer {
     private AprilTagCameraWrapper backRight;
     private AprilTagCameraWrapper front;
 
+    Trajectory blueHigh;
+    Trajectory redHigh;
+    Trajectory blueMid;
+    Trajectory redMid;
+    Trajectory blueLow;
+    Trajectory redLow;
+
+
     StringSubscriber HPSelector;
 
     public RobotContainer() throws IOException {
@@ -130,7 +143,7 @@ public class RobotContainer {
 
     private void createCommands() {
         arcadeDrive = new ArcadeDrive(drivetrain, driverXBox.rightTrigger, driverXBox.leftTrigger, driverXBox.leftX, driverXBox.buttonY);
-        balance = new ChargeStationBalance(drivetrain, navx);
+        balance = new ChargeStationBalance(drivetrain);
 
         turretManual = new FullManualArm(arm, FullManualArm.Type.TURRET, gunnerXBox);
         joint1Manual = new FullManualArm(arm, FullManualArm.Type.JOINT_1, gunnerXBox);
@@ -177,7 +190,7 @@ public class RobotContainer {
             new MoveArmUnsafe(arm, ARM_POSITION.HIGH_ASPECT)
         ));
 
-        driverXBox.buttonB.getTrigger().whileTrue(new MoveArmUnsafe(arm, ARM_POSITION.HOME));
+        // driverXBox.buttonB.getTrigger().whileTrue(new MoveArmUnsafe(arm, ARM_POSITION.HOME));
 
         driverXBox.buttonX.getTrigger().whileTrue(new MoveArmToNode(arm));
 
@@ -219,23 +232,26 @@ public class RobotContainer {
     }
 
     private void initTelemetry() {
-        LidarTest test = new LidarTest();
-        test.enable(true);
         SmartDashboard.putData("Arm", arm);
         SmartDashboard.putData("Drivetrain", drivetrain);
         SmartDashboard.putData("PCM", pcm);
         SmartDashboard.putData("Lidar", gripperLidar);
-        SmartDashboard.putData("LIDARTEST", test);
     }
 
 
     public void createAutoCommands() {
-        ShuffleboardDriver.autoChooser.addOption("Hove Out of Starting Config", new ArmOutOfStart(arm));
+        ShuffleboardDriver.autoChooser.setDefaultOption("Hove Out of Starting Config", new ArmOutOfStart(arm));
         ShuffleboardDriver.autoChooser.addOption("Move Arm Test",
             new SequentialCommandGroup(
             new ArmOutOfStart(arm),
-            new MoveArmUnsafe(arm, ARM_POSITION.AUTO_DROP_OFF)
+            new MoveArmUnsafe(arm, ARM_POSITION.RIGHT_HIGH)
             ));
+        ShuffleboardDriver.autoChooser.addOption("Blue Low", new Auto(arm, drivetrain, blueLow, false));
+        ShuffleboardDriver.autoChooser.addOption("Blue Mid", new Auto(arm, drivetrain, blueMid, true));
+        ShuffleboardDriver.autoChooser.addOption("Blue High", new Auto(arm, drivetrain, blueHigh, false));
+        ShuffleboardDriver.autoChooser.addOption("Red Low", new Auto(arm, drivetrain, redLow, false));
+        ShuffleboardDriver.autoChooser.addOption("Red Mid", new Auto(arm, drivetrain, redMid, true));
+        ShuffleboardDriver.autoChooser.addOption("Red High", new Auto(arm, drivetrain, redHigh, false));
     }
 
     public Command getAutonomousCommand() {
@@ -244,7 +260,18 @@ public class RobotContainer {
 
     public void robotInit() {
         pcm.enableCompressorAnalog(80, 120);
+        ShuffleboardDriver.init();
         LEDCalls.ON.activate();
+        try {
+            blueHigh = TrajectoryUtil.fromPathweaverJson(Filesystem.getDeployDirectory().toPath().resolve("paths/BlueBottom.wpilib.json"));
+            blueMid = TrajectoryUtil.fromPathweaverJson(Filesystem.getDeployDirectory().toPath().resolve("paths/BlueMid.wiplib.json"));
+            blueLow = TrajectoryUtil.fromPathweaverJson(Filesystem.getDeployDirectory().toPath().resolve("paths/BlueTop.wpilib.json"));
+            redHigh = TrajectoryUtil.fromPathweaverJson(Filesystem.getDeployDirectory().toPath().resolve("paths/RedBottom.wpilib.json"));
+            redMid = TrajectoryUtil.fromPathweaverJson(Filesystem.getDeployDirectory().toPath().resolve("paths/RedMid.wpilib.json"));
+            redLow = TrajectoryUtil.fromPathweaverJson(Filesystem.getDeployDirectory().toPath().resolve("paths/RedTop.wpilib.json"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
     public void robotPeriodic() {
         String val = HPSelector.get();
@@ -269,7 +296,8 @@ public class RobotContainer {
     public void disabledPeriodic() {}
     public void disabledExit() {}
 
-    public void autonomousInit() {}
+    public void autonomousInit() {
+    }
     public void autonomousPeriodic() {}
     public void autonomousExit() {}
 

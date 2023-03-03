@@ -93,17 +93,31 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
     TURRET_GEAR_RATIO_OVERALL = 27 * 3.09523809524, // Ratio Example a 9:1 would be 9
     TURRET_HOME_ANGLE = 2.394019735, // Angle in radians where 0 is straight forward and positive is counter clockwise.
 
-    ARM_JOINT_1_LEADSCREW_HOME_LENGTH = 0.2635, // Length in meters
+    // ARM_JOINT_1_LEADSCREW_HOME_LENGTH = 0.2635, // Length in meters
+    // ARM_JOINT_1_PIVOT_TO_MOTOR_LENGTH = 0.1016, // Length in meters
+    // ARM_JOINT_1_PIVOT_TO_LEADSCREW_LENGTH = 0.2270125, // Length in meters
+    // ARM_JOINT_1_PIVOT_TO_MOTOR_HORIZONTAL_ANGLE_OFFSET = Math.toRadians(14.8) - 0.11472846, // Angle in radians
+    // ARM_JOINT_1_MOTOR_GEAR_RATIO = 9, // Ratio Example a 9:1 gear ratio would be 9
+    // ARM_JOINT_1_LEADSCREW_PITCH = 0.00635, // Length in meters. The distance the lead screw moves per revolution
+
+    // ARM_JOINT_2_LEADSCREW_HOME_LENGTH = 0.422275, // Length in meters
+    // ARM_JOINT_2_PIVOT_TO_MOTOR_LENGTH = 0.3360166, // Length in meters
+    // ARM_JOINT_2_PIVOT_TO_LEADSCREW_LENGTH = 0.0999998, // Length in meters
+    // ARM_JOINT_2_PIVOT_TO_MOTOR_VERTICAL_ANGLE_OFFSET = Math.toRadians(15.4) + 0.05184132679, // Angle in radians
+    // ARM_JOINT_2_MOTOR_GEAR_RATIO = 5, // Ratio Example a 9:1 gear ratio would be 9
+    // ARM_JOINT_2_LEADSCREW_PITCH = 0.00635, // Length in meters. The distance the lead screw moves per revolution
+
+    ARM_JOINT_1_LEADSCREW_HOME_LENGTH = 0.263652, // Length in meters
     ARM_JOINT_1_PIVOT_TO_MOTOR_LENGTH = 0.1016, // Length in meters
     ARM_JOINT_1_PIVOT_TO_LEADSCREW_LENGTH = 0.2270125, // Length in meters
-    ARM_JOINT_1_PIVOT_TO_MOTOR_HORIZONTAL_ANGLE_OFFSET = Math.toRadians(14.8) - 0.11472846, // Angle in radians
+    ARM_JOINT_1_PIVOT_TO_MOTOR_HORIZONTAL_ANGLE_OFFSET = Math.toRadians(14.8) - 0.119848, // Angle in radians
     ARM_JOINT_1_MOTOR_GEAR_RATIO = 9, // Ratio Example a 9:1 gear ratio would be 9
     ARM_JOINT_1_LEADSCREW_PITCH = 0.00635, // Length in meters. The distance the lead screw moves per revolution
 
     ARM_JOINT_2_LEADSCREW_HOME_LENGTH = 0.422275, // Length in meters
-    ARM_JOINT_2_PIVOT_TO_MOTOR_LENGTH = 0.3360166, // Length in meters
-    ARM_JOINT_2_PIVOT_TO_LEADSCREW_LENGTH = 0.0999998, // Length in meters
-    ARM_JOINT_2_PIVOT_TO_MOTOR_VERTICAL_ANGLE_OFFSET = Math.toRadians(15.4) + 0.05184132679, // Angle in radians
+    ARM_JOINT_2_PIVOT_TO_MOTOR_LENGTH = 0.33655, // Length in meters
+    ARM_JOINT_2_PIVOT_TO_LEADSCREW_LENGTH = 0.1016, // Length in meters
+    ARM_JOINT_2_PIVOT_TO_MOTOR_VERTICAL_ANGLE_OFFSET = Math.toRadians(15.4), // Angle in radians
     ARM_JOINT_2_MOTOR_GEAR_RATIO = 5, // Ratio Example a 9:1 gear ratio would be 9
     ARM_JOINT_2_LEADSCREW_PITCH = 0.00635, // Length in meters. The distance the lead screw moves per revolution
 
@@ -116,7 +130,7 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
     LIDAR_CLAMP_NEAR = 60,
     LIDAR_CLAMP_FAR = 70,
     
-    MAX_DISTANCE = 1.4732,
+    MAX_DISTANCE = 1.4732 - 0.51 + 0.0508,
     MAX_HEIGHT = 1.905;
 
     private static boolean distanceCheck = true;
@@ -540,6 +554,8 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
     return out;
   }
 
+  public boolean setSoftLimits = false; 
+
   @Override
   public void periodic() {
     this.currentConfiguration = 
@@ -552,7 +568,8 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
         POSITION_TYPE.ENCODER_ROTATIONS
       );
 
-      if (distanceCheck && !this.currentConfiguration.withinDistance()) {
+      if (!setSoftLimits && distanceCheck && !this.currentConfiguration.withinDistance()) {
+        setSoftLimits = true;
         turretMotor.setSoftLimit(SoftLimitDirection.kForward, -100000);
         turretMotor.setSoftLimit(SoftLimitDirection.kReverse, 1000000);
 
@@ -564,10 +581,8 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
 
         joint3Motor.setSoftLimit(SoftLimitDirection.kForward, -100000);
         joint3Motor.setSoftLimit(SoftLimitDirection.kReverse, 1000000);
-
-        wristMotor.setSoftLimit(SoftLimitDirection.kForward, -100000);
-        wristMotor.setSoftLimit(SoftLimitDirection.kReverse, 1000000);
-      } else {
+      } else if (setSoftLimits && !(distanceCheck && !this.currentConfiguration.withinDistance())) {
+        setSoftLimits = false;
         turretMotor.setSoftLimit(SoftLimitDirection.kForward, ARM_TURRET_FORWARD_SOFT_LIMIT);
         turretMotor.setSoftLimit(SoftLimitDirection.kReverse, ARM_TURRET_REVERSE_SOFT_LIMIT);
 
@@ -579,9 +594,6 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
 
         joint3Motor.setSoftLimit(SoftLimitDirection.kForward, ARM_JOINT_3_FORWARD_SOFT_LIMIT);
         joint3Motor.setSoftLimit(SoftLimitDirection.kReverse, ARM_JOINT_3_REVERSE_SOFT_LIMIT);
-
-        wristMotor.setSoftLimit(SoftLimitDirection.kForward, ARM_WRIST_FORWARD_SOFT_LIMIT);
-        wristMotor.setSoftLimit(SoftLimitDirection.kReverse, ARM_WRIST_REVERSE_SOFT_LIMIT);
       }
     }
 

@@ -65,8 +65,8 @@ public class Drivetrain extends SubsystemBase implements Testable, Loggable {
         WHEEL_CIRCUMFERENCE_IN_METERS = (2 * WHEEL_RADIUS_IN_METERS) * Math.PI,
         MAX_OUTPUT_VOLTAGE = 11,
         DRIVE_WIDTH = -0.64135,
-        SPLINE_MAX_VEL_MPS_HIGH = 0.75, // MAX:
-        SPLINE_MAX_ACC_MPSSQ_HIGH = 0.75, // MAX :
+        SPLINE_MAX_VEL_MPS_HIGH = 3, // MAX:
+        SPLINE_MAX_ACC_MPSSQ_HIGH = 3, // MAX :
         NO_FAULT_CODE = 0;
 
     public static final double
@@ -112,7 +112,7 @@ public class Drivetrain extends SubsystemBase implements Testable, Loggable {
 
     private final DifferentialDrivePoseEstimator poseEstimator;
 
-    private final AHRS gyro;
+    public final AHRS gyro;
 
     public static DifferentialDriveKinematics DriveKinimatics =
         new DifferentialDriveKinematics(DRIVE_WIDTH);

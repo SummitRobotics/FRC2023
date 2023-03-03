@@ -19,9 +19,9 @@ public class ChargeStationBalance extends CommandBase {
 
     private boolean isAtPlatform;
 
-    public ChargeStationBalance(Drivetrain drivetrain, AHRS gyro) {
+    public ChargeStationBalance(Drivetrain drivetrain) {
         this.drivetrain = drivetrain;
-        this.gyro = gyro;
+        this.gyro = drivetrain.gyro;
         this.controller = new PIDController(P, I, D);
 
         isAtPlatform = false;
