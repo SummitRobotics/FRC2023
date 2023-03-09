@@ -13,10 +13,10 @@ public final class FieldElementPositions {
 
     // values of game elements placed at double substations
     public static final Translation3d
-        BLUE_LEFT_SUBSTATION = new Translation3d(16.273, 7.545, 1.07),
-        BLUE_RIGHT_SUBSTATION = new Translation3d(16.273, 6.092, 1.07),
-        RED_LEFT_SUBSTATION = new Translation3d(0.274, 6.092, 1.07),
-        RED_RIGHT_SUBSTATION = new Translation3d(0.274, 7.545, 1.07);
+        BLUE_LEFT_SUBSTATION = new Translation3d(16.303, 7.412, 1.07),
+        BLUE_RIGHT_SUBSTATION = new Translation3d(16.303, 6.112, 1.07),
+        RED_LEFT_SUBSTATION = new Translation3d(0.285, 6.112, 1.07),
+        RED_RIGHT_SUBSTATION = new Translation3d(0.285, 7.412, 1.07);
 
     // points to drive to for accessing double substation
     public static final Pose2d
@@ -71,5 +71,5 @@ public final class FieldElementPositions {
         BLUE_Z_VALUES = {0.3, 1.1414, 1.35},
         RED_X_VALUES = {15.395, 15.737, 16.149},
         RED_Y_VALUES = {0.40, 1.041, 1.615, 2.184, 2.737, 3.295, 3.870, 4.417, 4.986},
-        RED_Z_VALUES = {0.3, 1.1414, 1.35};
+        RED_Z_VALUES = {0.3, 1.17, 1.35};
 }

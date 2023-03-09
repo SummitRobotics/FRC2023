@@ -5,7 +5,6 @@
 package frc.robot;
 
 import java.io.IOException;
-import java.nio.file.Path;
 
 import org.photonvision.PhotonCamera;
 
@@ -35,13 +34,17 @@ import frc.robot.commands.arm.MoveArmUnsafe;
 import frc.robot.commands.arm.MovePositionsLaunchpad;
 import frc.robot.commands.arm.MoveToPickupSubstation;
 import frc.robot.commands.auto.ArmOutOfStart;
-import frc.robot.commands.auto.Auto;
+import frc.robot.commands.auto.AutoPlace;
+import frc.robot.commands.auto.MoveNBalance;
+import frc.robot.commands.auto.MoveNPlace;
 import frc.robot.commands.drivetrain.ArcadeDrive;
+import frc.robot.commands.drivetrain.BackwardsBalance;
 import frc.robot.commands.drivetrain.ChargeStationBalance;
 import frc.robot.commands.drivetrain.MoveToElement;
+import frc.robot.commands.drivetrain.EncoderDrive;
+import frc.robot.commands.drivetrain.OverStationAndBallance;
 import frc.robot.devices.AprilTagCameraWrapper;
 import frc.robot.devices.Lidar;
-import frc.robot.devices.LidarTest;
 import frc.robot.devices.LidarV3;
 import frc.robot.devices.PCM;
 import frc.robot.devices.LEDs.LEDCalls;
@@ -95,7 +98,7 @@ public class RobotContainer {
 
     private AprilTagCameraWrapper backLeft;
     private AprilTagCameraWrapper backRight;
-    private AprilTagCameraWrapper front;
+    // private AprilTagCameraWrapper front;
 
     private PhotonCamera QuorbCamera;
 
@@ -134,7 +137,7 @@ public class RobotContainer {
 
         backLeft = new AprilTagCameraWrapper("backLeft", new Transform3d(new Translation3d(-0.3302,0.307137,0.235153), new Rotation3d(0,Math.toRadians(-25.3), Math.toRadians(90))));  //68.7
         backRight = new AprilTagCameraWrapper("backRight", new Transform3d(new Translation3d(-0.3302,-0.307137,0.235153), new Rotation3d(0,Math.toRadians(-25.3), Math.toRadians(-90))));  //68.7
-        front = new AprilTagCameraWrapper("front", new Transform3d(new Translation3d(0.3683,0.2159,0.24765), new Rotation3d(0,Math.toRadians(-15), 0)));  //68.7
+        // front = new AprilTagCameraWrapper("front", new Transform3d(new Translation3d(0.3683,0.2159,0.24765), new Rotation3d(0,Math.toRadians(-15), 0)));  //68.7
 
         QuorbCamera = new PhotonCamera("QurobGribber");
 
@@ -150,7 +153,7 @@ public class RobotContainer {
 
     private void createCommands() {
         arcadeDrive = new ArcadeDrive(drivetrain, driverXBox.rightTrigger, driverXBox.leftTrigger, driverXBox.leftX, driverXBox.buttonY);
-        balance = new ChargeStationBalance(drivetrain);
+        balance = new BackwardsBalance(drivetrain);
 
         turretManual = new FullManualArm(arm, FullManualArm.Type.TURRET, gunnerXBox);
         joint1Manual = new FullManualArm(arm, FullManualArm.Type.JOINT_1, gunnerXBox);
@@ -160,7 +163,7 @@ public class RobotContainer {
         fancyArmMo = new ArmMO(arm, gunnerXBox, launchpad);
 
         homeArm = new SequentialCommandGroup(
-            new Home(gunnerXBox.buttonB.getTrigger()::getAsBoolean, arm.getHomeables()[4]), new Home(arm.getHomeables()[3]),
+            new Home(arm.getHomeables()[3]),
             new ParallelCommandGroup(new TimedMoveMotor(arm::setWristMotorVoltage, -12, 0.25), new TimedMoveMotor(arm::setJoint3MotorVoltage, -3, 0.25)),
             new Home(arm.getHomeables()[2], arm.getHomeables()[1]),
             new ParallelCommandGroup(new TimedMoveMotor(arm::setJoint1MotorVoltage, 2, 0.2), new TimedMoveMotor(arm::setJoint2MotorVoltage, 2, 0.2)), new Home(gunnerXBox.buttonB.getTrigger()::getAsBoolean, arm.getHomeables()[0]),
@@ -248,18 +251,27 @@ public class RobotContainer {
 
 
     public void createAutoCommands() {
-        ShuffleboardDriver.autoChooser.setDefaultOption("Hove Out of Starting Config", new ArmOutOfStart(arm));
-        ShuffleboardDriver.autoChooser.addOption("Move Arm Test",
+        ShuffleboardDriver.autoChooser.setDefaultOption("Move", new ParallelCommandGroup(
             new SequentialCommandGroup(
+                new ArmOutOfStart(arm),
+                new MoveArmUnsafe(arm, ARM_POSITION.HOME)
+            ),
+            new EncoderDrive(1.5, 1.5, drivetrain)
+        ));
+        ShuffleboardDriver.autoChooser.addOption("Hove Out of Starting Config", new ArmOutOfStart(arm));
+        ShuffleboardDriver.autoChooser.addOption("Just Place", new AutoPlace(arm, drivetrain));
+        ShuffleboardDriver.autoChooser.addOption("MoveNPlace", new MoveNPlace(drivetrain, arm));
+        ShuffleboardDriver.autoChooser.addOption("Forward Balance", new SequentialCommandGroup(
             new ArmOutOfStart(arm),
-            new MoveArmUnsafe(arm, ARM_POSITION.RIGHT_HIGH)
-            ));
-        ShuffleboardDriver.autoChooser.addOption("Blue Low", new Auto(arm, drivetrain, blueLow, false));
-        ShuffleboardDriver.autoChooser.addOption("Blue Mid", new Auto(arm, drivetrain, blueMid, true));
-        ShuffleboardDriver.autoChooser.addOption("Blue High", new Auto(arm, drivetrain, blueHigh, false));
-        ShuffleboardDriver.autoChooser.addOption("Red Low", new Auto(arm, drivetrain, redLow, false));
-        ShuffleboardDriver.autoChooser.addOption("Red Mid", new Auto(arm, drivetrain, redMid, true));
-        ShuffleboardDriver.autoChooser.addOption("Red High", new Auto(arm, drivetrain, redHigh, false));
+            new ChargeStationBalance(drivetrain)
+        ));
+        ShuffleboardDriver.autoChooser.addOption("Backward Balance", new SequentialCommandGroup(
+            new ArmOutOfStart(arm),
+            new BackwardsBalance(drivetrain)
+        ));
+        ShuffleboardDriver.autoChooser.addOption("MoveNBal", new MoveNBalance(drivetrain, arm));
+        ShuffleboardDriver.autoChooser.addOption("drive over and balance", new OverStationAndBallance(arm, drivetrain));
+
     }
 
     public Command getAutonomousCommand() {
@@ -310,15 +322,14 @@ public class RobotContainer {
     public void autonomousExit() {}
 
     public void teleopInit() {
-        front.forceDisableDriverMode();
+        // front.forceDisableDriverMode();
         backRight.forceDisableDriverMode();
         backLeft.forceDisableDriverMode();
-        drivetrain.addVisionCamera(front);
+        // drivetrain.addVisionCamera(front);
         drivetrain.addVisionCamera(backRight);
         drivetrain.addVisionCamera(backLeft);
     }
     public void teleopPeriodic() {
-        // System.out.println(gripperLidar.getAverageDistance());
     }
     public void teleopExit() {}
 

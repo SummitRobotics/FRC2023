@@ -3,6 +3,7 @@ package frc.robot.commands;
 import java.util.function.DoubleConsumer;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.CommandBase;
+import edu.wpi.first.wpilibj2.command.Subsystem;
 
 public class TimedMoveMotor extends CommandBase {
 
@@ -16,6 +17,15 @@ public class TimedMoveMotor extends CommandBase {
         this.power = power;
         this.seconds = seconds;
         this.timer = new Timer();
+    }
+
+    public TimedMoveMotor(DoubleConsumer powerSetter, double power, double seconds, Subsystem... requirements) {
+        this.powerSetter = powerSetter;
+        this.power = power;
+        this.seconds = seconds;
+        this.timer = new Timer();
+
+        addRequirements(requirements);
     }
 
     @Override

@@ -85,8 +85,10 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
     ARM_JOINT_2_REVERSE_SOFT_LIMIT = 1,
     ARM_JOINT_3_FORWARD_SOFT_LIMIT = -10,
     ARM_JOINT_3_REVERSE_SOFT_LIMIT = -175,
-    ARM_WRIST_FORWARD_SOFT_LIMIT = -6,
-    ARM_WRIST_REVERSE_SOFT_LIMIT = -100;
+    ARM_WRIST_FORWARD_SOFT_LIMIT = -100000,
+    ARM_WRIST_REVERSE_SOFT_LIMIT = 1000000;
+    // ARM_WRIST_FORWARD_SOFT_LIMIT = -6,
+    // ARM_WRIST_REVERSE_SOFT_LIMIT = -100;
 
     public static final double
 
@@ -284,7 +286,7 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
       motor.setPeriodicFramePeriod(PeriodicFrame.kStatus6, 65529);
     }
 
-    setEncoderToPosition(ARM_POSITION.STARTING_CONFIG);
+    // setEncoderToPosition(ARM_POSITION.STARTING_CONFIG);
   }
 
   /**
@@ -503,7 +505,7 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
       new HomeableCANSparkMax(joint1Motor, this, -0.1, 30.0, ARM_JOINT_1_FORWARD_SOFT_LIMIT, ARM_JOINT_1_REVERSE_SOFT_LIMIT, 0),
       new HomeableCANSparkMax(joint2Motor, this, -0.1, 30.0, ARM_JOINT_2_FORWARD_SOFT_LIMIT, ARM_JOINT_2_REVERSE_SOFT_LIMIT, 0),
       new HomeableCANSparkMax(joint3Motor, this, 0.1, 10.0, ARM_JOINT_3_FORWARD_SOFT_LIMIT, ARM_JOINT_3_REVERSE_SOFT_LIMIT, 0),
-      new HomeableCANSparkMax(wristMotor, this, 0.08, 4.5, ARM_WRIST_FORWARD_SOFT_LIMIT, ARM_WRIST_REVERSE_SOFT_LIMIT, 0)
+      // new HomeableCANSparkMax(wristMotor, this, 0.08, 4.5, ARM_WRIST_FORWARD_SOFT_LIMIT, ARM_WRIST_REVERSE_SOFT_LIMIT, 0)
     };
   }
 
@@ -622,8 +624,8 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
   }
 
   public void setWristSoftLimit(boolean enable) {
-    wristMotor.enableSoftLimit(SoftLimitDirection.kForward, enable);
-    wristMotor.enableSoftLimit(SoftLimitDirection.kReverse, enable);
+    // wristMotor.enableSoftLimit(SoftLimitDirection.kForward, enable);
+    // wristMotor.enableSoftLimit(SoftLimitDirection.kReverse, enable);
   }
 
   public void setAllSoftLimit(boolean enable) {
