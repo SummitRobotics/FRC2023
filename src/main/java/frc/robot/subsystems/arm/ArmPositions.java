@@ -4,7 +4,7 @@ public class ArmPositions {
     public static enum ARM_POSITION {
         MIDDLE_LOW(31.59497,98.004,28.547,-23.92842,-46.7615),
         MIDDLE_MEDIUM(31.59497,63.2326,81.40302, -63.9060,-46.7615),
-        MIDDLE_HIGH(31.59497,136.521,141.306,-91.614,-46.7615),
+        MIDDLE_HIGH(31.59497,141.99,139.14054,-56.71488,-46.7615),
 
         LEFT_LOW(34.9282/3,98.004,28.547,-23.92842,-46.7615),
         LEFT_MEDIUM(34.9282/3,63.2326,81.40302, -63.9060,-46.7615),
@@ -17,8 +17,11 @@ public class ArmPositions {
         HOME(31.45211, 39.21389, 1.40476, -23.40462, -46.73772),
         HIGH_ASPECT(32.0711, 36.8805, 93.622, -77.502, -41.09),
         STARTING_CONFIG(31.8330, 44.8804, 22.7617, -158.8284, -52.2382),
-        PRE_HOME(10,10,10,-10,-10),
-        AUTO_DROP_OFF(52.3565,114.7627,137.0931,-92.4323,-46.7615);
+        PRE_HOME(15,15,15,-15,-15),
+        AUTO_DROP_OFF(52.3565,114.7627,137.0931,-92.4323,-46.7615),
+
+        GROUND_PICKUP_SAFE(31.45211,66.9777,26.7379,-34.4758,-46.73772),
+        GROUND_PICKUP(31.45211,66.9777,26.7379,-91.9800,-46.73772);
             
         public ArmConfiguration config;
         ARM_POSITION(double turret, double joint1, double joint2, double joint3, double wrist) {

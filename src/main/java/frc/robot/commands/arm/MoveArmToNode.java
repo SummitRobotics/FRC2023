@@ -37,6 +37,8 @@ public class MoveArmToNode extends CommandBase {
   public void initialize() {
     final int value = Integer.parseInt(subscriber.get());
 
+    System.out.println(subscriber.get());
+
     System.out.println(value);
 
     final int xCoordIndex = (value - value % 10) / 10;
@@ -62,10 +64,12 @@ public class MoveArmToNode extends CommandBase {
     }
 
     if (xCoordIndex == 3) {
-      armConfiguration = ArmConfiguration.fromEndPosition(node, - (Math.PI / 8), 0);
+      armConfiguration = ArmConfiguration.fromEndPosition(node, - (Math.PI / 4), 0);
     } else {
       armConfiguration = ArmConfiguration.fromEndPosition(node, 0, 0);
     }
+
+    System.out.println(armConfiguration);
 
     arm.setToConfiguration(armConfiguration);
   }
@@ -73,7 +77,9 @@ public class MoveArmToNode extends CommandBase {
   // Called once the command ends or is interrupted.
   @Override
   public void end(boolean interrupted) {
-    arm.stop();
+    if (interrupted) {
+      arm.stop();
+    }
   }
 
   // Returns true when the command should end.

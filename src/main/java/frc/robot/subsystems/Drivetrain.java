@@ -73,7 +73,7 @@ public class Drivetrain extends SubsystemBase implements Testable, Loggable {
         HIGH_KS = 0.099848,    // Gains are in volts
         HIGH_KV = 2.4055,    // Gains are in M/s per vol
         HIGH_KA = 0.19389,    // Gains are in M/s^2 per volt
-        HIGH_P = 0,
+        HIGH_P = 0.05,
         HIGH_I = 0,
         HIGH_D = 0,
         HIGH_P_VEL = 2.1277E-7,

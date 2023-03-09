@@ -84,7 +84,9 @@ public class MoveToPickupSubstation extends CommandBase {
   public void end(boolean interrupted) {
     armConfigurationFinal = null;
     armConfigurationInit = null;
-    arm.stop();
+    if (interrupted) {
+      arm.stop();
+    }
   }
 
   // Returns true when the command should end.

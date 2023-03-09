@@ -347,25 +347,25 @@ public class ArmConfiguration {
                 if (getTurretPosition(POSITION_TYPE.ENCODER_ROTATIONS) < Arm.ARM_TURRET_REVERSE_SOFT_LIMIT || getTurretPosition(POSITION_TYPE.ENCODER_ROTATIONS) > Arm.ARM_TURRET_FORWARD_SOFT_LIMIT) {
                         return false;
                 }
-                // System.out.println("IN TURRET");
+                System.out.println("IN TURRET");
                 if (getFirstJointPosition(POSITION_TYPE.ENCODER_ROTATIONS) < Arm.ARM_JOINT_1_REVERSE_SOFT_LIMIT
                                 || getFirstJointPosition(POSITION_TYPE.ENCODER_ROTATIONS) > Arm.ARM_JOINT_1_FORWARD_SOFT_LIMIT) {
                         return false;
                 }
-                // System.out.println("IN FIRST");
+                System.out.println("IN FIRST");
                 if (getSecondJointPosition(POSITION_TYPE.ENCODER_ROTATIONS) < Arm.ARM_JOINT_2_REVERSE_SOFT_LIMIT
                                 || getSecondJointPosition(POSITION_TYPE.ENCODER_ROTATIONS) > Arm.ARM_JOINT_2_FORWARD_SOFT_LIMIT) {
                         return false;
                 }
-                // System.out.println("IN SECOND");
+                System.out.println("IN SECOND");
                 if (getThirdJointPosition(POSITION_TYPE.ENCODER_ROTATIONS) < Arm.ARM_JOINT_3_REVERSE_SOFT_LIMIT
                                 || getThirdJointPosition(POSITION_TYPE.ENCODER_ROTATIONS) > Arm.ARM_JOINT_3_FORWARD_SOFT_LIMIT) {
                         return false;
                 }
-                // System.out.println("IN THIRD");
-                if (getWristPosition(POSITION_TYPE.ENCODER_ROTATIONS) < Arm.ARM_WRIST_REVERSE_SOFT_LIMIT || getWristPosition(POSITION_TYPE.ENCODER_ROTATIONS) > Arm.ARM_WRIST_FORWARD_SOFT_LIMIT) {
-                        return false;
-                }
+                System.out.println("IN THIRD");
+                // if (getWristPosition(POSITION_TYPE.ENCODER_ROTATIONS) < Arm.ARM_WRIST_REVERSE_SOFT_LIMIT || getWristPosition(POSITION_TYPE.ENCODER_ROTATIONS) > Arm.ARM_WRIST_FORWARD_SOFT_LIMIT) {
+                //         return false;
+                // }
                 // System.out.println("IN WRIST");
 
                 if (Double.isNaN(getTurretPosition(POSITION_TYPE.ENCODER_ROTATIONS))) {
@@ -384,9 +384,9 @@ public class ArmConfiguration {
                         return false;
                 }
 
-                if (Double.isNaN(getWristPosition(POSITION_TYPE.ENCODER_ROTATIONS))) {
-                        return false;
-                }
+                // if (Double.isNaN(getWristPosition(POSITION_TYPE.ENCODER_ROTATIONS))) {
+                //         return false;
+                // }
                 // System.out.println("In Soft Limits");
                 if (!withinDistance()) {
                         return false;

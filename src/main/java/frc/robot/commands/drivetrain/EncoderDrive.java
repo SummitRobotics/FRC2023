@@ -49,6 +49,7 @@ public class EncoderDrive extends CommandBase {
 
     @Override
     public void initialize() {
+        drivetrain.highGear();
         drivetrain.stop();
         drivetrain.setPIDMaxPower(maximumPower);
         drivetrain.zeroDistance();

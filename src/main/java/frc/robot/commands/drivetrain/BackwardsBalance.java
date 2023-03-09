@@ -6,7 +6,7 @@ import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.utilities.Functions;
 
-public class ChargeStationBalance extends CommandBase {
+public class BackwardsBalance extends CommandBase {
 
     private final double
         P = 0.008,
@@ -19,7 +19,7 @@ public class ChargeStationBalance extends CommandBase {
 
     private boolean isAtPlatform;
 
-    public ChargeStationBalance(Drivetrain drivetrain) {
+    public BackwardsBalance(Drivetrain drivetrain) {
         this.drivetrain = drivetrain;
         this.gyro = drivetrain.gyro;
         this.controller = new PIDController(P, I, D);
@@ -32,7 +32,7 @@ public class ChargeStationBalance extends CommandBase {
     @Override
     public void initialize() {
         drivetrain.lowGear();
-        drivetrain.setBothMotorPower(0.5);
+        drivetrain.setBothMotorPower(-0.5);
         controller.reset();
         controller.setTolerance(0.1, 1);
         controller.setSetpoint(0);
@@ -40,7 +40,7 @@ public class ChargeStationBalance extends CommandBase {
 
     @Override
     public void execute() {
-        if (gyro.getRoll() < -9 && !isAtPlatform) {
+        if (gyro.getRoll() > 9 && !isAtPlatform) {
             System.out.println("HERE BALENCING");
             isAtPlatform = true;
         }
