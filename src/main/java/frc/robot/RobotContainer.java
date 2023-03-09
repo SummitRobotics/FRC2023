@@ -7,6 +7,8 @@ package frc.robot;
 import java.io.IOException;
 import java.nio.file.Path;
 
+import org.photonvision.PhotonCamera;
+
 import com.kauailabs.navx.frc.AHRS;
 
 import edu.wpi.first.math.geometry.Pose2d;
@@ -36,6 +38,7 @@ import frc.robot.commands.auto.ArmOutOfStart;
 import frc.robot.commands.auto.Auto;
 import frc.robot.commands.drivetrain.ArcadeDrive;
 import frc.robot.commands.drivetrain.ChargeStationBalance;
+import frc.robot.commands.drivetrain.MoveToElement;
 import frc.robot.devices.AprilTagCameraWrapper;
 import frc.robot.devices.Lidar;
 import frc.robot.devices.LidarTest;
@@ -94,6 +97,8 @@ public class RobotContainer {
     private AprilTagCameraWrapper backRight;
     private AprilTagCameraWrapper front;
 
+    private PhotonCamera QuorbCamera;
+
     Trajectory blueHigh;
     Trajectory redHigh;
     Trajectory blueMid;
@@ -130,6 +135,8 @@ public class RobotContainer {
         backLeft = new AprilTagCameraWrapper("backLeft", new Transform3d(new Translation3d(-0.3302,0.307137,0.235153), new Rotation3d(0,Math.toRadians(-25.3), Math.toRadians(90))));  //68.7
         backRight = new AprilTagCameraWrapper("backRight", new Transform3d(new Translation3d(-0.3302,-0.307137,0.235153), new Rotation3d(0,Math.toRadians(-25.3), Math.toRadians(-90))));  //68.7
         front = new AprilTagCameraWrapper("front", new Transform3d(new Translation3d(0.3683,0.2159,0.24765), new Rotation3d(0,Math.toRadians(-15), 0)));  //68.7
+
+        QuorbCamera = new PhotonCamera("QurobGribber");
 
         createCommands();
         createAutoCommands();
@@ -194,7 +201,8 @@ public class RobotContainer {
 
         driverXBox.buttonX.getTrigger().whileTrue(new MoveArmToNode(arm));
 
-        launchpad.missileA.getTrigger().whileTrue(balance);
+        // launchpad.missileA.getTrigger().whileTrue(balance);
+        launchpad.missileA.getTrigger().whileTrue(new MoveToElement(drivetrain, QuorbCamera, QuorbCamera));
         launchpad.missileB.getTrigger().whileTrue(new StartEndCommand(() -> arm.setAllSoftLimit(false), () -> arm.setAllSoftLimit(true)));
         
         gunnerXBox.buttonY.getTrigger().whileTrue(new MoveArmUnsafe(arm, ARM_POSITION.HOME));
