@@ -39,7 +39,9 @@ public final class Ports {
             JOINT_2 = 22,
             JOINT_3 = 23,
             WRIST = 24,
-            CLAMP_SOLENOID = 1;
+            CLAMP_SOLENOID = 1,
+            // TODO - add port for intake motor
+            INTAKE_MOTOR = 0;
     }
     
     public static final class Intake {
