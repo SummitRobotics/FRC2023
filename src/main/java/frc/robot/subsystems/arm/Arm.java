@@ -615,4 +615,14 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
   public void setEncoderToPosition(ArmPositions.ARM_POSITION position) {
     setEncoderToPosition(position.config);
   }
+
+  public void recalibrate() {
+    ArmConfiguration config = new ArmConfiguration(
+      (turretAbsoluteEncoder.getAbsolutePosition() / 4) + 0.0,
+      joint1AbsoluteEncoder.getAbsolutePosition() + 0.0,
+      joint2AbsoluteEncoder.getAbsolutePosition() + 0.0,
+      joint3AbsoluteEncoder.getAbsolutePosition() + 0.0,
+      POSITION_TYPE.ANGLE);
+    setEncoderToPosition(config);
+  }
 }

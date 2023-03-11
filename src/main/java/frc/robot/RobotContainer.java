@@ -292,6 +292,7 @@ public class RobotContainer {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        arm.recalibrate();
     }
     public void robotPeriodic() {
         String val = HPSelector.get();

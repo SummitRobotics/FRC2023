@@ -20,16 +20,8 @@ public class ArmOutOfStart extends SequentialCommandGroup {
   /** Creates a new ArmOutOfStart. */
   public ArmOutOfStart(Arm arm) {
     addCommands(
-    new InstantCommand(() -> arm.setEncoderToPosition(ARM_POSITION.STARTING_CONFIG)),
-    new TimedMoveMotor(arm::setJoint2MotorVoltage, 10, 1),
-    new MoveArmUnsafe(arm, ARM_POSITION.PRE_HOME, true),
-    new Home(arm),
-    new ParallelCommandGroup(
-        new TimedMoveMotor(arm::setJoint3MotorVoltage, -5, 0.2),
-        new TimedMoveMotor(arm::setJoint1MotorVoltage, 5, 0.1),
-        new TimedMoveMotor(arm::setJoint2MotorVoltage, 5, 0.1),
-        new TimedMoveMotor(arm::setTurretMotorVoltage, 5, 0.1)
-    )
+    new InstantCommand(arm::recalibrate),
+    new TimedMoveMotor(arm::setJoint2MotorVoltage, 10, 1)
     );
   }
 }
