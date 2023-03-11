@@ -28,6 +28,7 @@ import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.StartEndCommand;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.commands.arm.ArmMO;
+import frc.robot.commands.arm.DefaultArmCommand;
 import frc.robot.commands.arm.FullManualArm;
 import frc.robot.commands.arm.MoveArmToNode;
 import frc.robot.commands.arm.MoveArmUnsafe;
@@ -37,12 +38,15 @@ import frc.robot.commands.auto.ArmOutOfStart;
 import frc.robot.commands.auto.AutoPlace;
 import frc.robot.commands.auto.MoveNBalance;
 import frc.robot.commands.auto.MoveNPlace;
+import frc.robot.commands.automovements.AutoPickup;
 import frc.robot.commands.drivetrain.ArcadeDrive;
 import frc.robot.commands.drivetrain.BackwardsBalance;
 import frc.robot.commands.drivetrain.ChargeStationBalance;
 import frc.robot.commands.drivetrain.MoveToElement;
 import frc.robot.commands.drivetrain.EncoderDrive;
 import frc.robot.commands.drivetrain.OverStationAndBalance;
+import frc.robot.commands.drivetrain.MeasureSpinSpin;
+import frc.robot.commands.drivetrain.SpinSpin;
 import frc.robot.devices.AprilTagCameraWrapper;
 import frc.robot.devices.Lidar;
 import frc.robot.devices.LidarV3;
@@ -95,8 +99,8 @@ public class RobotContainer {
 
     private boolean altMode = false;
 
-    private AprilTagCameraWrapper backLeft;
-    private AprilTagCameraWrapper backRight;
+    // private AprilTagCameraWrapper backLeft;
+    // private AprilTagCameraWrapper backRight;
     // private AprilTagCameraWrapper front;
 
     private PhotonCamera QuorbCamera;
@@ -134,8 +138,8 @@ public class RobotContainer {
         // backLeft = new AprilTagCameraWrapper("backLeft", new Transform3d(new Translation3d(-0.3175,0.307137,0.231978+0.003175), new Rotation3d(basis, backLeftVec)));   //68.7
         // backRight = new AprilTagCameraWrapper("backRight", new Transform3d(new Translation3d(-0.3175,-0.307137,0.231978+0.003175), new Rotation3d(basis, backRightVec)));  //68.7
 
-        backLeft = new AprilTagCameraWrapper("backLeft", new Transform3d(new Translation3d(-0.3302,0.307137,0.235153), new Rotation3d(0,Math.toRadians(-25.3), Math.toRadians(90))));  //68.7
-        backRight = new AprilTagCameraWrapper("backRight", new Transform3d(new Translation3d(-0.3302,-0.307137,0.235153), new Rotation3d(0,Math.toRadians(-25.3), Math.toRadians(-90))));  //68.7
+        // backLeft = new AprilTagCameraWrapper("backLeft", new Transform3d(new Translation3d(-0.3302,0.307137,0.235153), new Rotation3d(0,Math.toRadians(-25.3), Math.toRadians(90))));  //68.7
+        // backRight = new AprilTagCameraWrapper("backRight", new Transform3d(new Translation3d(-0.3302,-0.307137,0.235153), new Rotation3d(0,Math.toRadians(-25.3), Math.toRadians(-90))));  //68.7
         // front = new AprilTagCameraWrapper("front", new Transform3d(new Translation3d(0.3683,0.2159,0.24765), new Rotation3d(0,Math.toRadians(-15), 0)));  //68.7
 
         QuorbCamera = new PhotonCamera("QurobGribber");
@@ -203,7 +207,8 @@ public class RobotContainer {
         driverXBox.buttonX.getTrigger().whileTrue(new MoveArmToNode(arm));
 
         // launchpad.missileA.getTrigger().whileTrue(balance);
-        launchpad.missileA.getTrigger().whileTrue(new MoveToElement(drivetrain, QuorbCamera, QuorbCamera));
+        // launchpad.missileA.getTrigger().whileTrue(new AutoPickup(drivetrain, arm, QuorbCamera, QuorbCamera));
+        launchpad.missileA.getTrigger().whileTrue(new MeasureSpinSpin(drivetrain, 0.05, 0.75, 0.025));
         launchpad.missileB.getTrigger().whileTrue(new StartEndCommand(() -> arm.setAllSoftLimit(false), () -> arm.setAllSoftLimit(true)));
         
         gunnerXBox.buttonY.getTrigger().whileTrue(new MoveArmUnsafe(arm, ARM_POSITION.HOME));
@@ -234,6 +239,7 @@ public class RobotContainer {
 
     private void setDefaultCommands() {
         drivetrain.setDefaultCommand(arcadeDrive);
+        arm.setDefaultCommand(new DefaultArmCommand(arm));
     }
 
     private void initLogging() {
@@ -321,11 +327,11 @@ public class RobotContainer {
 
     public void teleopInit() {
         // front.forceDisableDriverMode();
-        backRight.forceDisableDriverMode();
-        backLeft.forceDisableDriverMode();
+        // backRight.forceDisableDriverMode();
+        // backLeft.forceDisableDriverMode();
         // drivetrain.addVisionCamera(front);
-        drivetrain.addVisionCamera(backRight);
-        drivetrain.addVisionCamera(backLeft);
+        // drivetrain.addVisionCamera(backRight);
+        // drivetrain.addVisionCamera(backLeft);
     }
     public void teleopPeriodic() {
     }

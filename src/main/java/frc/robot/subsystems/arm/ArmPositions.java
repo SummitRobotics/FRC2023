@@ -20,8 +20,8 @@ public class ArmPositions {
         PRE_HOME(15,15,15,-15,-15),
         AUTO_DROP_OFF(52.3565,114.7627,137.0931,-92.4323,-46.7615),
 
-        GROUND_PICKUP_SAFE(31.45211,66.9777,26.7379,-34.4758,-46.73772),
-        GROUND_PICKUP(31.45211,66.9777,26.7379,-91.9800,-46.73772);
+        GROUND_PICKUP_SAFE(31.45211,39.21389,13.357,-23.40462,-46.73772),
+        GROUND_PICKUP(31.45211,95.408,13.357,-35.333,-46.73772);
             
         public ArmConfiguration config;
         ARM_POSITION(double turret, double joint1, double joint2, double joint3, double wrist) {
