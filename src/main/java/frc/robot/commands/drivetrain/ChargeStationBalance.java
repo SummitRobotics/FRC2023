@@ -41,7 +41,7 @@ public class ChargeStationBalance extends CommandBase {
     @Override
     public void execute() {
         if (gyro.getRoll() < -9 && !isAtPlatform) {
-            System.out.println("HERE BALENCING");
+            System.out.println("HERE BALANCING");
             isAtPlatform = true;
         }
 

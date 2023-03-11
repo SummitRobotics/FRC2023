@@ -13,8 +13,7 @@ public class FullManualArm extends CommandBase {
         TURRET,
         JOINT_1,
         JOINT_2,
-        JOINT_3,
-        WRIST
+        JOINT_3
     }
 
     Arm arm;
@@ -43,8 +42,6 @@ public class FullManualArm extends CommandBase {
             // arm.setSecondJointSoftLimit(false);
         } else if (type == Type.JOINT_3) {
             // arm.setThirdJointSoftLimit(false);
-        } else if (type == Type.WRIST) {
-            // arm.setWristSoftLimit(false);
         }
         LEDCalls.MO.activate();
     }
@@ -59,8 +56,6 @@ public class FullManualArm extends CommandBase {
             arm.setJoint2MotorVoltage(12 * leftTriggerAxis.get() - 12 * rightTriggerAxis.get());
         } else if (type == Type.JOINT_3) {
             arm.setJoint3MotorVoltage(12 * leftTriggerAxis.get() - 12 * rightTriggerAxis.get());
-        } else if (type == Type.WRIST) {
-            arm.setWristMotorVoltage(12 * leftTriggerAxis.get() - 12 * rightTriggerAxis.get());
         }
     }
 
@@ -80,9 +75,6 @@ public class FullManualArm extends CommandBase {
         } else if (type == Type.JOINT_3) {
             arm.setJoint3MotorVoltage(0);
             // arm.setThirdJointSoftLimit(true);
-        } else if (type == Type.WRIST) {
-            arm.setWristMotorVoltage(0);
-            // arm.setWristSoftLimit(true);
         }
         LEDCalls.MO.cancel();
     }

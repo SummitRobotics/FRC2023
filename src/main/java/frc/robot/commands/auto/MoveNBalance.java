@@ -24,11 +24,11 @@ public class MoveNBalance extends SequentialCommandGroup {
     addCommands(
       new InstantCommand(drivetrain::highGear),
       new ParallelCommandGroup(
-        new EncoderDrive(-0.5, -0.5, drivetrain),
+        new EncoderDrive(-0.5, drivetrain),
         new ArmOutOfStart(arm)
       ),
       new ParallelCommandGroup(
-        new EncoderDrive(0.5, 0.5, drivetrain),
+        new EncoderDrive(0.5, drivetrain),
         new SequentialCommandGroup(
           new MoveArmUnsafe(arm, ARM_POSITION.MIDDLE_HIGH),
           new WaitCommand(0.5)

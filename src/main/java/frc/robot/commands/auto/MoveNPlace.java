@@ -9,7 +9,6 @@ import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.commands.arm.MoveArmUnsafe;
-import frc.robot.commands.drivetrain.DriveByTime;
 import frc.robot.commands.drivetrain.EncoderDrive;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.arm.Arm;
@@ -24,11 +23,11 @@ public class MoveNPlace extends SequentialCommandGroup {
     addCommands(
       new InstantCommand(drivetrain::highGear),
       new ParallelCommandGroup(
-        new EncoderDrive(-0.75, -0.75, drivetrain),
+        new EncoderDrive(-0.75, drivetrain),
         new ArmOutOfStart(arm)
       ),
       new ParallelCommandGroup(
-        new EncoderDrive(0.75, 0.75, drivetrain),
+        new EncoderDrive(0.75, drivetrain),
         new SequentialCommandGroup(
           new MoveArmUnsafe(arm, ARM_POSITION.MIDDLE_HIGH),
           new WaitCommand(0.5)
@@ -37,7 +36,7 @@ public class MoveNPlace extends SequentialCommandGroup {
       new InstantCommand(arm::unclamp),
       new WaitCommand(0.25),
       new ParallelCommandGroup(
-        new EncoderDrive(-4, -4, drivetrain),
+        new EncoderDrive(-4, drivetrain),
         new MoveArmUnsafe(arm, ARM_POSITION.HOME)
       )
     );

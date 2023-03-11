@@ -44,8 +44,8 @@ import frc.robot.commands.drivetrain.BackwardsBalance;
 import frc.robot.commands.drivetrain.ChargeStationBalance;
 import frc.robot.commands.drivetrain.MoveToElement;
 import frc.robot.commands.drivetrain.EncoderDrive;
+import frc.robot.commands.drivetrain.OverStationAndBalance;
 import frc.robot.commands.drivetrain.MeasureSpinSpin;
-import frc.robot.commands.drivetrain.OverStationAndBallance;
 import frc.robot.commands.drivetrain.SpinSpin;
 import frc.robot.devices.AprilTagCameraWrapper;
 import frc.robot.devices.Lidar;
@@ -83,13 +83,11 @@ public class RobotContainer {
 
     // Commands
     private Command arcadeDrive;
-    private Command balance;
 
     private Command turretManual;
     private Command joint1Manual;
     private Command joint2Manual;
     private Command joint3Manual;
-    private Command wristManual;
     private Command fancyArmMo;
 
     private Command launchPadArmSelector;
@@ -157,18 +155,16 @@ public class RobotContainer {
 
     private void createCommands() {
         arcadeDrive = new ArcadeDrive(drivetrain, driverXBox.rightTrigger, driverXBox.leftTrigger, driverXBox.leftX, driverXBox.buttonY);
-        balance = new BackwardsBalance(drivetrain);
 
         turretManual = new FullManualArm(arm, FullManualArm.Type.TURRET, gunnerXBox);
         joint1Manual = new FullManualArm(arm, FullManualArm.Type.JOINT_1, gunnerXBox);
         joint2Manual = new FullManualArm(arm, FullManualArm.Type.JOINT_2, gunnerXBox);
         joint3Manual = new FullManualArm(arm, FullManualArm.Type.JOINT_3, gunnerXBox);
-        wristManual = new FullManualArm(arm, FullManualArm.Type.WRIST, gunnerXBox);
         fancyArmMo = new ArmMO(arm, gunnerXBox, launchpad);
 
         homeArm = new SequentialCommandGroup(
             new Home(arm.getHomeables()[3]),
-            new ParallelCommandGroup(new TimedMoveMotor(arm::setWristMotorVoltage, -12, 0.25), new TimedMoveMotor(arm::setJoint3MotorVoltage, -3, 0.25)),
+            new TimedMoveMotor(arm::setJoint3MotorVoltage, -3, 0.25),
             new Home(arm.getHomeables()[2], arm.getHomeables()[1]),
             new ParallelCommandGroup(new TimedMoveMotor(arm::setJoint1MotorVoltage, 2, 0.2), new TimedMoveMotor(arm::setJoint2MotorVoltage, 2, 0.2)), new Home(gunnerXBox.buttonB.getTrigger()::getAsBoolean, arm.getHomeables()[0]),
             new TimedMoveMotor(arm::setTurretMotorVoltage, 5, 0.1), new MoveArmUnsafe(arm, ARM_POSITION.HOME)
@@ -221,7 +217,6 @@ public class RobotContainer {
         launchpad.buttonB.getTrigger().and(this::notAltMode).toggleOnTrue(joint1Manual);
         launchpad.buttonC.getTrigger().and(this::notAltMode).toggleOnTrue(turretManual);
         launchpad.buttonD.getTrigger().onTrue(new InstantCommand(arm::toggleClamp));
-        launchpad.buttonE.getTrigger().and(this::notAltMode).toggleOnTrue(wristManual);
         launchpad.buttonF.getTrigger().and(this::notAltMode).toggleOnTrue(joint3Manual);
         launchpad.buttonH.getTrigger().and(this::notAltMode).whileTrue(homeArm);
         launchpad.buttonI.getTrigger().and(this::notAltMode).toggleOnTrue(fancyArmMo);
@@ -234,7 +229,6 @@ public class RobotContainer {
         launchpad.buttonC.commandBind(turretManual);
         launchpad.buttonA.commandBind(joint2Manual);
         launchpad.buttonF.commandBind(joint3Manual);
-        launchpad.buttonE.commandBind(wristManual);
         launchpad.buttonI.commandBind(fancyArmMo);
         launchpad.buttonD.booleanSupplierBind(arm::getClampSolenoidState);
     }
@@ -262,7 +256,7 @@ public class RobotContainer {
                 new ArmOutOfStart(arm),
                 new MoveArmUnsafe(arm, ARM_POSITION.HOME)
             ),
-            new EncoderDrive(1.5, 1.5, drivetrain)
+            new EncoderDrive(1.5, drivetrain)
         ));
         ShuffleboardDriver.autoChooser.addOption("Hove Out of Starting Config", new ArmOutOfStart(arm));
         ShuffleboardDriver.autoChooser.addOption("Just Place", new AutoPlace(arm, drivetrain));
@@ -276,7 +270,7 @@ public class RobotContainer {
             new BackwardsBalance(drivetrain)
         ));
         ShuffleboardDriver.autoChooser.addOption("MoveNBal", new MoveNBalance(drivetrain, arm));
-        ShuffleboardDriver.autoChooser.addOption("drive over and balance", new OverStationAndBallance(arm, drivetrain));
+        ShuffleboardDriver.autoChooser.addOption("drive over and balance", new OverStationAndBalance(arm, drivetrain));
 
     }
 

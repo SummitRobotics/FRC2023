@@ -64,9 +64,9 @@ public class MoveArmToNode extends CommandBase {
     }
 
     if (xCoordIndex == 3) {
-      armConfiguration = ArmConfiguration.fromEndPosition(node, - (Math.PI / 4), 0);
+      armConfiguration = ArmConfiguration.fromEndPosition(node, - (Math.PI / 4));
     } else {
-      armConfiguration = ArmConfiguration.fromEndPosition(node, 0, 0);
+      armConfiguration = ArmConfiguration.fromEndPosition(node, 0);
     }
 
     System.out.println(armConfiguration);
