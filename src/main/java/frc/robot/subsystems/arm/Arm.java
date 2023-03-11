@@ -26,7 +26,6 @@ import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.devices.Lidar;
 import frc.robot.subsystems.arm.ArmConfiguration.POSITION_TYPE;
-import frc.robot.subsystems.arm.ArmPositions.ARM_POSITION;
 import frc.robot.utilities.FancyArmFeedForward;
 import frc.robot.utilities.Functions;
 import frc.robot.utilities.Loggable;

@@ -42,7 +42,7 @@ import frc.robot.commands.drivetrain.BackwardsBalance;
 import frc.robot.commands.drivetrain.ChargeStationBalance;
 import frc.robot.commands.drivetrain.MoveToElement;
 import frc.robot.commands.drivetrain.EncoderDrive;
-import frc.robot.commands.drivetrain.OverStationAndBallance;
+import frc.robot.commands.drivetrain.OverStationAndBalance;
 import frc.robot.devices.AprilTagCameraWrapper;
 import frc.robot.devices.Lidar;
 import frc.robot.devices.LidarV3;
@@ -79,7 +79,6 @@ public class RobotContainer {
 
     // Commands
     private Command arcadeDrive;
-    private Command balance;
 
     private Command turretManual;
     private Command joint1Manual;
@@ -153,7 +152,6 @@ public class RobotContainer {
 
     private void createCommands() {
         arcadeDrive = new ArcadeDrive(drivetrain, driverXBox.rightTrigger, driverXBox.leftTrigger, driverXBox.leftX, driverXBox.buttonY);
-        balance = new BackwardsBalance(drivetrain);
 
         turretManual = new FullManualArm(arm, FullManualArm.Type.TURRET, gunnerXBox);
         joint1Manual = new FullManualArm(arm, FullManualArm.Type.JOINT_1, gunnerXBox);
@@ -256,7 +254,7 @@ public class RobotContainer {
                 new ArmOutOfStart(arm),
                 new MoveArmUnsafe(arm, ARM_POSITION.HOME)
             ),
-            new EncoderDrive(1.5, 1.5, drivetrain)
+            new EncoderDrive(1.5, drivetrain)
         ));
         ShuffleboardDriver.autoChooser.addOption("Hove Out of Starting Config", new ArmOutOfStart(arm));
         ShuffleboardDriver.autoChooser.addOption("Just Place", new AutoPlace(arm, drivetrain));
@@ -270,7 +268,7 @@ public class RobotContainer {
             new BackwardsBalance(drivetrain)
         ));
         ShuffleboardDriver.autoChooser.addOption("MoveNBal", new MoveNBalance(drivetrain, arm));
-        ShuffleboardDriver.autoChooser.addOption("drive over and balance", new OverStationAndBallance(arm, drivetrain));
+        ShuffleboardDriver.autoChooser.addOption("drive over and balance", new OverStationAndBalance(arm, drivetrain));
 
     }
 
