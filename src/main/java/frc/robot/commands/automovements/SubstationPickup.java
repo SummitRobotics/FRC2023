@@ -74,7 +74,6 @@ public class SubstationPickup extends SequentialCommandGroup {
             new MoveArmUnsafe(
                 arm,
                 Positions.Pose3d.fromFieldSpace(substation),
-                0.0,
                 0.0
             ),
             new InstantCommand(() -> arm.clamp())

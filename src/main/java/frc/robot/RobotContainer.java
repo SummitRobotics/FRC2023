@@ -88,7 +88,6 @@ public class RobotContainer {
     private Command joint1Manual;
     private Command joint2Manual;
     private Command joint3Manual;
-    private Command wristManual;
     private Command fancyArmMo;
 
     private Command launchPadArmSelector;
@@ -161,12 +160,11 @@ public class RobotContainer {
         joint1Manual = new FullManualArm(arm, FullManualArm.Type.JOINT_1, gunnerXBox);
         joint2Manual = new FullManualArm(arm, FullManualArm.Type.JOINT_2, gunnerXBox);
         joint3Manual = new FullManualArm(arm, FullManualArm.Type.JOINT_3, gunnerXBox);
-        wristManual = new FullManualArm(arm, FullManualArm.Type.WRIST, gunnerXBox);
         fancyArmMo = new ArmMO(arm, gunnerXBox, launchpad);
 
         homeArm = new SequentialCommandGroup(
             new Home(arm.getHomeables()[3]),
-            new ParallelCommandGroup(new TimedMoveMotor(arm::setWristMotorVoltage, -12, 0.25), new TimedMoveMotor(arm::setJoint3MotorVoltage, -3, 0.25)),
+            new TimedMoveMotor(arm::setJoint3MotorVoltage, -3, 0.25),
             new Home(arm.getHomeables()[2], arm.getHomeables()[1]),
             new ParallelCommandGroup(new TimedMoveMotor(arm::setJoint1MotorVoltage, 2, 0.2), new TimedMoveMotor(arm::setJoint2MotorVoltage, 2, 0.2)), new Home(gunnerXBox.buttonB.getTrigger()::getAsBoolean, arm.getHomeables()[0]),
             new TimedMoveMotor(arm::setTurretMotorVoltage, 5, 0.1), new MoveArmUnsafe(arm, ARM_POSITION.HOME)
@@ -219,7 +217,6 @@ public class RobotContainer {
         launchpad.buttonB.getTrigger().and(this::notAltMode).toggleOnTrue(joint1Manual);
         launchpad.buttonC.getTrigger().and(this::notAltMode).toggleOnTrue(turretManual);
         launchpad.buttonD.getTrigger().onTrue(new InstantCommand(arm::toggleClamp));
-        launchpad.buttonE.getTrigger().and(this::notAltMode).toggleOnTrue(wristManual);
         launchpad.buttonF.getTrigger().and(this::notAltMode).toggleOnTrue(joint3Manual);
         launchpad.buttonH.getTrigger().and(this::notAltMode).whileTrue(homeArm);
         launchpad.buttonI.getTrigger().and(this::notAltMode).toggleOnTrue(fancyArmMo);
@@ -232,7 +229,6 @@ public class RobotContainer {
         launchpad.buttonC.commandBind(turretManual);
         launchpad.buttonA.commandBind(joint2Manual);
         launchpad.buttonF.commandBind(joint3Manual);
-        launchpad.buttonE.commandBind(wristManual);
         launchpad.buttonI.commandBind(fancyArmMo);
         launchpad.buttonD.booleanSupplierBind(arm::getClampSolenoidState);
     }

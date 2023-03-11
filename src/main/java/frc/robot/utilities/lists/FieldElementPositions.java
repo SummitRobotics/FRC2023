@@ -9,7 +9,7 @@ import frc.robot.subsystems.arm.ArmConfiguration.POSITION_TYPE;
 public final class FieldElementPositions {
 
     public static final ArmConfiguration
-        substationPregrab = new ArmConfiguration(93.00, 7.00, 114, -50.16, -51.80, POSITION_TYPE.ENCODER_ROTATIONS);
+        substationPregrab = new ArmConfiguration(93.00, 7.00, 114, -50.16, POSITION_TYPE.ENCODER_ROTATIONS);
 
     // values of game elements placed at double substations
     public static final Translation3d

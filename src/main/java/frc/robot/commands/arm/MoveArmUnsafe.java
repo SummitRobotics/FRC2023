@@ -17,18 +17,16 @@ public class MoveArmUnsafe extends CommandBase {
 
   private Positions.Pose3d pose;
   private double grabberAngle;
-  private double wristAngle;
 
   private boolean fromPose = false;
   private boolean extraUnsafe = false;
 
   private boolean homeMove = false;
 
-  public MoveArmUnsafe(Arm arm, Positions.Pose3d endPosition, double grabberAngleRadians, double wristRotationRadians) {
+  public MoveArmUnsafe(Arm arm, Positions.Pose3d endPosition, double grabberAngleRadians) {
     this.arm = arm;
     this.pose = endPosition;
     this.grabberAngle = grabberAngleRadians;
-    this.wristAngle = wristRotationRadians;
     this.fromPose = true;
     addRequirements(arm);
   }
@@ -60,7 +58,7 @@ public class MoveArmUnsafe extends CommandBase {
     }
     if (armConfiguration == null || fromPose) {
       System.out.println(pose.inRobotSpace());
-      armConfiguration = ArmConfiguration.fromEndPosition(pose, grabberAngle, wristAngle);
+      armConfiguration = ArmConfiguration.fromEndPosition(pose, grabberAngle);
     }
     // System.out.println(armConfiguration);
     if (extraUnsafe) {
