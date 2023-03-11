@@ -14,12 +14,9 @@ import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.arm.Arm;
 import frc.robot.subsystems.arm.ArmPositions.ARM_POSITION;
 
-// NOTE:  Consider using this command inline, rather than writing a subclass.  For more
-// information, see:
-// https://docs.wpilib.org/en/stable/docs/software/commandbased/convenience-features.html
-public class MoveNPlace extends SequentialCommandGroup {
-  /** Creates a new MoveNPlace. */
-  public MoveNPlace(Drivetrain drivetrain, Arm arm) {
+public class PlaceNMove extends SequentialCommandGroup {
+  /** Creates a new PlaceNMove. */
+  public PlaceNMove(Drivetrain drivetrain, Arm arm) {
     addCommands(
       new InstantCommand(drivetrain::highGear),
       new ParallelCommandGroup(

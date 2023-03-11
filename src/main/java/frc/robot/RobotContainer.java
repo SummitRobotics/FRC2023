@@ -9,11 +9,7 @@ import java.io.IOException;
 import org.photonvision.PhotonCamera;
 
 import com.kauailabs.navx.frc.AHRS;
-
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation3d;
-import edu.wpi.first.math.geometry.Transform3d;
-import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.trajectory.TrajectoryUtil;
 import edu.wpi.first.networktables.NetworkTableInstance;
@@ -35,19 +31,17 @@ import frc.robot.commands.arm.MoveArmUnsafe;
 import frc.robot.commands.arm.MovePositionsLaunchpad;
 import frc.robot.commands.arm.MoveToPickupSubstation;
 import frc.robot.commands.auto.ArmOutOfStart;
-import frc.robot.commands.auto.AutoPlace;
 import frc.robot.commands.auto.MoveNBalance;
-import frc.robot.commands.auto.MoveNPlace;
-import frc.robot.commands.automovements.AutoPickup;
+import frc.robot.commands.auto.Place;
+import frc.robot.commands.auto.PlaceNBalance;
+import frc.robot.commands.auto.PlaceNMove;
+import frc.robot.commands.auto.PlaceNMoveNBalance;
+import frc.robot.commands.auto.PlaceNMoveNGrab;
 import frc.robot.commands.drivetrain.ArcadeDrive;
 import frc.robot.commands.drivetrain.BackwardsBalance;
 import frc.robot.commands.drivetrain.ChargeStationBalance;
-import frc.robot.commands.drivetrain.MoveToElement;
 import frc.robot.commands.drivetrain.EncoderDrive;
-import frc.robot.commands.drivetrain.OverStationAndBalance;
 import frc.robot.commands.drivetrain.MeasureSpinSpin;
-import frc.robot.commands.drivetrain.SpinSpin;
-import frc.robot.devices.AprilTagCameraWrapper;
 import frc.robot.devices.Lidar;
 import frc.robot.devices.LidarV3;
 import frc.robot.devices.PCM;
@@ -102,7 +96,8 @@ public class RobotContainer {
     // private AprilTagCameraWrapper backRight;
     // private AprilTagCameraWrapper front;
 
-    private PhotonCamera QuorbCamera;
+    private PhotonCamera quorbCamera;
+    private PhotonCamera coneCamera;
 
     Trajectory blueHigh;
     Trajectory redHigh;
@@ -141,7 +136,8 @@ public class RobotContainer {
         // backRight = new AprilTagCameraWrapper("backRight", new Transform3d(new Translation3d(-0.3302,-0.307137,0.235153), new Rotation3d(0,Math.toRadians(-25.3), Math.toRadians(-90))));  //68.7
         // front = new AprilTagCameraWrapper("front", new Transform3d(new Translation3d(0.3683,0.2159,0.24765), new Rotation3d(0,Math.toRadians(-15), 0)));  //68.7
 
-        QuorbCamera = new PhotonCamera("QurobGribber");
+        quorbCamera = new PhotonCamera("QuorbGrabber");
+        coneCamera = new PhotonCamera("CubeGrabber");
 
         createCommands();
         createAutoCommands();
@@ -258,19 +254,21 @@ public class RobotContainer {
             ),
             new EncoderDrive(1.5, drivetrain)
         ));
-        ShuffleboardDriver.autoChooser.addOption("Hove Out of Starting Config", new ArmOutOfStart(arm));
-        ShuffleboardDriver.autoChooser.addOption("Just Place", new AutoPlace(arm, drivetrain));
-        ShuffleboardDriver.autoChooser.addOption("MoveNPlace", new MoveNPlace(drivetrain, arm));
-        ShuffleboardDriver.autoChooser.addOption("Forward Balance", new SequentialCommandGroup(
+        ShuffleboardDriver.autoChooser.addOption("DoNothing", new ArmOutOfStart(arm));
+        ShuffleboardDriver.autoChooser.addOption("Place", new Place(arm, drivetrain));
+        ShuffleboardDriver.autoChooser.addOption("PlaceNMove", new PlaceNMove(drivetrain, arm));
+        ShuffleboardDriver.autoChooser.addOption("Balance", new SequentialCommandGroup(
             new ArmOutOfStart(arm),
             new ChargeStationBalance(drivetrain)
         ));
-        ShuffleboardDriver.autoChooser.addOption("Backward Balance", new SequentialCommandGroup(
+        ShuffleboardDriver.autoChooser.addOption("BackwardsBalance", new SequentialCommandGroup(
             new ArmOutOfStart(arm),
             new BackwardsBalance(drivetrain)
         ));
-        ShuffleboardDriver.autoChooser.addOption("MoveNBal", new MoveNBalance(drivetrain, arm));
-        ShuffleboardDriver.autoChooser.addOption("drive over and balance", new OverStationAndBalance(arm, drivetrain));
+        ShuffleboardDriver.autoChooser.addOption("PlaceNBalance", new PlaceNBalance(drivetrain, arm));
+        ShuffleboardDriver.autoChooser.addOption("MoveNBalance", new MoveNBalance(arm, drivetrain));
+        ShuffleboardDriver.autoChooser.addOption("PlaceNMoveNBalance", new PlaceNMoveNBalance(arm, drivetrain));
+        ShuffleboardDriver.autoChooser.addOption("PlaceNMoveNGrab", new PlaceNMoveNGrab(arm, drivetrain, quorbCamera, coneCamera));
 
     }
 
