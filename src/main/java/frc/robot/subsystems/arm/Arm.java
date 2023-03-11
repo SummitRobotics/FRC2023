@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
+import com.ctre.phoenix.sensors.CANCoder;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkMaxPIDController;
@@ -161,6 +162,12 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
     joint2Encoder = joint2Motor.getEncoder(),
     joint3Encoder = joint3Motor.getEncoder(),
     wirstEncoder = wristMotor.getEncoder();
+
+  private final CANCoder 
+    turretAbsoluteEncoder = new CANCoder(Ports.Arm.TURRET_ABSOLUTE_ENCODER),
+    joint1AbsoluteEncoder = new CANCoder(Ports.Arm.JOINT_1_ABSOLUTE_ENCODER),
+    joint2AbsoluteEncoder = new CANCoder(Ports.Arm.JOINT_2_ABSOLUTE_ENCODER),
+    joint3AbsoluteEncoder = new CANCoder(Ports.Arm.JOINT_3_ABSOLUTE_ENCODER);
 
   private ArmConfiguration currentConfiguration = new ArmConfiguration();
   private ArmConfiguration targetConfiguration = new ArmConfiguration();

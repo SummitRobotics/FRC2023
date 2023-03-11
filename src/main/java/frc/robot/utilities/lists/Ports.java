@@ -39,7 +39,11 @@ public final class Ports {
             JOINT_2 = 22,
             JOINT_3 = 23,
             WRIST = 24,
-            CLAMP_SOLENOID = 1;
+            CLAMP_SOLENOID = 1,
+            TURRET_ABSOLUTE_ENCODER = 0,
+            JOINT_1_ABSOLUTE_ENCODER = 1,
+            JOINT_2_ABSOLUTE_ENCODER = 2,
+            JOINT_3_ABSOLUTE_ENCODER = 3;
     }
     
     public static final class Intake {
