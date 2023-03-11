@@ -39,7 +39,7 @@ public class FollowTrajectory extends CommandBase {
                         drivetrain::getPose,
                         //TODO Tune
                         new RamseteController(2, 0.7),
-                        Drivetrain.DriveKinimatics,
+                        Drivetrain.DriveKinematics,
                         drivetrain::setMotorTargetSpeed,
                         drivetrain);
 
