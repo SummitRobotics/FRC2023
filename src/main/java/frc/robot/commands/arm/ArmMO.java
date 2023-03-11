@@ -11,7 +11,6 @@ import frc.robot.oi.inputs.OIAxis.PrioritizedAxis;
 import frc.robot.oi.inputs.OITrigger.PrioritizedTrigger;
 import frc.robot.subsystems.arm.Arm;
 import frc.robot.subsystems.arm.ArmConfiguration;
-import frc.robot.subsystems.arm.ArmConfiguration.POSITION_TYPE;
 import frc.robot.utilities.Positions;
 import frc.robot.utilities.lists.AxisPriorities;
 
@@ -20,7 +19,6 @@ public class ArmMO extends CommandBase {
     Arm arm;
     Positions.Pose3d endPose;
     double grabberRadians;
-    double wristRadians;
     PrioritizedAxis xAxis;
     PrioritizedAxis yAxis;
     PrioritizedAxis zAxis;
@@ -55,8 +53,6 @@ public class ArmMO extends CommandBase {
         endPose = arm.getCurrentArmConfiguration().getEndPosition();
         grabberRadians
             = -arm.getCurrentArmConfiguration().getEndPosition().inOtherSpace(Arm.ROBOT_TO_TURRET_BASE).getRotation().getY();
-        wristRadians 
-            = arm.getCurrentArmConfiguration().getWristPosition(POSITION_TYPE.ANGLE);
 
         arm.setToConfiguration(arm.getCurrentArmConfiguration());
 
@@ -106,10 +102,9 @@ public class ArmMO extends CommandBase {
         }
 
         grabberRadians = grabberRadians + (grabberUp.get() ? 0.01 : 0) - (grabberDown.get() ? 0.01 : 0);
-        wristRadians = wristRadians + wristUp.get() / 100 - wristDown.get() / 100;
 
         arm.setToConfiguration(
-            ArmConfiguration.fromEndPosition(endPose, grabberRadians, wristRadians));
+            ArmConfiguration.fromEndPosition(endPose, grabberRadians));
 
         if (clampButton.getTrigger().debounce(0.1, DebounceType.kRising).getAsBoolean()) {
             if (arm.getClampSolenoidState()) arm.unclamp(); else arm.clamp(); 
@@ -118,8 +113,6 @@ public class ArmMO extends CommandBase {
         endPose = arm.getTargetArmConfiguration().getEndPosition();
         grabberRadians
             = -arm.getTargetArmConfiguration().getEndPosition().inOtherSpace(Arm.ROBOT_TO_TURRET_BASE).getRotation().getY();
-        wristRadians 
-            = arm.getTargetArmConfiguration().getWristPosition(POSITION_TYPE.ANGLE);
     }
 
     @Override

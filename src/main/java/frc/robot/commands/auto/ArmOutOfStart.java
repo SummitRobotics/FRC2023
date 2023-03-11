@@ -25,7 +25,6 @@ public class ArmOutOfStart extends SequentialCommandGroup {
     new MoveArmUnsafe(arm, ARM_POSITION.PRE_HOME, true),
     new Home(arm),
     new ParallelCommandGroup(
-        new TimedMoveMotor(arm::setWristMotorVoltage, -12, 0.1),
         new TimedMoveMotor(arm::setJoint3MotorVoltage, -5, 0.2),
         new TimedMoveMotor(arm::setJoint1MotorVoltage, 5, 0.1),
         new TimedMoveMotor(arm::setJoint2MotorVoltage, 5, 0.1),

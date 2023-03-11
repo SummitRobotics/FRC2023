@@ -14,7 +14,7 @@ public class ArmConfiguration {
                 ENCODER_ROTATIONS, ANGLE
         }
 
-        private final double turretPositionRotations, firstJointPositionRotations, secondJointPositionRotations, thirdJointPositionRotations, wristPositionRotations;
+        private final double turretPositionRotations, firstJointPositionRotations, secondJointPositionRotations, thirdJointPositionRotations;
 
         private final Positions.Pose3d endPose;
 
@@ -37,7 +37,7 @@ public class ArmConfiguration {
                 return -1 * (c - Arm.ARM_JOINT_2_LEADSCREW_HOME_LENGTH) * (Arm.ARM_JOINT_2_MOTOR_GEAR_RATIO / Arm.ARM_JOINT_2_LEADSCREW_PITCH);
         }
 
-        public ArmConfiguration(double turretPosition, double firstJointPosition, double secondJointPosition, double thirdJointPosition, double wristPosition, POSITION_TYPE positionType) {
+        public ArmConfiguration(double turretPosition, double firstJointPosition, double secondJointPosition, double thirdJointPosition, POSITION_TYPE positionType) {
                 // System.out.println(String.format("Turret: %.2f One: %.2f Two: %.2f Three:
                 // %.2f",
                 // turretPosition, firstJointPosition, secondJointPosition,
@@ -47,13 +47,11 @@ public class ArmConfiguration {
                         this.firstJointPositionRotations = firstJointPosition;
                         this.secondJointPositionRotations = secondJointPosition;
                         this.thirdJointPositionRotations = thirdJointPosition;
-                        this.wristPositionRotations = wristPosition;
                 } else {
                         this.turretPositionRotations = (Arm.TURRET_GEAR_RATIO_OVERALL / (-2 * Math.PI)) * (turretPosition - Arm.TURRET_HOME_ANGLE);
                         this.firstJointPositionRotations = joint1AngleToEncoder(firstJointPosition);
                         this.secondJointPositionRotations = joint2AngleToEncoder(secondJointPosition);
                         this.thirdJointPositionRotations = (Arm.ARM_JOINT_3_GEAR_RATIO_OVERALL / (-2 * Math.PI)) * (thirdJointPosition - Arm.ARM_JOINT_3_HOME_ANGLE);
-                        this.wristPositionRotations = (Arm.WRIST_GEAR_RATIO_OVERALL / (-2 * Math.PI)) * (wristPosition - Arm.WRIST_HOME_ANGLE);
                 }
 
                 Translation2d linkage3 = new Translation2d(Arm.ARM_LINKAGE_3_LENGTH, Rotation2d.fromRadians((Math.PI / 2) - getThirdJointPosition(POSITION_TYPE.ANGLE)));
@@ -64,17 +62,16 @@ public class ArmConfiguration {
                 Translation3d endPose = new Translation3d(linkage1.getX(), 0, linkage1.getY()).rotateBy(getTurretRotation()).plus(new Translation3d(0, 0, Arm.ARM_LINKAGE_0_LENGTH));
 
                 Rotation3d endRotation = new Rotation3d(0, (Math.PI / 2), 0).plus(getTurretRotation()).plus(new Rotation3d(0, -getFirstJointPosition(POSITION_TYPE.ANGLE), 0))
-                                .plus(new Rotation3d(0, -getSecondJointPosition(POSITION_TYPE.ANGLE), 0)).plus(new Rotation3d(0, -getThirdJointPosition(POSITION_TYPE.ANGLE), 0))
-                                .plus(new Rotation3d(getWristPosition(POSITION_TYPE.ANGLE), 0, 0));
+                                .plus(new Rotation3d(0, -getSecondJointPosition(POSITION_TYPE.ANGLE), 0)).plus(new Rotation3d(0, -getThirdJointPosition(POSITION_TYPE.ANGLE), 0));
 
                 this.endPose = Positions.Pose3d.fromOtherSpace(new Pose3d(endPose, endRotation), Arm.ROBOT_TO_TURRET_BASE);
         }
 
         ArmConfiguration() {
-                this(0, 0, 0, 0, 0, POSITION_TYPE.ENCODER_ROTATIONS);
+                this(0, 0, 0, 0, POSITION_TYPE.ENCODER_ROTATIONS);
         }
 
-        public static ArmConfiguration fromEndPosition(Positions.Pose3d endPose, double grabberAngleRadians, double wristRotationRadians) {
+        public static ArmConfiguration fromEndPosition(Positions.Pose3d endPose, double grabberAngleRadians) {
                 Translation3d endPosition = endPose.inOtherSpace(Arm.ROBOT_TO_TURRET_BASE).getTranslation();
                 // clamp grab angle
                 // grabberAngleRadians = Functions.clampDouble(grabberAngleRadians, Math.PI / 2, 0);
@@ -102,7 +99,7 @@ public class ArmConfiguration {
                 return new ArmConfiguration(angleToPoint, j1, j2,
                                 // Math.PI - beta - (Math.PI - grabberAngleRadians - (Math.PI / 2 - gamma -
                                 // (Math.atan(pointToGrab2d.getX() / pointToGrab2d.getY()) - gamma))),
-                                (Math.PI / 2) + grabberAngleRadians - j1 - j2, wristRotationRadians, POSITION_TYPE.ANGLE);
+                                (Math.PI / 2) + grabberAngleRadians - j1 - j2, POSITION_TYPE.ANGLE);
         }
 
         public static double turretRotationsToAngle(double rotations) {
@@ -161,17 +158,6 @@ public class ArmConfiguration {
                 return joint3EncoderToAngle(thirdJointPositionRotations);
         }
 
-        public static double wristEncoderToAngle(double rotations) {
-                return (rotations * (1 / Arm.WRIST_GEAR_RATIO_OVERALL) * -2 * Math.PI) + Arm.WRIST_HOME_ANGLE;
-        }
-
-        public double getWristPosition(POSITION_TYPE positionType) {
-                if (positionType == POSITION_TYPE.ENCODER_ROTATIONS) {
-                        return wristPositionRotations;
-                }
-                return wristEncoderToAngle(wristPositionRotations);
-        }
-
         public Rotation3d getTurretRotation() {
                 return new Rotation3d(0, 0, getTurretPosition(POSITION_TYPE.ANGLE));
         }
@@ -193,11 +179,6 @@ public class ArmConfiguration {
 
         public double getThirdJointGearRatio() {
                 double dAngle = (joint3EncoderToAngle(thirdJointPositionRotations - 1) - joint3EncoderToAngle(thirdJointPositionRotations + 1));
-                return ((2 * Math.PI) / dAngle) * 2;
-        }
-
-        public double getWristGearRatio() {
-                double dAngle = (wristEncoderToAngle(wristPositionRotations - 1) - wristEncoderToAngle(wristPositionRotations + 1));
                 return ((2 * Math.PI) / dAngle) * 2;
         }
 
@@ -297,15 +278,14 @@ public class ArmConfiguration {
         @Override
         public String toString() {
                 return "Turret Encoder: " + turretPositionRotations + "\nFirst Joint Encoder: " + firstJointPositionRotations + "\nSecond Joint Encoder: " + secondJointPositionRotations
-                                + "\nThird Joint Encoder: " + thirdJointPositionRotations + "\nWrist Encoder: " + wristPositionRotations + "\nTurret Angle (rad): "
+                                + "\nThird Joint Encoder: " + thirdJointPositionRotations + "\nTurret Angle (rad): "
                                 + getTurretPosition(POSITION_TYPE.ANGLE) + "\nFirst Joint Angle (rad): " + getFirstJointPosition(POSITION_TYPE.ANGLE) + "\nSecond Joint Angle (rad): "
-                                + getSecondJointPosition(POSITION_TYPE.ANGLE) + "\nThird Joint Angle (rad): " + getThirdJointPosition(POSITION_TYPE.ANGLE) + "\nWrist Angle (rad): "
-                                + getWristPosition(POSITION_TYPE.ANGLE) + "\nTurret Angle (deg): " + Math.toDegrees(getTurretPosition(POSITION_TYPE.ANGLE)) + "\nFirst Joint Angle (deg): "
+                                + getSecondJointPosition(POSITION_TYPE.ANGLE) + "\nThird Joint Angle (rad): " + getThirdJointPosition(POSITION_TYPE.ANGLE) + 
+                                "\nTurret Angle (deg): " + Math.toDegrees(getTurretPosition(POSITION_TYPE.ANGLE)) + "\nFirst Joint Angle (deg): "
                                 + Math.toDegrees(getFirstJointPosition(POSITION_TYPE.ANGLE)) + "\nSecond Joint Angle (deg): " + Math.toDegrees(getSecondJointPosition(POSITION_TYPE.ANGLE))
-                                + "\nThird Joint Angle (deg): " + Math.toDegrees(getThirdJointPosition(POSITION_TYPE.ANGLE)) + "\nWrist Angle (deg): "
-                                + Math.toDegrees(getWristPosition(POSITION_TYPE.ANGLE)) + "\n Turret Instantaneous Gear Ratio" + getTurretGearRatio() + "\n First Joint Instantaneous Gear Ratio"
+                                + "\nThird Joint Angle (deg): " + Math.toDegrees(getThirdJointPosition(POSITION_TYPE.ANGLE)) +  "\n Turret Instantaneous Gear Ratio" + getTurretGearRatio() + "\n First Joint Instantaneous Gear Ratio"
                                 + getFirstJointGearRatio() + "\n Second Joint Instantaneous Gear Ratio" + getSecondJointGearRatio() + "\n Third Joint Instantaneous Gear Ratio"
-                                + getThirdJointGearRatio() + "\n Wrist Instantaneous Gear Ratio" + getWristGearRatio() + "\n First Joint FF Data: " + getJoint1FFData() + "\n Second Joint FF Data: "
+                                + getThirdJointGearRatio() + "\n First Joint FF Data: " + getJoint1FFData() + "\n Second Joint FF Data: "
                                 + getJoint2FFData() + "\n Third Joint FF Data: " + getJoint3FFData()
                                 + String.format("\nPosition (RS): (%.2f, %.2f, %.2f)", endPose.inRobotSpace().getX(), endPose.inRobotSpace().getY(), endPose.inRobotSpace().getZ())
                                 + String.format("\nJoint 1 Pos (RS): (%.2f, %.2f, %.2f)", getJoint1Pose().inRobotSpace().getX(), getJoint1Pose().inRobotSpace().getY(),

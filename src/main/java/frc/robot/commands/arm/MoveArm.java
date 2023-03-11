@@ -19,16 +19,14 @@ public class MoveArm extends CommandBase {
   private final Arm arm;
   private final Positions.Pose3d endPosition;
   private final double grabberAngleRadians;
-  private final double wristRotationRadians;
 
   private List<Positions.Pose3d> path;
   private SequentialCommandGroup moveCommand;
 
-  public MoveArm(Arm arm, Positions.Pose3d endPosition, double grabberAngleRadians, double wristRotationRadians) {
+  public MoveArm(Arm arm, Positions.Pose3d endPosition, double grabberAngleRadians) {
     this.arm = arm;
     this.endPosition = endPosition;
     this.grabberAngleRadians = grabberAngleRadians;
-    this.wristRotationRadians = wristRotationRadians;
 
     addRequirements(arm);
   }
@@ -44,11 +42,11 @@ public class MoveArm extends CommandBase {
 
       // Make all the movemnets Fast except the last one
       for (int i = 0; i < path.size() - 1; i++) {
-        commands.add(new MoveArmUnsafe(arm, path.get(i), grabberAngleRadians, wristRotationRadians));
+        commands.add(new MoveArmUnsafe(arm, path.get(i), grabberAngleRadians));
       }
 
       // For the last one do a normal MoveArmUnsafe
-      commands.add(new MoveArmUnsafe(arm, path.get(path.size() - 1), grabberAngleRadians, wristRotationRadians));
+      commands.add(new MoveArmUnsafe(arm, path.get(path.size() - 1), grabberAngleRadians));
 
       moveCommand = new SequentialCommandGroup(commands.toArray(new Command[0]));
       moveCommand.initialize();
