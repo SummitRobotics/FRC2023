@@ -33,7 +33,7 @@ public class LEDCalls {
     public static final LEDCall
         ON = new LEDCall(Priority.ON.value, LEDRange.All).solid(Colors.GREEN),
         LOW_GEAR = new LEDCall(Priority.LOW_GEAR.value, LEDRange.All).sine(Colors.RED),
-        INTAKE_DOWN = new LEDCall(Priority.INTAKE_DOWN.value, LEDRange.All).ffh(Colors.BLUE, Colors.OFF),
+        INTAKE_DOWN = new LEDCall(Priority.INTAKE_DOWN.value, LEDRange.All).flashing(Colors.BLUE, Colors.OFF),
         ARM_LOW = new LEDCall(Priority.ARM_PRESETS.value, LEDRange.All).ffh(Colors.ORANGE, Colors.OFF),
         ARM_MID = new LEDCall(Priority.ARM_PRESETS.value, LEDRange.All).ffh(Colors.RED, Colors.OFF),
         ARM_HIGH = new LEDCall(Priority.ARM_PRESETS.value, LEDRange.All).ffh(Colors.PINK, Colors.OFF),

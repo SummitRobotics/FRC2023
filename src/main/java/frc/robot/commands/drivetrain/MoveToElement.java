@@ -20,15 +20,17 @@ public class MoveToElement extends CommandBase {
 
   private PhotonCamera trackingCamera;
 
-  private PIDController pidController = new PIDController(0.01, 0, 0);
+  private PIDController pidController = new PIDController(0.002, 0, 0);
 
   private Timer resulTimeout = new Timer();
 
   private boolean end = false;
 
+  private double sizeThreshold = 32;
+
   private static final double 
     TIMEOUT = 1,
-    DRIVE_POWER = 0.2;
+    DRIVE_POWER = 0.4;
 
   public MoveToElement(Drivetrain drivetrain, PhotonCamera quorbCamera, PhotonCamera coneCamera) {
     this.drivetrain = drivetrain;
@@ -47,10 +49,14 @@ public class MoveToElement extends CommandBase {
     if (quorbResult.hasTargets() || coneResult.hasTargets()) {
       if (!quorbResult.hasTargets() || coneResult.getBestTarget().getPitch() < quorbResult.getBestTarget().getPitch()) {
         trackingCamera = coneCamera;
+        sizeThreshold = 30;
       } else {
         trackingCamera = quorbCamera;
+        sizeThreshold = 30;
       }
     }
+
+    System.out.println(trackingCamera);
 
     resulTimeout.reset();
     resulTimeout.start();
@@ -64,13 +70,20 @@ public class MoveToElement extends CommandBase {
     if (trackingCamera == null) return;
     PhotonPipelineResult result = trackingCamera.getLatestResult();
     if (!result.hasTargets()) return;
-    if (result.getBestTarget().getArea() > 0.2) end = true;
+    if (result.getBestTarget().getArea() > sizeThreshold) end = true;
     resulTimeout.restart();
 
-    double turningPower = pidController.calculate(result.getBestTarget().getYaw(), 0);
+    double yaw = result.getBestTarget().getYaw();
 
-    drivetrain.setLeftMotorPower(DRIVE_POWER + turningPower);
-    drivetrain.setRightMotorPower(DRIVE_POWER - turningPower);
+    double turningPower = pidController.calculate(yaw, 0);
+    double drivePower = DRIVE_POWER * (-0.005 * Math.abs(Math.pow(yaw, 2)) + 1);
+    drivePower = drivePower * (-Math.abs(Math.pow((result.getBestTarget().getArea()/sizeThreshold), 1)) + 1);
+    if (drivePower < 0) {
+      drivePower = 0;
+    }
+
+    drivetrain.setLeftMotorPower(drivePower + turningPower);
+    drivetrain.setRightMotorPower(drivePower - turningPower);
   }
 
   // Called once the command ends or is interrupted.
@@ -84,6 +97,8 @@ public class MoveToElement extends CommandBase {
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
+    System.out.println(end);
+    System.out.println(resulTimeout.get());
     return end || resulTimeout.get() > TIMEOUT;
   }
 }

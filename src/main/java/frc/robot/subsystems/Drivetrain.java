@@ -846,4 +846,11 @@ public class Drivetrain extends SubsystemBase implements Testable, Loggable {
         out.put("Shifter State", () -> oldShift);
         return out;
     }
+
+    public double turnSpeedToMotorPower(double turnSpeed) {
+        double x = Functions.clampDouble(Math.abs(turnSpeed), 1, 0);
+        double inner = 4.38442E8 - (4.06266E8 * x);
+        double val = 1.37166 - (0.0000655072 * Math.sqrt(inner));
+        return val * Math.signum(turnSpeed);
+    }
 }
