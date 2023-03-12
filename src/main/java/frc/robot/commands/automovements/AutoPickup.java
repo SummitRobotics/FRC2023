@@ -28,7 +28,10 @@ public class AutoPickup extends SequentialCommandGroup {
       new InstantCommand(arm::unclamp),
       new MoveArmUnsafe(arm, ARM_POSITION.GROUND_PICKUP),
       new WaitCommand(0.25),
-      new MoveToElement(drivetrain, quorbCamera, coneCamera),
+      new MoveToElement(drivetrain, quorbCamera, coneCamera).until(() -> {
+        System.out.println(arm.getLidarDistance());
+        return false;
+      }),
       new EncoderDrive(0.15, 0.15, drivetrain),
       new InstantCommand(arm::clamp),
       new WaitCommand(0.75),

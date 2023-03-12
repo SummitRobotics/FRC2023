@@ -22,7 +22,7 @@ public class DefaultArmCommand extends CommandBase {
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
-    if (arm.atConfiguration(ARM_POSITION.HOME.config, 0.05) || arm.getTargetArmConfiguration().equals(ARM_POSITION.HOME.config, 0.01)) {
+    if (arm.atConfiguration(ARM_POSITION.HOME.config, 0.05)) {
       arm.setToConfiguration(ARM_POSITION.HOME.config);
     } else {
       arm.setToConfiguration(arm.getCurrentArmConfiguration());

@@ -26,7 +26,7 @@ public class MoveToElement extends CommandBase {
 
   private boolean end = false;
 
-  private double sizeThreshold = 32;
+  private double sizeThreshold = 35;
 
   private static final double 
     TIMEOUT = 1,
