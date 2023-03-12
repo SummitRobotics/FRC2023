@@ -66,11 +66,11 @@ public class PlaceNMoveNGrabNPlace extends SequentialCommandGroup {
                 new MoveArmUnsafe(arm, ARM_POSITION.HOME),
                 new FollowPathPlannerTrajectory(drivetrain, firstTraj, true)
             ),
-            new MoveArmUnsafe(arm, ArmConfiguration.fromEndPosition(grabPos, 0)),
+            new MoveArmUnsafe(arm, ArmConfiguration.fromEndPosition(grabPos, -90)),
             new InstantCommand(arm::clamp),
             new ParallelCommandGroup(
                 new MoveArmUnsafe(arm, ARM_POSITION.MIDDLE_HIGH),
-                new FollowPathPlannerTrajectory(drivetrain, secondTraj, true)
+                new FollowPathPlannerTrajectory(drivetrain, secondTraj, false)
             ),
             new InstantCommand(arm::unclamp)
         );
