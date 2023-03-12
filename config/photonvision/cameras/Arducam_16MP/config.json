@@ -7,5 +7,5 @@
   "cameraType" : "UsbCamera",
   "currentPipelineIndex" : -1,
   "calibrations" : [ ],
-  "streamIndex" : 3
+  "streamIndex" : 0
 }
