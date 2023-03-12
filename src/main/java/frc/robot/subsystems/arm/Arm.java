@@ -64,9 +64,9 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
     ARM_LINKAGE_2_CG_DISTANCE = 19 / 39.3701, // Distance from the pivot to the center of gravity in meters
     ARM_LINKAGE_3_CG_DISTANCE = 8 / 39.3701, // Distance from the pivot to the center of gravity in meters
 
-    ARM_LINKAGE_1_MASS = 12 / 2.205, // Mass in kilograms
-    ARM_LINKAGE_2_MASS = 8 / 2.205, // Mass in kilograms
-    ARM_LINKAGE_3_MASS = 7 / 2.205, // Mass in kilograms
+    ARM_LINKAGE_1_MASS = 13.5 / 2.205, // Mass in kilograms
+    ARM_LINKAGE_2_MASS = 4, // Mass in kilograms
+    ARM_LINKAGE_3_MASS = (7 - 1.87393) / 2.205, // Mass in kilograms
     
     KG_TO_NEWTONS = 9.80665;
 
@@ -391,6 +391,10 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
     targetConfiguration = configuration;
     double joint1ArbFF = joint1FF.calculate(configuration.getFirstJointPosition(POSITION_TYPE.ENCODER_ROTATIONS), configuration.getJoint1FFData());
     double joint2ArbFF = joint2FF.calculate(configuration.getFirstJointPosition(POSITION_TYPE.ENCODER_ROTATIONS), configuration.getJoint2FFData());
+
+    // joint1ArbFF = 0;
+    // joint2ArbFF = 0;
+
     double joint3ArbFF = joint3FF.calculate(configuration.getFirstJointPosition(POSITION_TYPE.ENCODER_ROTATIONS), configuration.getJoint3FFData());
 
     setTurretMotorRotations(configuration.getTurretPosition(POSITION_TYPE.ENCODER_ROTATIONS));

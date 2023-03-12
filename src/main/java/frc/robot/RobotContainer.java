@@ -306,6 +306,7 @@ public class RobotContainer {
             LEDCalls.CUBE_HP.cancel();
             LEDCalls.CONE_HP.cancel();
         }
+        // System.out.println(gripperLidar.getAverageDistance());
     }
 
     public void disabledInit() {

@@ -151,7 +151,7 @@ public class ArcadeDrive extends CommandBase {
             drivetrain.lowGear();
         }
 
-        System.out.println(turnAxis.get());
+        // System.out.println(turnAxis.get());
         
         double turnVal = 0;
         
