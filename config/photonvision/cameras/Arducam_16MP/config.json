@@ -1,0 +1,11 @@
+{
+  "baseName" : "Arducam_16MP",
+  "uniqueName" : "Arducam_16MP",
+  "nickname" : "QurobGribber",
+  "FOV" : 70.0,
+  "path" : "/dev/video0",
+  "cameraType" : "UsbCamera",
+  "currentPipelineIndex" : -1,
+  "calibrations" : [ ],
+  "streamIndex" : 0
+}
