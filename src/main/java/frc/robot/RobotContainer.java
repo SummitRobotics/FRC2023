@@ -36,6 +36,8 @@ import frc.robot.commands.auto.PlaceNBalance;
 import frc.robot.commands.auto.PlaceNMove;
 import frc.robot.commands.auto.PlaceNMoveNBalance;
 import frc.robot.commands.auto.PlaceNMoveNGrab;
+import frc.robot.commands.auto.PlaceNMoveNGrabNPlace;
+import frc.robot.commands.auto.PlaceNMoveNGrabNPlace.Type;
 import frc.robot.commands.drivetrain.ArcadeDrive;
 import frc.robot.commands.drivetrain.BackwardsBalance;
 import frc.robot.commands.drivetrain.ChargeStationBalance;
@@ -199,9 +201,9 @@ public class RobotContainer {
 
         driverXBox.buttonX.getTrigger().whileTrue(new MoveArmToNode(arm));
 
-        // launchpad.missileA.getTrigger().whileTrue(balance);
+        launchpad.missileA.getTrigger().whileTrue(new BackwardsBalance(drivetrain));
         // launchpad.missileA.getTrigger().whileTrue(new AutoPickup(drivetrain, arm, QuorbCamera, QuorbCamera));
-        launchpad.missileA.getTrigger().whileTrue(new MeasureSpinSpin(drivetrain, 0.05, 0.75, 0.025));
+        // launchpad.missileA.getTrigger().whileTrue(new MeasureSpinSpin(drivetrain, 0.05, 0.75, 0.025));
         launchpad.missileB.getTrigger().whileTrue(new StartEndCommand(() -> arm.setAllSoftLimit(false), () -> arm.setAllSoftLimit(true)));
         
         gunnerXBox.buttonY.getTrigger().whileTrue(new MoveArmUnsafe(arm, ARM_POSITION.HOME));
@@ -268,6 +270,8 @@ public class RobotContainer {
         ShuffleboardDriver.autoChooser.addOption("MoveNBalance", new MoveNBalance(arm, drivetrain));
         ShuffleboardDriver.autoChooser.addOption("PlaceNMoveNBalance", new PlaceNMoveNBalance(arm, drivetrain));
         ShuffleboardDriver.autoChooser.addOption("PlaceNMoveNGrab", new PlaceNMoveNGrab(arm, drivetrain, quorbCamera, coneCamera));
+        ShuffleboardDriver.autoChooser.addOption("Close PlaceNMoveNGrabNPlace", new PlaceNMoveNGrabNPlace(arm, drivetrain, Type.CloseToSubstation));
+        ShuffleboardDriver.autoChooser.addOption("Far PlaceNMoveNGrabNPlace", new PlaceNMoveNGrabNPlace(arm, drivetrain, Type.FarFromSubstation));
 
     }
 
