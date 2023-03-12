@@ -5,10 +5,9 @@
 package frc.robot;
 
 import java.io.IOException;
-
 import org.photonvision.PhotonCamera;
-
 import com.kauailabs.navx.frc.AHRS;
+import com.pathplanner.lib.server.PathPlannerServer;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.trajectory.TrajectoryUtil;
@@ -290,6 +289,8 @@ public class RobotContainer {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        // TODO - check port number and comment out server for comp
+        PathPlannerServer.startServer(5468);
     }
     public void robotPeriodic() {
         String val = HPSelector.get();
