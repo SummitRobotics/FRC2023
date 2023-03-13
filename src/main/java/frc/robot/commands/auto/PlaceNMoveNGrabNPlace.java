@@ -8,11 +8,9 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.subsystems.arm.Arm;
-import frc.robot.subsystems.arm.ArmConfiguration;
 import frc.robot.subsystems.arm.ArmPositions.ARM_POSITION;
-import frc.robot.utilities.Positions;
-import frc.robot.utilities.lists.FieldElementPositions;
 import frc.robot.commands.arm.MoveArmUnsafe;
 import frc.robot.commands.drivetrain.FollowPathPlannerTrajectory;
 import frc.robot.subsystems.Drivetrain;
@@ -31,27 +29,27 @@ public class PlaceNMoveNGrabNPlace extends SequentialCommandGroup {
         PathPlannerTrajectory secondTraj;
         
         ARM_POSITION placePos;
-        Positions.Pose3d grabPos;
+        ARM_POSITION grabPos;
 
         if (type == Type.FarFromSubstation) {
-            firstTraj = PathPlanner.loadPath("FarFromSubstation", new PathConstraints(4, 3));
-            secondTraj = PathPlanner.loadPath("FarFromSubstationBack", new PathConstraints(4, 3));
+            firstTraj = PathPlanner.loadPath("FarFromSubstation", new PathConstraints(2, 2));
+            secondTraj = PathPlanner.loadPath("FarFromSubstationBack", new PathConstraints(2, 2));
             if (DriverStation.getAlliance() == Alliance.Blue) {
                 placePos = ARM_POSITION.LEFT_HIGH;
-                grabPos = Positions.Pose3d.fromFieldSpace(FieldElementPositions.BLUE_FAR_FROM_SUBSTATION);
+                grabPos = ARM_POSITION.AUTO_GRAB_FAR_BLUE;
             } else {
                 placePos = ARM_POSITION.RIGHT_HIGH;
-                grabPos = Positions.Pose3d.fromFieldSpace(FieldElementPositions.RED_FAR_FROM_SUBSTATION);
+                grabPos = ARM_POSITION.AUTO_GRAB_FAR_BLUE;
             }
         } else {
-            firstTraj = PathPlanner.loadPath("CloseToSubstation", new PathConstraints(4, 3));
-            secondTraj = PathPlanner.loadPath("CloseToSubstationBack", new PathConstraints(4, 3));
+            firstTraj = PathPlanner.loadPath("CloseToSubstation", new PathConstraints(2, 2));
+            secondTraj = PathPlanner.loadPath("CloseToSubstationBack", new PathConstraints(2, 2));
             if (DriverStation.getAlliance() == Alliance.Blue) {
                 placePos = ARM_POSITION.RIGHT_HIGH;
-                grabPos = Positions.Pose3d.fromFieldSpace(FieldElementPositions.BLUE_CLOSE_TO_SUBSTATION);
+                grabPos = ARM_POSITION.AUTO_GRAB_FAR_BLUE;
             } else {
                 placePos = ARM_POSITION.LEFT_HIGH;
-                grabPos = Positions.Pose3d.fromFieldSpace(FieldElementPositions.RED_CLOSE_TO_SUBSTATION);
+                grabPos = ARM_POSITION.AUTO_GRAB_FAR_BLUE;
             }
         }
 
@@ -66,8 +64,9 @@ public class PlaceNMoveNGrabNPlace extends SequentialCommandGroup {
                 new MoveArmUnsafe(arm, ARM_POSITION.HOME),
                 new FollowPathPlannerTrajectory(drivetrain, firstTraj, true)
             ),
-            new MoveArmUnsafe(arm, ArmConfiguration.fromEndPosition(grabPos, -90)),
+            new MoveArmUnsafe(arm, grabPos),
             new InstantCommand(arm::clamp),
+            new WaitCommand(0.25),
             new ParallelCommandGroup(
                 new MoveArmUnsafe(arm, ARM_POSITION.MIDDLE_HIGH),
                 new FollowPathPlannerTrajectory(drivetrain, secondTraj, false)
