@@ -443,8 +443,6 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
     return clampSolenoidState;
   }
 
-  
-
   @Override
   public HomeableCANSparkMax[] getHomeables() {
     return new HomeableCANSparkMax[] {
@@ -460,6 +458,7 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
 
   @Override
   public void initSendable(SendableBuilder builder) {
+    super.initSendable(builder);
     // builder.addStringProperty("armConfiguration", getCurrentArmConfiguration()::toString, null);
     builder.addStringProperty("grabberClamp", () -> clampSolenoidState ? "Open" : "Closed", null);
     builder.addDoubleProperty("turretEncoder", this::getTurretEncoderPosition, null);

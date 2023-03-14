@@ -12,8 +12,8 @@ import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.arm.Arm;
 import frc.robot.subsystems.arm.ArmPositions.ARM_POSITION;
 
-public class PlaceMoveBalance extends SequentialCommandGroup {
-    public PlaceMoveBalance(Arm arm, Drivetrain drivetrain) {
+public class PlaceNMoveNBalance extends SequentialCommandGroup {
+    public PlaceNMoveNBalance(Arm arm, Drivetrain drivetrain) {
         addCommands(
             new InstantCommand(drivetrain::highGear),
             new ArmOutOfStart(arm),

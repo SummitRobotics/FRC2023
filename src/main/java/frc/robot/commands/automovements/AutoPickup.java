@@ -24,6 +24,7 @@ import frc.robot.subsystems.arm.ArmPositions.ARM_POSITION;
 // https://docs.wpilib.org/en/stable/docs/software/commandbased/convenience-features.html
 public class AutoPickup extends SequentialCommandGroup {
 
+<<<<<<< HEAD
   public enum ELEMENT_TYPE {
     CONE,
     QUARB
@@ -79,5 +80,12 @@ public class AutoPickup extends SequentialCommandGroup {
         new MoveArmUnsafe(arm, ARM_POSITION.HOME);
       }).finallyDo((boolean dum) -> LEDCalls.INTAKE_DOWN.cancel())
     );
+=======
+    // TODO - fix crash caused by this block
+    // handleInterrupt(() -> {
+      // LEDCalls.INTAKE_DOWN.cancel();
+      // arm.setToConfiguration(ARM_POSITION.HOME.config);
+    // });
+>>>>>>> 791aad04c53affdf46b41f96627799d8440bd39c
   }
 }

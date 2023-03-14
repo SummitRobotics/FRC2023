@@ -86,6 +86,9 @@ public class Robot extends TimedRobot {
 
   @Override
   public void testInit() {
+    if (m_autonomousCommand != null) {
+      m_autonomousCommand.cancel();
+    }
     m_robotContainer.testInit();
   }
   @Override

@@ -1,7 +1,9 @@
 package frc.robot.utilities.lists;
 
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import frc.robot.subsystems.arm.ArmConfiguration;
 import frc.robot.subsystems.arm.ArmConfiguration.POSITION_TYPE;
@@ -72,4 +74,31 @@ public final class FieldElementPositions {
         RED_X_VALUES = {15.395, 15.737, 16.149},
         RED_Y_VALUES = {0.40, 1.041, 1.615, 2.184, 2.737, 3.295, 3.870, 4.417, 4.986},
         RED_Z_VALUES = {0.3, 1.17, 1.35};
+
+    // Fieldspace coordinates of the outer two game piece positions on each side
+    public static final Pose3d
+        BLUE_CLOSE_TO_SUBSTATION = new Pose3d(
+            7.10,
+            4.60,
+            0.1,
+            new Rotation3d(0, 0, 0) // rotation shouldn't matter
+        ),
+        BLUE_FAR_FROM_SUBSTATION = new Pose3d(
+            7.10,
+            0.93,
+            0.1,
+            new Rotation3d(0, 0, 0) // rotation shouldn't matter
+        ),
+        RED_CLOSE_TO_SUBSTATION = new Pose3d(
+            9.50,
+            4.60,
+            0.1,
+            new Rotation3d(0, 0, 0) // rotation shouldn't matter
+        ),
+        RED_FAR_FROM_SUBSTATION = new Pose3d(
+            9.50,
+            0.93,
+            0.1,
+            new Rotation3d(0, 0, 0) // rotation shouldn't matter
+        );
 }
