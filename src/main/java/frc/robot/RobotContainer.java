@@ -13,6 +13,8 @@ import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.trajectory.TrajectoryUtil;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StringSubscriber;
+import edu.wpi.first.wpilibj.DataLogManager;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -42,7 +44,6 @@ import frc.robot.commands.drivetrain.ArcadeDrive;
 import frc.robot.commands.drivetrain.BackwardsBalance;
 import frc.robot.commands.drivetrain.ChargeStationBalance;
 import frc.robot.commands.drivetrain.EncoderDrive;
-import frc.robot.commands.drivetrain.MeasureSpinSpin;
 import frc.robot.devices.Lidar;
 import frc.robot.devices.LidarV3;
 import frc.robot.devices.PCM;
@@ -237,6 +238,7 @@ public class RobotContainer {
 
     private void initLogging() {
         scheduler.schedule(new LogComponents(drivetrain, arm));
+        DriverStation.startDataLog(DataLogManager.getLog());
     }
 
     private void initTelemetry() {
@@ -245,7 +247,6 @@ public class RobotContainer {
         SmartDashboard.putData("PCM", pcm);
         SmartDashboard.putData("Lidar", gripperLidar);
     }
-
 
     public void createAutoCommands() {
         ShuffleboardDriver.autoChooser.setDefaultOption("Move", new ParallelCommandGroup(

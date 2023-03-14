@@ -798,8 +798,7 @@ public class Drivetrain extends SubsystemBase implements Testable, Loggable {
 
     @Override
     public void initSendable(SendableBuilder builder) {
-        //builder.setSmartDashboardType("Drivetrain");
-
+        super.initSendable(builder);
         builder.addDoubleProperty("leftDistance", this::getLeftDistance, null);
         builder.addDoubleProperty("leftEncoder", this::getLeftEncoderPosition, null);
         builder.addDoubleProperty("leftRPM", this::getLeftRPM, null);
