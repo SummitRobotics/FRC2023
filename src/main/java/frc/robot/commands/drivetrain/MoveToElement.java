@@ -10,32 +10,36 @@ import org.photonvision.targeting.PhotonPipelineResult;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.CommandBase;
+import frc.robot.commands.automovements.AutoPickup.ELEMENT_TYPE;
 import frc.robot.subsystems.Drivetrain;
+import frc.robot.subsystems.arm.Arm;
 
 public class MoveToElement extends CommandBase {
   /** Creates a new AutoPickup. */
 
   private final Drivetrain drivetrain;
-  private final PhotonCamera quorbCamera, coneCamera;
+  private final Arm arm;
+  private final PhotonCamera camera;
 
-  private PhotonCamera trackingCamera;
-
-  private PIDController pidController = new PIDController(0.002, 0, 0);
+  private PIDController pidController = new PIDController(0.0065, 0, 0.0006);
 
   private Timer resulTimeout = new Timer();
 
   private boolean end = false;
+  private ELEMENT_TYPE type;
 
-  private double sizeThreshold = 35;
+  private double sizeThreshold;
+  private double distanceThreshold;
 
   private static final double 
     TIMEOUT = 1,
     DRIVE_POWER = 0.4;
 
-  public MoveToElement(Drivetrain drivetrain, PhotonCamera quorbCamera, PhotonCamera coneCamera) {
+  public MoveToElement(Drivetrain drivetrain, Arm arm, PhotonCamera camera, ELEMENT_TYPE type) {
     this.drivetrain = drivetrain;
-    this.quorbCamera = quorbCamera;
-    this.coneCamera = coneCamera;
+    this.camera = camera;
+    this.arm = arm;
+    this.type = type;
 
     addRequirements(drivetrain);
   }
@@ -43,20 +47,15 @@ public class MoveToElement extends CommandBase {
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
-    PhotonPipelineResult quorbResult = quorbCamera.getLatestResult();
-    PhotonPipelineResult coneResult = coneCamera.getLatestResult();
+    PhotonPipelineResult result = camera.getLatestResult();
 
-    if (quorbResult.hasTargets() || coneResult.hasTargets()) {
-      if (!quorbResult.hasTargets() || coneResult.getBestTarget().getPitch() < quorbResult.getBestTarget().getPitch()) {
-        trackingCamera = coneCamera;
-        sizeThreshold = 30;
-      } else {
-        trackingCamera = quorbCamera;
-        sizeThreshold = 30;
-      }
+    if (type == ELEMENT_TYPE.CONE) {
+      sizeThreshold = 30;
+      distanceThreshold = 60;
+    } else {
+      sizeThreshold = 24;
+      distanceThreshold = 60;
     }
-
-    System.out.println(trackingCamera);
 
     resulTimeout.reset();
     resulTimeout.start();
@@ -67,20 +66,22 @@ public class MoveToElement extends CommandBase {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    if (trackingCamera == null) return;
-    PhotonPipelineResult result = trackingCamera.getLatestResult();
+    if (camera == null) return;
+    PhotonPipelineResult result = camera.getLatestResult();
     if (!result.hasTargets()) return;
-    if (result.getBestTarget().getArea() > sizeThreshold) end = true;
+    if (result.getBestTarget().getArea() > sizeThreshold || arm.getLidarDistance() < distanceThreshold) end = true;
     resulTimeout.restart();
 
     double yaw = result.getBestTarget().getYaw();
 
     double turningPower = pidController.calculate(yaw, 0);
-    double drivePower = DRIVE_POWER * (-0.005 * Math.abs(Math.pow(yaw, 2)) + 1);
-    drivePower = drivePower * (-Math.abs(Math.pow((result.getBestTarget().getArea()/sizeThreshold), 1)) + 1);
+    double drivePower = DRIVE_POWER * (Math.exp(Math.abs(yaw) / -10));
+    drivePower = drivePower * (Math.exp(result.getBestTarget().getArea() * 2 / -sizeThreshold));
     if (drivePower < 0) {
       drivePower = 0;
     }
+
+    // drivePower = 0;
 
     drivetrain.setLeftMotorPower(drivePower + turningPower);
     drivetrain.setRightMotorPower(drivePower - turningPower);
@@ -97,8 +98,8 @@ public class MoveToElement extends CommandBase {
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    System.out.println(end);
-    System.out.println(resulTimeout.get());
+    // System.out.println(end);
+    // System.out.println(resulTimeout.get());
     return end || resulTimeout.get() > TIMEOUT;
   }
 }

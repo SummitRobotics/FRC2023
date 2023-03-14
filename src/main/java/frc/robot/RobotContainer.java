@@ -39,6 +39,7 @@ import frc.robot.commands.auto.AutoPlace;
 import frc.robot.commands.auto.MoveNBalance;
 import frc.robot.commands.auto.MoveNPlace;
 import frc.robot.commands.automovements.AutoPickup;
+import frc.robot.commands.automovements.AutoPickup.ELEMENT_TYPE;
 import frc.robot.commands.drivetrain.ArcadeDrive;
 import frc.robot.commands.drivetrain.BackwardsBalance;
 import frc.robot.commands.drivetrain.ChargeStationBalance;
@@ -102,7 +103,7 @@ public class RobotContainer {
     // private AprilTagCameraWrapper backRight;
     // private AprilTagCameraWrapper front;
 
-    private PhotonCamera QuorbCamera;
+    private PhotonCamera gripperCam;
 
     Trajectory blueHigh;
     Trajectory redHigh;
@@ -141,7 +142,7 @@ public class RobotContainer {
         // backRight = new AprilTagCameraWrapper("backRight", new Transform3d(new Translation3d(-0.3302,-0.307137,0.235153), new Rotation3d(0,Math.toRadians(-25.3), Math.toRadians(-90))));  //68.7
         // front = new AprilTagCameraWrapper("front", new Transform3d(new Translation3d(0.3683,0.2159,0.24765), new Rotation3d(0,Math.toRadians(-15), 0)));  //68.7
 
-        QuorbCamera = new PhotonCamera("QurobGribber");
+        gripperCam = new PhotonCamera("Gripper");
 
         createCommands();
         createAutoCommands();
@@ -203,10 +204,13 @@ public class RobotContainer {
         // driverXBox.buttonB.getTrigger().whileTrue(new MoveArmUnsafe(arm, ARM_POSITION.HOME));
 
         driverXBox.buttonX.getTrigger().whileTrue(new MoveArmToNode(arm));
+        driverXBox.buttonA.getTrigger().and(AutoPickup::isCone).whileTrue(new AutoPickup(drivetrain, arm, gripperCam, ELEMENT_TYPE.CONE));
+        driverXBox.buttonA.getTrigger().and(AutoPickup::isQuorb).whileTrue(new AutoPickup(drivetrain, arm, gripperCam, ELEMENT_TYPE.QUARB));
+
 
         // launchpad.missileA.getTrigger().whileTrue(balance);
         // launchpad.missileA.getTrigger().whileTrue(new AutoPickup(drivetrain, arm, QuorbCamera, QuorbCamera));
-        launchpad.missileA.getTrigger().whileTrue(new MeasureSpinSpin(drivetrain, 0.05, 0.75, 0.025));
+        // launchpad.missileA.getTrigger().whileTrue(new MeasureSpinSpin(drivetrain, 0.05, 0.75, 0.025));
         launchpad.missileB.getTrigger().whileTrue(new StartEndCommand(() -> arm.setAllSoftLimit(false), () -> arm.setAllSoftLimit(true)));
         
         gunnerXBox.buttonY.getTrigger().whileTrue(new MoveArmUnsafe(arm, ARM_POSITION.HOME));
@@ -219,7 +223,8 @@ public class RobotContainer {
         launchpad.buttonD.getTrigger().onTrue(new InstantCommand(arm::toggleClamp));
         launchpad.buttonF.getTrigger().and(this::notAltMode).toggleOnTrue(joint3Manual);
         launchpad.buttonH.getTrigger().and(this::notAltMode).whileTrue(homeArm);
-        launchpad.buttonI.getTrigger().and(this::notAltMode).toggleOnTrue(fancyArmMo);
+        // launchpad.buttonI.getTrigger().and(this::notAltMode).toggleOnTrue(fancyArmMo);
+        launchpad.buttonI.getTrigger().and(this::notAltMode).onTrue(new InstantCommand(AutoPickup::toggleType));
 
         launchpad.buttonG.getTrigger().toggleOnTrue(launchPadArmSelector);
         launchpad.buttonG.commandBind(launchPadArmSelector);
@@ -229,7 +234,7 @@ public class RobotContainer {
         launchpad.buttonC.commandBind(turretManual);
         launchpad.buttonA.commandBind(joint2Manual);
         launchpad.buttonF.commandBind(joint3Manual);
-        launchpad.buttonI.commandBind(fancyArmMo);
+        launchpad.buttonI.booleanSupplierBind(AutoPickup::isCone);
         launchpad.buttonD.booleanSupplierBind(arm::getClampSolenoidState);
     }
 
