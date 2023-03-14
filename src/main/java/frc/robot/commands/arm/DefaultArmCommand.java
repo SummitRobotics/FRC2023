@@ -6,7 +6,7 @@ package frc.robot.commands.arm;
 
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.subsystems.arm.Arm;
-import frc.robot.subsystems.arm.ArmPositions.ARM_POSITION;
+// import frc.robot.subsystems.arm.ArmPositions.ARM_POSITION;
 
 public class DefaultArmCommand extends CommandBase {
 
@@ -22,11 +22,11 @@ public class DefaultArmCommand extends CommandBase {
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
-    if (arm.atConfiguration(ARM_POSITION.HOME.config, 0.05)) {
-      arm.setToConfiguration(ARM_POSITION.HOME.config);
-    } else {
-      arm.setToConfiguration(arm.getCurrentArmConfiguration());
-    }
+    // if (arm.atConfiguration(ARM_POSITION.HOME.config, 0.05)) {
+      // arm.setToConfiguration(ARM_POSITION.HOME.config);
+    // } else {
+    // }
+    arm.setToConfiguration(arm.getCurrentArmConfiguration());
   }
 
   // Called once the command ends or is interrupted.

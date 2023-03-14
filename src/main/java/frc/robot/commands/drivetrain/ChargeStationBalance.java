@@ -9,7 +9,7 @@ import frc.robot.utilities.Functions;
 public class ChargeStationBalance extends CommandBase {
 
     private final double
-        P = 0.008,
+        P = 0.013,
         I = 0, // do not change this
         D = 0.0015;
     

@@ -39,9 +39,10 @@ public class AutoPickup extends SequentialCommandGroup {
       new MoveArmUnsafe(arm, ARM_POSITION.HOME)
     );
 
-    handleInterrupt(() -> {
-      LEDCalls.INTAKE_DOWN.cancel();
-      arm.setToConfiguration(ARM_POSITION.HOME.config);
-    });
+    // TODO - fix crash caused by this block
+    // handleInterrupt(() -> {
+      // LEDCalls.INTAKE_DOWN.cancel();
+      // arm.setToConfiguration(ARM_POSITION.HOME.config);
+    // });
   }
 }

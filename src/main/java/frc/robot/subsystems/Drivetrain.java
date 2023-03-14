@@ -114,15 +114,15 @@ public class Drivetrain extends SubsystemBase implements Testable, Loggable {
 
     public final AHRS gyro;
 
-    public static DifferentialDriveKinematics DriveKinimatics =
+    public static DifferentialDriveKinematics DriveKinematics =
         new DifferentialDriveKinematics(DRIVE_WIDTH);
 
-    public static SimpleMotorFeedforward HighFeedFoward =
+    public static SimpleMotorFeedforward HighFeedForward =
         new SimpleMotorFeedforward(HIGH_KS, HIGH_KV, HIGH_KA);
 
 
     public static DifferentialDriveVoltageConstraint HighVoltageConstraint =
-        new DifferentialDriveVoltageConstraint(HighFeedFoward, DriveKinimatics, MAX_OUTPUT_VOLTAGE);
+        new DifferentialDriveVoltageConstraint(HighFeedForward, DriveKinematics, MAX_OUTPUT_VOLTAGE);
 
     private final Solenoid shift;
 
@@ -377,8 +377,8 @@ public class Drivetrain extends SubsystemBase implements Testable, Loggable {
 
         // System.out.println(String.format("left is: %f, right is %f", leftMS, rightMS));
 
-        double leftFeedForward = HighFeedFoward.calculate(leftMS);
-        double rightFeedForward = HighFeedFoward.calculate(rightMS);
+        double leftFeedForward = HighFeedForward.calculate(leftMS);
+        double rightFeedForward = HighFeedForward.calculate(rightMS);
 
         leftPID.setReference(convertMPStoRPM(leftMS), ControlType.kVelocity, 2,  leftFeedForward);
         rightPID.setReference(convertMPStoRPM(rightMS), ControlType.kVelocity, 2, rightFeedForward);      
@@ -702,7 +702,7 @@ public class Drivetrain extends SubsystemBase implements Testable, Loggable {
      * @return The motors feed forward.
      */
     public SimpleMotorFeedforward getFeedForward() {
-        return HighFeedFoward;
+        return HighFeedForward;
     }
     
     /**
@@ -719,7 +719,7 @@ public class Drivetrain extends SubsystemBase implements Testable, Loggable {
      */
     public TrajectoryConfig generateTrajectoryConfigHighGear() {
         return new TrajectoryConfig(SPLINE_MAX_VEL_MPS_HIGH, SPLINE_MAX_ACC_MPSSQ_HIGH)
-            .setKinematics(DriveKinimatics).addConstraint(HighVoltageConstraint).setReversed(false);
+            .setKinematics(DriveKinematics).addConstraint(HighVoltageConstraint).setReversed(false);
     }
 
     public Field2d getFieldWidget() {
@@ -798,8 +798,7 @@ public class Drivetrain extends SubsystemBase implements Testable, Loggable {
 
     @Override
     public void initSendable(SendableBuilder builder) {
-        //builder.setSmartDashboardType("Drivetrain");
-
+        super.initSendable(builder);
         builder.addDoubleProperty("leftDistance", this::getLeftDistance, null);
         builder.addDoubleProperty("leftEncoder", this::getLeftEncoderPosition, null);
         builder.addDoubleProperty("leftRPM", this::getLeftRPM, null);

@@ -9,9 +9,12 @@ import frc.robot.utilities.Functions;
 public class BackwardsBalance extends CommandBase {
 
     private final double
-        P = 0.008,
+        // P = 0.015,
+        // I = 0, // do not change this
+        // D = 0.0022;
+        P = 0.01,
         I = 0, // do not change this
-        D = 0.0015;
+        D = 0.002;
     
     private final Drivetrain drivetrain;
     private final AHRS gyro;
