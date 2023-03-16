@@ -5,10 +5,12 @@
 package frc.robot.commands.automovements;
 
 import java.time.Instant;
+import java.util.Map;
 
 import org.photonvision.PhotonCamera;
 
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.SelectCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.commands.arm.MoveArmUnsafe;
@@ -24,7 +26,6 @@ import frc.robot.subsystems.arm.ArmPositions.ARM_POSITION;
 // https://docs.wpilib.org/en/stable/docs/software/commandbased/convenience-features.html
 public class AutoPickup extends SequentialCommandGroup {
 
-<<<<<<< HEAD
   public enum ELEMENT_TYPE {
     CONE,
     QUARB
@@ -54,38 +55,23 @@ public class AutoPickup extends SequentialCommandGroup {
   }
 
   /** Creates a new AutoPickup. */
-  public AutoPickup(Drivetrain drivetrain, Arm arm, PhotonCamera grabberCam, ELEMENT_TYPE type) {
+  public AutoPickup(Drivetrain drivetrain, Arm arm, PhotonCamera grabberCam) {
     addCommands(
-      new SequentialCommandGroup(
         new InstantCommand(() -> {
-          if (type == ELEMENT_TYPE.CONE) {
-            grabberCam.setPipelineIndex(1);
-          } else {
+          if (getType() == ELEMENT_TYPE.CONE) {
             grabberCam.setPipelineIndex(0);
+          } else {
+            grabberCam.setPipelineIndex(1);
           }
-        }
-        ),
+        }),
         new InstantCommand(LEDCalls.INTAKE_DOWN::activate),
         new InstantCommand(arm::unclamp),
-        new MoveArmUnsafe(arm, ARM_POSITION.GROUND_PICKUP),
+        new SelectCommand(Map.ofEntries(
+          Map.entry(ELEMENT_TYPE.CONE, new MoveArmUnsafe(arm, ARM_POSITION.GROUND_PICKUP_CONE)),
+          Map.entry(ELEMENT_TYPE.QUARB, new MoveArmUnsafe(arm, ARM_POSITION.GROUND_PICKUP_QUORB))
+        ), () -> getType()),
         new WaitCommand(0.25),
-        new MoveToElement(drivetrain, arm, grabberCam, type),
-        // new EncoderDrive(0.15, 0.15, drivetrain),
-        new InstantCommand(arm::clamp),
-        new WaitCommand(0.75),
-        new MoveArmUnsafe(arm, ARM_POSITION.GROUND_PICKUP_SAFE),
-        new MoveArmUnsafe(arm, ARM_POSITION.HOME)
-      ).handleInterrupt(() -> {
-        new InstantCommand(arm::clamp);
-        new MoveArmUnsafe(arm, ARM_POSITION.HOME);
-      }).finallyDo((boolean dum) -> LEDCalls.INTAKE_DOWN.cancel())
+        new MoveToElement(drivetrain, grabberCam, getType())
     );
-=======
-    // TODO - fix crash caused by this block
-    // handleInterrupt(() -> {
-      // LEDCalls.INTAKE_DOWN.cancel();
-      // arm.setToConfiguration(ARM_POSITION.HOME.config);
-    // });
->>>>>>> 791aad04c53affdf46b41f96627799d8440bd39c
   }
 }

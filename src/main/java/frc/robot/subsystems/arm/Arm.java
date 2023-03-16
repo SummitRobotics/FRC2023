@@ -471,6 +471,11 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
     builder.addDoubleProperty("secondJointAngle", () -> this.getCurrentArmConfiguration().getSecondJointPosition(POSITION_TYPE.ANGLE), null);
     builder.addDoubleProperty("thirdJointAngle", () -> this.getCurrentArmConfiguration().getThirdJointPosition(POSITION_TYPE.ANGLE), null);
 
+    builder.addDoubleProperty("targetTurretAngle", () -> this.getTargetArmConfiguration().getTurretPosition(POSITION_TYPE.ANGLE), null);
+    builder.addDoubleProperty("targetFirstJointAngle", () -> this.getTargetArmConfiguration().getFirstJointPosition(POSITION_TYPE.ANGLE), null);
+    builder.addDoubleProperty("targetSecondJointAngle", () -> this.getTargetArmConfiguration().getSecondJointPosition(POSITION_TYPE.ANGLE), null);
+    builder.addDoubleProperty("targetThirdJointAngle", () -> this.getTargetArmConfiguration().getThirdJointPosition(POSITION_TYPE.ANGLE), null);
+
     builder.addStringProperty("PosEstimateRS", () -> this.getCurrentArmConfiguration().getEndPosition().inRobotSpace().toString(), null);
     builder.addStringProperty("PosEstimateOS", () -> this.getCurrentArmConfiguration().getEndPosition().inOtherSpace(ROBOT_TO_TURRET_BASE).toString(), null);
     builder.addStringProperty("PosEstimateFS", () -> this.getCurrentArmConfiguration().getEndPosition().inFieldSpace().toString(), null);

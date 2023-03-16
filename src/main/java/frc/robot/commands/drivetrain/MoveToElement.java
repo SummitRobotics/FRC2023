@@ -18,27 +18,23 @@ public class MoveToElement extends CommandBase {
   /** Creates a new AutoPickup. */
 
   private final Drivetrain drivetrain;
-  private final Arm arm;
   private final PhotonCamera camera;
 
   private PIDController pidController = new PIDController(0.0065, 0, 0.0006);
 
   private Timer resulTimeout = new Timer();
 
-  private boolean end = false;
   private ELEMENT_TYPE type;
 
   private double sizeThreshold;
-  private double distanceThreshold;
 
   private static final double 
     TIMEOUT = 1,
     DRIVE_POWER = 0.4;
 
-  public MoveToElement(Drivetrain drivetrain, Arm arm, PhotonCamera camera, ELEMENT_TYPE type) {
+  public MoveToElement(Drivetrain drivetrain, PhotonCamera camera, ELEMENT_TYPE type) {
     this.drivetrain = drivetrain;
     this.camera = camera;
-    this.arm = arm;
     this.type = type;
 
     addRequirements(drivetrain);
@@ -47,20 +43,14 @@ public class MoveToElement extends CommandBase {
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
-    PhotonPipelineResult result = camera.getLatestResult();
-
     if (type == ELEMENT_TYPE.CONE) {
       sizeThreshold = 30;
-      distanceThreshold = 60;
     } else {
-      sizeThreshold = 24;
-      distanceThreshold = 60;
+      sizeThreshold = 30;
     }
 
     resulTimeout.reset();
     resulTimeout.start();
-
-    end = false;
   }
 
   // Called every time the scheduler runs while the command is scheduled.
@@ -69,14 +59,13 @@ public class MoveToElement extends CommandBase {
     if (camera == null) return;
     PhotonPipelineResult result = camera.getLatestResult();
     if (!result.hasTargets()) return;
-    if (result.getBestTarget().getArea() > sizeThreshold || arm.getLidarDistance() < distanceThreshold) end = true;
     resulTimeout.restart();
 
     double yaw = result.getBestTarget().getYaw();
 
     double turningPower = pidController.calculate(yaw, 0);
-    double drivePower = DRIVE_POWER * (Math.exp(Math.abs(yaw) / -10));
-    drivePower = drivePower * (Math.exp(result.getBestTarget().getArea() * 2 / -sizeThreshold));
+    double drivePower = DRIVE_POWER * (-0.005 * Math.abs(Math.pow(yaw, 2)) + 1);
+    drivePower = drivePower * (-Math.abs(Math.pow((result.getBestTarget().getArea()/(sizeThreshold-5)), 1)) + 1);
     if (drivePower < 0) {
       drivePower = 0;
     }
@@ -100,6 +89,6 @@ public class MoveToElement extends CommandBase {
   public boolean isFinished() {
     // System.out.println(end);
     // System.out.println(resulTimeout.get());
-    return end || resulTimeout.get() > TIMEOUT;
+    return resulTimeout.get() > TIMEOUT;
   }
 }

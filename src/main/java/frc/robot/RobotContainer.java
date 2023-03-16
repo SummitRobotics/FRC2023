@@ -33,23 +33,18 @@ import frc.robot.commands.arm.MovePositionsLaunchpad;
 import frc.robot.commands.arm.MoveToPickupSubstation;
 import frc.robot.commands.auto.ArmOutOfStart;
 import frc.robot.commands.auto.MoveNBalance;
-<<<<<<< HEAD
-import frc.robot.commands.auto.MoveNPlace;
-import frc.robot.commands.automovements.AutoPickup;
-import frc.robot.commands.automovements.AutoPickup.ELEMENT_TYPE;
-=======
 import frc.robot.commands.auto.Place;
 import frc.robot.commands.auto.PlaceNBalance;
 import frc.robot.commands.auto.PlaceNMove;
 import frc.robot.commands.auto.PlaceNMoveNBalance;
-import frc.robot.commands.auto.PlaceNMoveNGrab;
 import frc.robot.commands.auto.PlaceNMoveNGrabNPlace;
 import frc.robot.commands.auto.PlaceNMoveNGrabNPlace.Type;
->>>>>>> 791aad04c53affdf46b41f96627799d8440bd39c
+import frc.robot.commands.automovements.AutoPickup;
+import frc.robot.commands.automovements.AutoPickup.ELEMENT_TYPE;
 import frc.robot.commands.drivetrain.ArcadeDrive;
-import frc.robot.commands.drivetrain.BackwardsBalance;
-import frc.robot.commands.drivetrain.ChargeStationBalance;
+import frc.robot.commands.drivetrain.ChargeBalance;
 import frc.robot.commands.drivetrain.EncoderDrive;
+import frc.robot.commands.drivetrain.ChargeBalance.BalanceDirection;
 import frc.robot.devices.Lidar;
 import frc.robot.devices.LidarV3;
 import frc.robot.devices.PCM;
@@ -104,12 +99,7 @@ public class RobotContainer {
     // private AprilTagCameraWrapper backRight;
     // private AprilTagCameraWrapper front;
 
-<<<<<<< HEAD
     private PhotonCamera gripperCam;
-=======
-    private PhotonCamera quorbCamera;
-    private PhotonCamera coneCamera;
->>>>>>> 791aad04c53affdf46b41f96627799d8440bd39c
 
     Trajectory blueHigh;
     Trajectory redHigh;
@@ -148,12 +138,7 @@ public class RobotContainer {
         // backRight = new AprilTagCameraWrapper("backRight", new Transform3d(new Translation3d(-0.3302,-0.307137,0.235153), new Rotation3d(0,Math.toRadians(-25.3), Math.toRadians(-90))));  //68.7
         // front = new AprilTagCameraWrapper("front", new Transform3d(new Translation3d(0.3683,0.2159,0.24765), new Rotation3d(0,Math.toRadians(-15), 0)));  //68.7
 
-<<<<<<< HEAD
         gripperCam = new PhotonCamera("Gripper");
-=======
-        quorbCamera = new PhotonCamera("QuorbGrabber");
-        coneCamera = new PhotonCamera("CubeGrabber");
->>>>>>> 791aad04c53affdf46b41f96627799d8440bd39c
 
         createCommands();
         createAutoCommands();
@@ -215,11 +200,17 @@ public class RobotContainer {
         // driverXBox.buttonB.getTrigger().whileTrue(new MoveArmUnsafe(arm, ARM_POSITION.HOME));
 
         driverXBox.buttonX.getTrigger().whileTrue(new MoveArmToNode(arm));
-        driverXBox.buttonA.getTrigger().and(AutoPickup::isCone).whileTrue(new AutoPickup(drivetrain, arm, gripperCam, ELEMENT_TYPE.CONE));
-        driverXBox.buttonA.getTrigger().and(AutoPickup::isQuorb).whileTrue(new AutoPickup(drivetrain, arm, gripperCam, ELEMENT_TYPE.QUARB));
+        driverXBox.buttonA.getTrigger().whileTrue(new AutoPickup(drivetrain, arm, gripperCam)).onFalse(
+            new SequentialCommandGroup(
+                new InstantCommand(arm::clamp),
+                new WaitCommand(0.5),
+                new MoveArmUnsafe(arm, ARM_POSITION.HOME),
+                new InstantCommand(LEDCalls.INTAKE_DOWN::cancel)
+            )
+        );
 
 
-        launchpad.missileA.getTrigger().whileTrue(new BackwardsBalance(drivetrain));
+        launchpad.missileA.getTrigger().whileTrue(new ChargeBalance(drivetrain, BalanceDirection.FORWARD));
         // launchpad.missileA.getTrigger().whileTrue(new AutoPickup(drivetrain, arm, QuorbCamera, QuorbCamera));
         // launchpad.missileA.getTrigger().whileTrue(new MeasureSpinSpin(drivetrain, 0.05, 0.75, 0.025));
         launchpad.missileB.getTrigger().whileTrue(new StartEndCommand(() -> arm.setAllSoftLimit(false), () -> arm.setAllSoftLimit(true)));
@@ -245,7 +236,7 @@ public class RobotContainer {
         launchpad.buttonC.commandBind(turretManual);
         launchpad.buttonA.commandBind(joint2Manual);
         launchpad.buttonF.commandBind(joint3Manual);
-        launchpad.buttonI.booleanSupplierBind(AutoPickup::isCone);
+        launchpad.buttonI.booleanSupplierBind(AutoPickup::isQuorb);
         launchpad.buttonD.booleanSupplierBind(arm::getClampSolenoidState);
     }
 
@@ -267,28 +258,28 @@ public class RobotContainer {
     }
 
     public void createAutoCommands() {
-        ShuffleboardDriver.autoChooser.setDefaultOption("Move", new ParallelCommandGroup(
+        ShuffleboardDriver.autoChooser.addOption("Move", new ParallelCommandGroup(
             new SequentialCommandGroup(
                 new ArmOutOfStart(arm),
                 new MoveArmUnsafe(arm, ARM_POSITION.HOME)
             ),
             new EncoderDrive(1.5, drivetrain)
         ));
-        ShuffleboardDriver.autoChooser.addOption("DoNothing", new ArmOutOfStart(arm));
+        ShuffleboardDriver.autoChooser.setDefaultOption("DoNothing", new ArmOutOfStart(arm));
         ShuffleboardDriver.autoChooser.addOption("Place", new Place(arm, drivetrain));
         ShuffleboardDriver.autoChooser.addOption("PlaceNMove", new PlaceNMove(drivetrain, arm));
         ShuffleboardDriver.autoChooser.addOption("Balance", new SequentialCommandGroup(
             new ArmOutOfStart(arm),
-            new ChargeStationBalance(drivetrain)
+            new ChargeBalance(drivetrain, BalanceDirection.FORWARD)
         ));
         ShuffleboardDriver.autoChooser.addOption("BackwardsBalance", new SequentialCommandGroup(
             new ArmOutOfStart(arm),
-            new BackwardsBalance(drivetrain)
+            new ChargeBalance(drivetrain, BalanceDirection.BACKWARD)
         ));
         ShuffleboardDriver.autoChooser.addOption("PlaceNBalance", new PlaceNBalance(drivetrain, arm));
         ShuffleboardDriver.autoChooser.addOption("MoveNBalance", new MoveNBalance(arm, drivetrain));
         ShuffleboardDriver.autoChooser.addOption("PlaceNMoveNBalance", new PlaceNMoveNBalance(arm, drivetrain));
-        ShuffleboardDriver.autoChooser.addOption("PlaceNMoveNGrab", new PlaceNMoveNGrab(arm, drivetrain, quorbCamera, coneCamera));
+        // ShuffleboardDriver.autoChooser.addOption("PlaceNMoveNGrab", new PlaceNMoveNGrab(arm, drivetrain, quorbCamera, coneCamera));
         ShuffleboardDriver.autoChooser.addOption("Close PlaceNMoveNGrabNPlace", new PlaceNMoveNGrabNPlace(arm, drivetrain, Type.CloseToSubstation));
         ShuffleboardDriver.autoChooser.addOption("Far PlaceNMoveNGrabNPlace", new PlaceNMoveNGrabNPlace(arm, drivetrain, Type.FarFromSubstation));
 
@@ -302,16 +293,16 @@ public class RobotContainer {
         pcm.enableCompressorAnalog(80, 120);
         ShuffleboardDriver.init();
         LEDCalls.ON.activate();
-        try {
-            blueHigh = TrajectoryUtil.fromPathweaverJson(Filesystem.getDeployDirectory().toPath().resolve("paths/BlueBottom.wpilib.json"));
-            blueMid = TrajectoryUtil.fromPathweaverJson(Filesystem.getDeployDirectory().toPath().resolve("paths/BlueMid.wiplib.json"));
-            blueLow = TrajectoryUtil.fromPathweaverJson(Filesystem.getDeployDirectory().toPath().resolve("paths/BlueTop.wpilib.json"));
-            redHigh = TrajectoryUtil.fromPathweaverJson(Filesystem.getDeployDirectory().toPath().resolve("paths/RedBottom.wpilib.json"));
-            redMid = TrajectoryUtil.fromPathweaverJson(Filesystem.getDeployDirectory().toPath().resolve("paths/RedMid.wpilib.json"));
-            redLow = TrajectoryUtil.fromPathweaverJson(Filesystem.getDeployDirectory().toPath().resolve("paths/RedTop.wpilib.json"));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        // try {
+        //     // blueHigh = TrajectoryUtil.fromPathweaverJson(Filesystem.getDeployDirectory().toPath().resolve("paths/BlueBottom.wpilib.json"));
+        //     // blueMid = TrajectoryUtil.fromPathweaverJson(Filesystem.getDeployDirectory().toPath().resolve("paths/BlueMid.wiplib.json"));
+        //     // blueLow = TrajectoryUtil.fromPathweaverJson(Filesystem.getDeployDirectory().toPath().resolve("paths/BlueTop.wpilib.json"));
+        //     // redHigh = TrajectoryUtil.fromPathweaverJson(Filesystem.getDeployDirectory().toPath().resolve("paths/RedBottom.wpilib.json"));
+        //     // redMid = TrajectoryUtil.fromPathweaverJson(Filesystem.getDeployDirectory().toPath().resolve("paths/RedMid.wpilib.json"));
+        //     // redLow = TrajectoryUtil.fromPathweaverJson(Filesystem.getDeployDirectory().toPath().resolve("paths/RedTop.wpilib.json"));
+        // } catch (IOException e) {
+        //     e.printStackTrace();
+        // }
         // TODO - check port number and comment out server for comp
         PathPlannerServer.startServer(5468);
     }
@@ -357,7 +348,13 @@ public class RobotContainer {
     public void teleopExit() {}
 
     public void testInit() {
-       (new MoveArmUnsafe(arm, ARM_POSITION.STARTING_CONFIG, true)).initialize();
+        (new MoveArmUnsafe(arm, ARM_POSITION.STARTING_CONFIG, true)).initialize();
+        // (new SequentialCommandGroup(
+        //     new InstantCommand(arm::unclamp),
+        //     new WaitCommand(0.25),
+        //     new WaitCommand(0.25),
+        //     new InstantCommand(arm::clamp)
+        // )).initialize();
     }
     public void testPeriodic() {}
     public void testExit() {
