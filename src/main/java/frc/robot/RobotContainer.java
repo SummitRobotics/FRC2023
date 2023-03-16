@@ -9,13 +9,12 @@ import org.photonvision.PhotonCamera;
 import com.kauailabs.navx.frc.AHRS;
 import com.pathplanner.lib.server.PathPlannerServer;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.trajectory.Trajectory;
-import edu.wpi.first.math.trajectory.TrajectoryUtil;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StringSubscriber;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
@@ -40,11 +39,12 @@ import frc.robot.commands.auto.PlaceNMoveNBalance;
 import frc.robot.commands.auto.PlaceNMoveNGrabNPlace;
 import frc.robot.commands.auto.PlaceNMoveNGrabNPlace.Type;
 import frc.robot.commands.automovements.AutoPickup;
-import frc.robot.commands.automovements.AutoPickup.ELEMENT_TYPE;
+import frc.robot.commands.automovements.LimelightPlace;
 import frc.robot.commands.drivetrain.ArcadeDrive;
 import frc.robot.commands.drivetrain.ChargeBalance;
 import frc.robot.commands.drivetrain.EncoderDrive;
 import frc.robot.commands.drivetrain.ChargeBalance.BalanceDirection;
+import frc.robot.devices.Lemonlight;
 import frc.robot.devices.Lidar;
 import frc.robot.devices.LidarV3;
 import frc.robot.devices.PCM;
@@ -57,6 +57,9 @@ import frc.robot.subsystems.arm.ArmPositions.ARM_POSITION;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.utilities.lists.AxisPriorities;
 import frc.robot.utilities.lists.Ports;
+import frc.robot.utilities.math.RigidTransform3;
+import frc.robot.utilities.math.Rotation3;
+import frc.robot.utilities.math.Vector3;
 import frc.robot.commands.Home;
 import frc.robot.commands.LogComponents;
 import frc.robot.commands.TimedMoveMotor;
@@ -139,7 +142,6 @@ public class RobotContainer {
         // front = new AprilTagCameraWrapper("front", new Transform3d(new Translation3d(0.3683,0.2159,0.24765), new Rotation3d(0,Math.toRadians(-15), 0)));  //68.7
 
         gripperCam = new PhotonCamera("Gripper");
-
         createCommands();
         createAutoCommands();
         setDefaultCommands();
@@ -199,7 +201,7 @@ public class RobotContainer {
 
         // driverXBox.buttonB.getTrigger().whileTrue(new MoveArmUnsafe(arm, ARM_POSITION.HOME));
 
-        driverXBox.buttonX.getTrigger().whileTrue(new MoveArmToNode(arm));
+        driverXBox.buttonX.getTrigger().whileTrue(new LimelightPlace(drivetrain, arm));
         driverXBox.buttonA.getTrigger().whileTrue(new AutoPickup(drivetrain, arm, gripperCam)).onFalse(
             new SequentialCommandGroup(
                 new InstantCommand(arm::clamp),

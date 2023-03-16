@@ -20,7 +20,7 @@ public class MoveToElement extends CommandBase {
   private final Drivetrain drivetrain;
   private final PhotonCamera camera;
 
-  private PIDController pidController = new PIDController(0.0065, 0, 0.0006);
+  private PIDController pidController = new PIDController(0.0035, 0, 0.0008);
 
   private Timer resulTimeout = new Timer();
 
@@ -51,6 +51,9 @@ public class MoveToElement extends CommandBase {
 
     resulTimeout.reset();
     resulTimeout.start();
+    pidController.reset();
+    pidController.setTolerance(8, 1);
+    pidController.setSetpoint(0);
   }
 
   // Called every time the scheduler runs while the command is scheduled.
@@ -63,7 +66,7 @@ public class MoveToElement extends CommandBase {
 
     double yaw = result.getBestTarget().getYaw();
 
-    double turningPower = pidController.calculate(yaw, 0);
+    double turningPower = pidController.calculate(yaw);
     double drivePower = DRIVE_POWER * (-0.005 * Math.abs(Math.pow(yaw, 2)) + 1);
     drivePower = drivePower * (-Math.abs(Math.pow((result.getBestTarget().getArea()/(sizeThreshold-5)), 1)) + 1);
     if (drivePower < 0) {
