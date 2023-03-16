@@ -9,12 +9,11 @@ import org.photonvision.PhotonCamera;
 import com.kauailabs.navx.frc.AHRS;
 import com.pathplanner.lib.server.PathPlannerServer;
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation3d;
-import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StringSubscriber;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
@@ -26,7 +25,6 @@ import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.commands.arm.ArmMO;
 import frc.robot.commands.arm.DefaultArmCommand;
 import frc.robot.commands.arm.FullManualArm;
-import frc.robot.commands.arm.MoveArmToNode;
 import frc.robot.commands.arm.MoveArmUnsafe;
 import frc.robot.commands.arm.MovePositionsLaunchpad;
 import frc.robot.commands.arm.MoveToPickupSubstation;
@@ -44,7 +42,6 @@ import frc.robot.commands.drivetrain.ArcadeDrive;
 import frc.robot.commands.drivetrain.ChargeBalance;
 import frc.robot.commands.drivetrain.EncoderDrive;
 import frc.robot.commands.drivetrain.ChargeBalance.BalanceDirection;
-import frc.robot.devices.Lemonlight;
 import frc.robot.devices.Lidar;
 import frc.robot.devices.LidarV3;
 import frc.robot.devices.PCM;
@@ -57,9 +54,6 @@ import frc.robot.subsystems.arm.ArmPositions.ARM_POSITION;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.utilities.lists.AxisPriorities;
 import frc.robot.utilities.lists.Ports;
-import frc.robot.utilities.math.RigidTransform3;
-import frc.robot.utilities.math.Rotation3;
-import frc.robot.utilities.math.Vector3;
 import frc.robot.commands.Home;
 import frc.robot.commands.LogComponents;
 import frc.robot.commands.TimedMoveMotor;
@@ -103,14 +97,6 @@ public class RobotContainer {
     // private AprilTagCameraWrapper front;
 
     private PhotonCamera gripperCam;
-
-    Trajectory blueHigh;
-    Trajectory redHigh;
-    Trajectory blueMid;
-    Trajectory redMid;
-    Trajectory blueLow;
-    Trajectory redLow;
-
 
     StringSubscriber HPSelector;
 
@@ -282,9 +268,10 @@ public class RobotContainer {
         ShuffleboardDriver.autoChooser.addOption("MoveNBalance", new MoveNBalance(arm, drivetrain));
         ShuffleboardDriver.autoChooser.addOption("PlaceNMoveNBalance", new PlaceNMoveNBalance(arm, drivetrain));
         // ShuffleboardDriver.autoChooser.addOption("PlaceNMoveNGrab", new PlaceNMoveNGrab(arm, drivetrain, quorbCamera, coneCamera));
-        ShuffleboardDriver.autoChooser.addOption("Close PlaceNMoveNGrabNPlace", new PlaceNMoveNGrabNPlace(arm, drivetrain, Type.CloseToSubstation));
-        ShuffleboardDriver.autoChooser.addOption("Far PlaceNMoveNGrabNPlace", new PlaceNMoveNGrabNPlace(arm, drivetrain, Type.FarFromSubstation));
-
+        ShuffleboardDriver.autoChooser.addOption("CloseBluePlaceNMoveNGrabNPlace", new PlaceNMoveNGrabNPlace(arm, drivetrain, Type.CloseToSubstation, Alliance.Blue));
+        ShuffleboardDriver.autoChooser.addOption("FarBluePlaceNMoveNGrabNPlace", new PlaceNMoveNGrabNPlace(arm, drivetrain, Type.FarFromSubstation, Alliance.Blue));
+        ShuffleboardDriver.autoChooser.addOption("CloseRedPlaceNMoveNGrabNPlace", new PlaceNMoveNGrabNPlace(arm, drivetrain, Type.CloseToSubstation, Alliance.Red));
+        ShuffleboardDriver.autoChooser.addOption("FarRedPlaceNMoveNGrabNPlace", new PlaceNMoveNGrabNPlace(arm, drivetrain, Type.FarFromSubstation, Alliance.Red));
     }
 
     public Command getAutonomousCommand() {
@@ -295,16 +282,7 @@ public class RobotContainer {
         pcm.enableCompressorAnalog(80, 120);
         ShuffleboardDriver.init();
         LEDCalls.ON.activate();
-        // try {
-        //     // blueHigh = TrajectoryUtil.fromPathweaverJson(Filesystem.getDeployDirectory().toPath().resolve("paths/BlueBottom.wpilib.json"));
-        //     // blueMid = TrajectoryUtil.fromPathweaverJson(Filesystem.getDeployDirectory().toPath().resolve("paths/BlueMid.wiplib.json"));
-        //     // blueLow = TrajectoryUtil.fromPathweaverJson(Filesystem.getDeployDirectory().toPath().resolve("paths/BlueTop.wpilib.json"));
-        //     // redHigh = TrajectoryUtil.fromPathweaverJson(Filesystem.getDeployDirectory().toPath().resolve("paths/RedBottom.wpilib.json"));
-        //     // redMid = TrajectoryUtil.fromPathweaverJson(Filesystem.getDeployDirectory().toPath().resolve("paths/RedMid.wpilib.json"));
-        //     // redLow = TrajectoryUtil.fromPathweaverJson(Filesystem.getDeployDirectory().toPath().resolve("paths/RedTop.wpilib.json"));
-        // } catch (IOException e) {
-        //     e.printStackTrace();
-        // }
+
         // TODO - check port number and comment out server for comp
         PathPlannerServer.startServer(5468);
     }
