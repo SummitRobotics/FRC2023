@@ -29,8 +29,8 @@ public class PlaceNMoveNGrabNPlace extends SequentialCommandGroup {
         ARM_POSITION grabPos;
 
         if (type == Type.FarFromSubstation) {
-            firstTraj = PathPlanner.loadPath("FarFromSubstation", new PathConstraints(2, 2));
-            secondTraj = PathPlanner.loadPath("FarFromSubstationBack", new PathConstraints(2, 2));
+            firstTraj = PathPlanner.loadPath("FarFromSubstation", new PathConstraints(3, 3));
+            secondTraj = PathPlanner.loadPath("FarFromSubstationBack", new PathConstraints(3, 3));
             if (alliance == Alliance.Blue) {
                 placePos = ARM_POSITION.AUTO_PLACE_LEFT;
                 grabPos = ARM_POSITION.AUTO_GRAB_LEFT;

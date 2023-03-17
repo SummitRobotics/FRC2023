@@ -279,12 +279,12 @@ public class RobotContainer {
     }
 
     public void robotInit() {
-        pcm.enableCompressorAnalog(80, 120);
+        pcm.enableCompressorAnalog(80, 100);
         ShuffleboardDriver.init();
         LEDCalls.ON.activate();
 
         // TODO - check port number and comment out server for comp
-        PathPlannerServer.startServer(5468);
+        // PathPlannerServer.startServer(5468);
     }
     public void robotPeriodic() {
         String val = HPSelector.get();
