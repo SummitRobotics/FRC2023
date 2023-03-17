@@ -28,14 +28,14 @@ public class AutoPickup extends SequentialCommandGroup {
 
   public enum ELEMENT_TYPE {
     CONE,
-    QUARB
+    QUORB
   }
 
   private static ELEMENT_TYPE TYPE = ELEMENT_TYPE.CONE;
 
   public static ELEMENT_TYPE toggleType () {
     if (TYPE == ELEMENT_TYPE.CONE) {
-      TYPE = ELEMENT_TYPE.QUARB;
+      TYPE = ELEMENT_TYPE.QUORB;
     } else {
       TYPE = ELEMENT_TYPE.CONE;
     }
@@ -51,7 +51,7 @@ public class AutoPickup extends SequentialCommandGroup {
   }
 
   public static boolean isQuorb() {
-    return TYPE == ELEMENT_TYPE.QUARB;
+    return TYPE == ELEMENT_TYPE.QUORB;
   }
 
   /** Creates a new AutoPickup. */
@@ -68,7 +68,7 @@ public class AutoPickup extends SequentialCommandGroup {
         new InstantCommand(arm::unclamp),
         new SelectCommand(Map.ofEntries(
           Map.entry(ELEMENT_TYPE.CONE, new MoveArmUnsafe(arm, ARM_POSITION.GROUND_PICKUP_CONE)),
-          Map.entry(ELEMENT_TYPE.QUARB, new MoveArmUnsafe(arm, ARM_POSITION.GROUND_PICKUP_QUORB))
+          Map.entry(ELEMENT_TYPE.QUORB, new MoveArmUnsafe(arm, ARM_POSITION.GROUND_PICKUP_QUORB))
         ), () -> getType()),
         new WaitCommand(0.25),
         new MoveToElement(drivetrain, grabberCam, getType())

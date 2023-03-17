@@ -3,7 +3,6 @@ package frc.robot.commands.auto;
 import com.pathplanner.lib.PathConstraints;
 import com.pathplanner.lib.PathPlanner;
 import com.pathplanner.lib.PathPlannerTrajectory;
-import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
@@ -22,41 +21,38 @@ public class PlaceNMoveNGrabNPlace extends SequentialCommandGroup {
         CloseToSubstation
     }
 
-    public PlaceNMoveNGrabNPlace(Arm arm, Drivetrain drivetrain, Type type) {
+    public PlaceNMoveNGrabNPlace(Arm arm, Drivetrain drivetrain, Type type, Alliance alliance) {
 
         PathPlannerTrajectory firstTraj;
-
         PathPlannerTrajectory secondTraj;
-        
         ARM_POSITION placePos;
         ARM_POSITION grabPos;
 
         if (type == Type.FarFromSubstation) {
-            firstTraj = PathPlanner.loadPath("FarFromSubstation", new PathConstraints(2, 2));
-            secondTraj = PathPlanner.loadPath("FarFromSubstationBack", new PathConstraints(2, 2));
-            if (DriverStation.getAlliance() == Alliance.Blue) {
-                placePos = ARM_POSITION.LEFT_HIGH;
-                grabPos = ARM_POSITION.AUTO_GRAB_FAR_BLUE;
+            firstTraj = PathPlanner.loadPath("FarFromSubstation", new PathConstraints(3, 3));
+            secondTraj = PathPlanner.loadPath("FarFromSubstationBack", new PathConstraints(3, 3));
+            if (alliance == Alliance.Blue) {
+                placePos = ARM_POSITION.AUTO_PLACE_LEFT;
+                grabPos = ARM_POSITION.AUTO_GRAB_LEFT;
             } else {
-                placePos = ARM_POSITION.RIGHT_HIGH;
-                grabPos = ARM_POSITION.AUTO_GRAB_FAR_BLUE;
+                placePos = ARM_POSITION.AUTO_PLACE_RIGHT;
+                grabPos = ARM_POSITION.AUTO_GRAB_RIGHT;
             }
         } else {
             firstTraj = PathPlanner.loadPath("CloseToSubstation", new PathConstraints(2, 2));
             secondTraj = PathPlanner.loadPath("CloseToSubstationBack", new PathConstraints(2, 2));
-            if (DriverStation.getAlliance() == Alliance.Blue) {
-                placePos = ARM_POSITION.RIGHT_HIGH;
-                grabPos = ARM_POSITION.AUTO_GRAB_FAR_BLUE;
+            if (alliance == Alliance.Blue) {
+                placePos = ARM_POSITION.AUTO_PLACE_RIGHT;
+                grabPos = ARM_POSITION.AUTO_GRAB_RIGHT;
             } else {
-                placePos = ARM_POSITION.LEFT_HIGH;
-                grabPos = ARM_POSITION.AUTO_GRAB_FAR_BLUE;
+                placePos = ARM_POSITION.AUTO_PLACE_LEFT;
+                grabPos = ARM_POSITION.AUTO_GRAB_LEFT;
             }
         }
 
         addCommands(
             new InstantCommand(drivetrain::highGear),
             new ArmOutOfStart(arm),
-            // TODO - figure out if we need to move forward to align with the cone pole
             new MoveArmUnsafe(arm, ARM_POSITION.MIDDLE_HIGH),
             new MoveArmUnsafe(arm, placePos),
             new InstantCommand(arm::unclamp),

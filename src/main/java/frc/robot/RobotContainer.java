@@ -9,13 +9,11 @@ import org.photonvision.PhotonCamera;
 import com.kauailabs.navx.frc.AHRS;
 import com.pathplanner.lib.server.PathPlannerServer;
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.trajectory.Trajectory;
-import edu.wpi.first.math.trajectory.TrajectoryUtil;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StringSubscriber;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.Filesystem;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
@@ -27,7 +25,6 @@ import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.commands.arm.ArmMO;
 import frc.robot.commands.arm.DefaultArmCommand;
 import frc.robot.commands.arm.FullManualArm;
-import frc.robot.commands.arm.MoveArmToNode;
 import frc.robot.commands.arm.MoveArmUnsafe;
 import frc.robot.commands.arm.MovePositionsLaunchpad;
 import frc.robot.commands.arm.MoveToPickupSubstation;
@@ -40,7 +37,7 @@ import frc.robot.commands.auto.PlaceNMoveNBalance;
 import frc.robot.commands.auto.PlaceNMoveNGrabNPlace;
 import frc.robot.commands.auto.PlaceNMoveNGrabNPlace.Type;
 import frc.robot.commands.automovements.AutoPickup;
-import frc.robot.commands.automovements.AutoPickup.ELEMENT_TYPE;
+import frc.robot.commands.automovements.LimelightPlace;
 import frc.robot.commands.drivetrain.ArcadeDrive;
 import frc.robot.commands.drivetrain.ChargeBalance;
 import frc.robot.commands.drivetrain.EncoderDrive;
@@ -101,14 +98,6 @@ public class RobotContainer {
 
     private PhotonCamera gripperCam;
 
-    Trajectory blueHigh;
-    Trajectory redHigh;
-    Trajectory blueMid;
-    Trajectory redMid;
-    Trajectory blueLow;
-    Trajectory redLow;
-
-
     StringSubscriber HPSelector;
 
     public RobotContainer() throws IOException {
@@ -139,7 +128,6 @@ public class RobotContainer {
         // front = new AprilTagCameraWrapper("front", new Transform3d(new Translation3d(0.3683,0.2159,0.24765), new Rotation3d(0,Math.toRadians(-15), 0)));  //68.7
 
         gripperCam = new PhotonCamera("Gripper");
-
         createCommands();
         createAutoCommands();
         setDefaultCommands();
@@ -199,7 +187,7 @@ public class RobotContainer {
 
         // driverXBox.buttonB.getTrigger().whileTrue(new MoveArmUnsafe(arm, ARM_POSITION.HOME));
 
-        driverXBox.buttonX.getTrigger().whileTrue(new MoveArmToNode(arm));
+        driverXBox.buttonX.getTrigger().whileTrue(new LimelightPlace(drivetrain, arm));
         driverXBox.buttonA.getTrigger().whileTrue(new AutoPickup(drivetrain, arm, gripperCam)).onFalse(
             new SequentialCommandGroup(
                 new InstantCommand(arm::clamp),
@@ -280,9 +268,10 @@ public class RobotContainer {
         ShuffleboardDriver.autoChooser.addOption("MoveNBalance", new MoveNBalance(arm, drivetrain));
         ShuffleboardDriver.autoChooser.addOption("PlaceNMoveNBalance", new PlaceNMoveNBalance(arm, drivetrain));
         // ShuffleboardDriver.autoChooser.addOption("PlaceNMoveNGrab", new PlaceNMoveNGrab(arm, drivetrain, quorbCamera, coneCamera));
-        ShuffleboardDriver.autoChooser.addOption("Close PlaceNMoveNGrabNPlace", new PlaceNMoveNGrabNPlace(arm, drivetrain, Type.CloseToSubstation));
-        ShuffleboardDriver.autoChooser.addOption("Far PlaceNMoveNGrabNPlace", new PlaceNMoveNGrabNPlace(arm, drivetrain, Type.FarFromSubstation));
-
+        ShuffleboardDriver.autoChooser.addOption("CloseBluePlaceNMoveNGrabNPlace", new PlaceNMoveNGrabNPlace(arm, drivetrain, Type.CloseToSubstation, Alliance.Blue));
+        ShuffleboardDriver.autoChooser.addOption("FarBluePlaceNMoveNGrabNPlace", new PlaceNMoveNGrabNPlace(arm, drivetrain, Type.FarFromSubstation, Alliance.Blue));
+        ShuffleboardDriver.autoChooser.addOption("CloseRedPlaceNMoveNGrabNPlace", new PlaceNMoveNGrabNPlace(arm, drivetrain, Type.CloseToSubstation, Alliance.Red));
+        ShuffleboardDriver.autoChooser.addOption("FarRedPlaceNMoveNGrabNPlace", new PlaceNMoveNGrabNPlace(arm, drivetrain, Type.FarFromSubstation, Alliance.Red));
     }
 
     public Command getAutonomousCommand() {
@@ -290,21 +279,12 @@ public class RobotContainer {
     }
 
     public void robotInit() {
-        pcm.enableCompressorAnalog(80, 120);
+        pcm.enableCompressorAnalog(80, 100);
         ShuffleboardDriver.init();
         LEDCalls.ON.activate();
-        // try {
-        //     // blueHigh = TrajectoryUtil.fromPathweaverJson(Filesystem.getDeployDirectory().toPath().resolve("paths/BlueBottom.wpilib.json"));
-        //     // blueMid = TrajectoryUtil.fromPathweaverJson(Filesystem.getDeployDirectory().toPath().resolve("paths/BlueMid.wiplib.json"));
-        //     // blueLow = TrajectoryUtil.fromPathweaverJson(Filesystem.getDeployDirectory().toPath().resolve("paths/BlueTop.wpilib.json"));
-        //     // redHigh = TrajectoryUtil.fromPathweaverJson(Filesystem.getDeployDirectory().toPath().resolve("paths/RedBottom.wpilib.json"));
-        //     // redMid = TrajectoryUtil.fromPathweaverJson(Filesystem.getDeployDirectory().toPath().resolve("paths/RedMid.wpilib.json"));
-        //     // redLow = TrajectoryUtil.fromPathweaverJson(Filesystem.getDeployDirectory().toPath().resolve("paths/RedTop.wpilib.json"));
-        // } catch (IOException e) {
-        //     e.printStackTrace();
-        // }
+
         // TODO - check port number and comment out server for comp
-        PathPlannerServer.startServer(5468);
+        // PathPlannerServer.startServer(5468);
     }
     public void robotPeriodic() {
         String val = HPSelector.get();

@@ -23,7 +23,11 @@ public class ArmPositions {
         GROUND_PICKUP_SAFE(31.45211,39.21389,13.357,-23.40462),
         GROUND_PICKUP_CONE(31.45211,95.408,13.357,-45.904),
         GROUND_PICKUP_QUORB(31.45211,95.408,21.904,-56.143),
-        AUTO_GRAB_FAR_BLUE(22.881, 131.570, 79.788, -112.572);
+        
+        AUTO_PLACE_LEFT(34.9282/3,93.027,128.451,-86.4549),
+        AUTO_PLACE_RIGHT(155.471/3,93.027,128.451,-86.4549),
+        AUTO_GRAB_LEFT(22.881, 131.570, 79.788, -112.572),
+        AUTO_GRAB_RIGHT(40.02322, 131.570, 79.788, -112.572);
             
         public ArmConfiguration config;
         ARM_POSITION(double turret, double joint1, double joint2, double joint3) {

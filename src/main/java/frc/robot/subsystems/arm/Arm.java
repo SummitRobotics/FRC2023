@@ -446,10 +446,10 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
   @Override
   public HomeableCANSparkMax[] getHomeables() {
     return new HomeableCANSparkMax[] {
-      new HomeableCANSparkMax(turretMotor, this, -0.1, 20.0, ARM_TURRET_FORWARD_SOFT_LIMIT, ARM_TURRET_REVERSE_SOFT_LIMIT, 0),
+      new HomeableCANSparkMax(turretMotor, this, -0.1, 22.0, ARM_TURRET_FORWARD_SOFT_LIMIT, ARM_TURRET_REVERSE_SOFT_LIMIT, 0),
       new HomeableCANSparkMax(joint1Motor, this, -0.1, 30.0, ARM_JOINT_1_FORWARD_SOFT_LIMIT, ARM_JOINT_1_REVERSE_SOFT_LIMIT, 0),
       new HomeableCANSparkMax(joint2Motor, this, -0.1, 30.0, ARM_JOINT_2_FORWARD_SOFT_LIMIT, ARM_JOINT_2_REVERSE_SOFT_LIMIT, 0),
-      new HomeableCANSparkMax(joint3Motor, this, 0.1, 10.0, ARM_JOINT_3_FORWARD_SOFT_LIMIT, ARM_JOINT_3_REVERSE_SOFT_LIMIT, 0),
+      new HomeableCANSparkMax(joint3Motor, this, 0.15, 22.0, ARM_JOINT_3_FORWARD_SOFT_LIMIT, ARM_JOINT_3_REVERSE_SOFT_LIMIT, 0),
       // new HomeableCANSparkMax(wristMotor, this, 0.08, 4.5, ARM_WRIST_FORWARD_SOFT_LIMIT, ARM_WRIST_REVERSE_SOFT_LIMIT, 0)
     };
   }
