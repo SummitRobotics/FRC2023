@@ -78,7 +78,7 @@ public class LidarV3New implements Lidar {
         byte[] status = new byte[1];
 
         portI2C.write(0x00, 0x04);
-        
+
         // checks if there is a valid measurement
         portI2C.read(0x01, 1, status);
 
@@ -153,7 +153,7 @@ public class LidarV3New implements Lidar {
 
     @Override
     public void initSendable(SendableBuilder builder) {
-        builder.setSmartDashboardType("LidarV4");
+        builder.setSmartDashboardType("LidarV3New");
         builder.addDoubleProperty("avgDistance", this::getAverageDistance, null);
         builder.addDoubleProperty("distance", this::getDistance, null);
     }
