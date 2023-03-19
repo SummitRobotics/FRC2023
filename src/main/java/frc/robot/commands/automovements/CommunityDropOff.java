@@ -23,8 +23,7 @@ public class CommunityDropOff extends SequentialCommandGroup {
     
     private static final double 
         SLOPE = 0.5,
-        GRABBER_ANGLE = 0,
-        WRIST_ANGLE = 0;
+        GRABBER_ANGLE = 0;
 
     public CommunityDropOff(Drivetrain drivetrain, Arm arm) {
 
@@ -89,21 +88,20 @@ public class CommunityDropOff extends SequentialCommandGroup {
             }
 
             addCommands(
-                new MoveArmUnsafe(arm, ARM_POSITION.HOME).unless(() -> arm.isWithinRange(node, GRABBER_ANGLE, WRIST_ANGLE)),
-                new InstantCommand(() -> drivetrain.highGear()).unless(() -> arm.isWithinRange(node, GRABBER_ANGLE, WRIST_ANGLE)),
+                new MoveArmUnsafe(arm, ARM_POSITION.HOME).unless(() -> arm.isWithinRange(node, GRABBER_ANGLE)),
+                new InstantCommand(() -> drivetrain.highGear()).unless(() -> arm.isWithinRange(node, GRABBER_ANGLE)),
                 new FollowDynamicTrajectoryThreaded(
                     drivetrain::getPose,
                     () -> drivePoint,
                     () -> new ArrayList<Translation2d>(),
                     drivetrain.generateTrajectoryConfigHighGear(),
                     drivetrain
-                ).unless(() -> arm.isWithinRange(node, GRABBER_ANGLE, WRIST_ANGLE)),
+                ).unless(() -> arm.isWithinRange(node, GRABBER_ANGLE)),
                 // TODO - adjust grabber angle and wrist rotations
                 new MoveArm(
                     arm,
                     node,
-                    GRABBER_ANGLE,
-                    WRIST_ANGLE
+                    GRABBER_ANGLE
                 ),
                 new InstantCommand(() -> arm.unclamp()),
                 new MoveArmUnsafe(arm, ARM_POSITION.HOME)

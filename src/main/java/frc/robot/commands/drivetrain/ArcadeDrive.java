@@ -30,7 +30,7 @@ public class ArcadeDrive extends CommandBase {
     private OIAxis.PrioritizedAxis reversePowerAxisPrio;
     private OIAxis.PrioritizedAxis turnAxisPrio;
 
-    private final ChangeRateLimiter limiter;
+    private final ChangeRateLimiter powerLimiter;
 
     private static final double DEAD_ZONE = .01;
 
@@ -62,7 +62,7 @@ public class ArcadeDrive extends CommandBase {
         this.reversePowerAxis = reversePowerAxis;
         this.turnAxis = turnAxis;
 
-        limiter = new ChangeRateLimiter(MAX_CHANGE_RATE);
+        powerLimiter = new ChangeRateLimiter(MAX_CHANGE_RATE);
 
         addRequirements(drivetrain);
         isSingleAxis = false;
@@ -92,7 +92,7 @@ public class ArcadeDrive extends CommandBase {
         this.reversePowerAxis = null;
         this.turnAxis = turnAxis;
 
-        limiter = new ChangeRateLimiter(MAX_CHANGE_RATE);
+        powerLimiter = new ChangeRateLimiter(MAX_CHANGE_RATE);
 
         addRequirements(drivetrain);
         isSingleAxis = true;
@@ -118,6 +118,7 @@ public class ArcadeDrive extends CommandBase {
         avgPower.reset();
         avgSpeed.reset();
         activateSwitchfoot = false;
+        powerLimiter.resetOld();
     }
 
     // Called every time the scheduler runs while the command is scheduled.
@@ -138,10 +139,8 @@ public class ArcadeDrive extends CommandBase {
             forwardPower = Math.pow(forwardPower, 2);
             reversePower = Math.pow(reversePower, 2);
 
-            power = forwardPower - reversePower;
+            power = powerLimiter.getRateLimitedValue(forwardPower - reversePower);
         }
-
-        power = limiter.getRateLimitedValue(power);
 
         avgPower.update(Math.abs(power));
 
@@ -152,10 +151,21 @@ public class ArcadeDrive extends CommandBase {
             drivetrain.lowGear();
         }
 
-        double turn = -Math.pow(turnAxis.get(), 3);
-
-        //System.out.println(turn);
-
+        // System.out.println(turnAxis.get());
+        
+        double turnVal = 0;
+        
+        if (Math.abs(turnAxis.get()) > 0.845) {
+            turnVal = Math.pow(turnAxis.get(), 3) * 0.7;
+        } else {
+            turnVal = 0.5 * turnAxis.get();
+        }
+        
+        double turn = -drivetrain.turnSpeedToMotorPower(turnVal);
+        // turn = -drivetrain.turnSpeedToMotorPower(Math.pow(turnAxis.get(), 3));
+        // turn = -drivetrain.turnSpeedToMotorPower(0.7 * Math.pow(turnAxis.get(), 3));
+        // turn = -Math.pow(turnAxis.get(), 3);
+        
         if (activateSwitchfoot) {
             turn = -turn;
         }

@@ -60,8 +60,8 @@ public class MoveToPickupSubstation extends CommandBase {
     }
 
     ArmConfiguration currentPos = arm.getCurrentArmConfiguration();
-    armConfigurationFinal = ArmConfiguration.fromEndPosition(Positions.Pose3d.fromFieldSpace(moveTo), 0, 0);
-    armConfigurationInit = new ArmConfiguration(armConfigurationFinal.getTurretPosition(POSITION_TYPE.ENCODER_ROTATIONS), currentPos.getFirstJointPosition(POSITION_TYPE.ENCODER_ROTATIONS), currentPos.getSecondJointPosition(POSITION_TYPE.ENCODER_ROTATIONS), currentPos.getThirdJointPosition(POSITION_TYPE.ENCODER_ROTATIONS), currentPos.getWristPosition(POSITION_TYPE.ENCODER_ROTATIONS), POSITION_TYPE.ENCODER_ROTATIONS);
+    armConfigurationFinal = ArmConfiguration.fromEndPosition(Positions.Pose3d.fromFieldSpace(moveTo), 0);
+    armConfigurationInit = new ArmConfiguration(armConfigurationFinal.getTurretPosition(POSITION_TYPE.ENCODER_ROTATIONS), currentPos.getFirstJointPosition(POSITION_TYPE.ENCODER_ROTATIONS), currentPos.getSecondJointPosition(POSITION_TYPE.ENCODER_ROTATIONS), currentPos.getThirdJointPosition(POSITION_TYPE.ENCODER_ROTATIONS), POSITION_TYPE.ENCODER_ROTATIONS);
 
     arm.setToConfiguration(armConfigurationInit);
     timer.stop();
@@ -84,7 +84,9 @@ public class MoveToPickupSubstation extends CommandBase {
   public void end(boolean interrupted) {
     armConfigurationFinal = null;
     armConfigurationInit = null;
-    arm.stop();
+    if (interrupted) {
+      arm.stop();
+    }
   }
 
   // Returns true when the command should end.

@@ -7,12 +7,9 @@ import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.PrintCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
-import frc.robot.commands.arm.MoveArm;
 import frc.robot.commands.arm.MoveArmUnsafe;
 import frc.robot.commands.drivetrain.FollowDynamicTrajectory;
-import frc.robot.commands.drivetrain.FollowDynamicTrajectoryThreaded;
 import frc.robot.subsystems.arm.Arm;
 import frc.robot.subsystems.arm.ArmPositions.ARM_POSITION;
 import frc.robot.subsystems.Drivetrain;
@@ -77,7 +74,6 @@ public class SubstationPickup extends SequentialCommandGroup {
             new MoveArmUnsafe(
                 arm,
                 Positions.Pose3d.fromFieldSpace(substation),
-                0.0,
                 0.0
             ),
             new InstantCommand(() -> arm.clamp())

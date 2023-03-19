@@ -26,7 +26,6 @@ import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.devices.Lidar;
 import frc.robot.subsystems.arm.ArmConfiguration.POSITION_TYPE;
-import frc.robot.subsystems.arm.ArmPositions.ARM_POSITION;
 import frc.robot.utilities.FancyArmFeedForward;
 import frc.robot.utilities.Functions;
 import frc.robot.utilities.Loggable;
@@ -56,10 +55,6 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
     ARM_JOINT_3_I = 2E-7,
     ARM_JOINT_3_D = 0,
 
-    WRIST_P = 4E-5,
-    WRIST_I = 2E-7,
-    WRIST_D = 0,
-    
     ARM_LINKAGE_0_LENGTH = 8 / 39.3701, // Length in meters
     ARM_LINKAGE_1_LENGTH = 31 / 39.3701, // Length in meters
     ARM_LINKAGE_2_LENGTH = 29 / 39.3701, // Length in meters
@@ -69,9 +64,9 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
     ARM_LINKAGE_2_CG_DISTANCE = 19 / 39.3701, // Distance from the pivot to the center of gravity in meters
     ARM_LINKAGE_3_CG_DISTANCE = 8 / 39.3701, // Distance from the pivot to the center of gravity in meters
 
-    ARM_LINKAGE_1_MASS = 12 / 2.205, // Mass in kilograms
-    ARM_LINKAGE_2_MASS = 8 / 2.205, // Mass in kilograms
-    ARM_LINKAGE_3_MASS = 7 / 2.205, // Mass in kilograms
+    ARM_LINKAGE_1_MASS = 13.5 / 2.205, // Mass in kilograms
+    ARM_LINKAGE_2_MASS = 4, // Mass in kilograms
+    ARM_LINKAGE_3_MASS = (7 - 1.87393) / 2.205, // Mass in kilograms
     
     KG_TO_NEWTONS = 9.80665;
 
@@ -84,9 +79,7 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
     ARM_JOINT_2_FORWARD_SOFT_LIMIT = 141,
     ARM_JOINT_2_REVERSE_SOFT_LIMIT = 1,
     ARM_JOINT_3_FORWARD_SOFT_LIMIT = -10,
-    ARM_JOINT_3_REVERSE_SOFT_LIMIT = -175,
-    ARM_WRIST_FORWARD_SOFT_LIMIT = -6,
-    ARM_WRIST_REVERSE_SOFT_LIMIT = -100;
+    ARM_JOINT_3_REVERSE_SOFT_LIMIT = -175;
 
     public static final double
 
@@ -124,9 +117,6 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
     ARM_JOINT_3_GEAR_RATIO_OVERALL = 350, // Ratio Example a 9:1 would be 9
     ARM_JOINT_3_HOME_ANGLE = -1.62301, // Angle in radians where 0 is straight forward and positive is counter clockwise.
 
-    WRIST_GEAR_RATIO_OVERALL = (5*5*4) * (77/42), // Ratio Example a 9:1 would be 9
-    WRIST_HOME_ANGLE = -2.96953297, // Angle in radians where 0 is straight forward and positive is counter clockwise.
-
     LIDAR_CLAMP_NEAR = 60,
     LIDAR_CLAMP_FAR = 70,
     
@@ -139,15 +129,13 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
     turretMotor = new CANSparkMax(Ports.Arm.TURRET, MotorType.kBrushless),
     joint1Motor = new CANSparkMax(Ports.Arm.JOINT_1, MotorType.kBrushless),
     joint2Motor = new CANSparkMax(Ports.Arm.JOINT_2, MotorType.kBrushless),
-    joint3Motor = new CANSparkMax(Ports.Arm.JOINT_3, MotorType.kBrushless),
-    wristMotor = new CANSparkMax(Ports.Arm.WRIST, MotorType.kBrushless);
+    joint3Motor = new CANSparkMax(Ports.Arm.JOINT_3, MotorType.kBrushless);
 
   private final SparkMaxPIDController
     turretPIDController = turretMotor.getPIDController(),
     joint1PIDController = joint1Motor.getPIDController(),
     joint2PIDController = joint2Motor.getPIDController(),
-    joint3PIDController = joint3Motor.getPIDController(),
-    wristPIDController = wristMotor.getPIDController();
+    joint3PIDController = joint3Motor.getPIDController();
 
   public static FancyArmFeedForward
     joint1FF = new FancyArmFeedForward(0,0,0,(ARM_LINKAGE_1_MASS + ARM_LINKAGE_2_MASS + ARM_LINKAGE_3_MASS) * KG_TO_NEWTONS,2.6),
@@ -158,8 +146,7 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
     turretEncoder = turretMotor.getEncoder(),
     joint1Encoder = joint1Motor.getEncoder(),
     joint2Encoder = joint2Motor.getEncoder(),
-    joint3Encoder = joint3Motor.getEncoder(),
-    wirstEncoder = wristMotor.getEncoder();
+    joint3Encoder = joint3Motor.getEncoder();
 
   private ArmConfiguration currentConfiguration = new ArmConfiguration();
   private ArmConfiguration targetConfiguration = new ArmConfiguration();
@@ -221,26 +208,15 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
     joint3PIDController.setSmartMotionMaxAccel(6000, 0);
     joint3PIDController.setSmartMotionMaxVelocity(12000, 0);
 
-    wristPIDController.setP(WRIST_P,0);
-    wristPIDController.setI(WRIST_I,0);
-    wristPIDController.setD(WRIST_D,0);
-    wristPIDController.setFF(0.000156, 0);
-    wristPIDController.setOutputRange(-1, 1,0);
-    wristPIDController.setSmartMotionAccelStrategy(AccelStrategy.kTrapezoidal, 0);
-    wristPIDController.setSmartMotionMaxAccel(6000, 0);
-    wristPIDController.setSmartMotionMaxVelocity(12000, 0);
-
     turretMotor.clearFaults();
     joint1Motor.clearFaults();
     joint2Motor.clearFaults();
     joint3Motor.clearFaults();
-    wristMotor.clearFaults();
 
     turretMotor.setIdleMode(CANSparkMax.IdleMode.kBrake);
     joint1Motor.setIdleMode(CANSparkMax.IdleMode.kBrake);
     joint2Motor.setIdleMode(CANSparkMax.IdleMode.kBrake);
     joint3Motor.setIdleMode(CANSparkMax.IdleMode.kBrake);
-    wristMotor.setIdleMode(CANSparkMax.IdleMode.kBrake);
 
     turretMotor.setSoftLimit(SoftLimitDirection.kForward, ARM_TURRET_FORWARD_SOFT_LIMIT);
     turretMotor.setSoftLimit(SoftLimitDirection.kReverse, ARM_TURRET_REVERSE_SOFT_LIMIT);
@@ -254,9 +230,6 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
     joint3Motor.setSoftLimit(SoftLimitDirection.kForward, ARM_JOINT_3_FORWARD_SOFT_LIMIT);
     joint3Motor.setSoftLimit(SoftLimitDirection.kReverse, ARM_JOINT_3_REVERSE_SOFT_LIMIT);
 
-    wristMotor.setSoftLimit(SoftLimitDirection.kForward, ARM_WRIST_FORWARD_SOFT_LIMIT);
-    wristMotor.setSoftLimit(SoftLimitDirection.kReverse, ARM_WRIST_REVERSE_SOFT_LIMIT);
-
     turretMotor.enableSoftLimit(SoftLimitDirection.kForward, true);
     turretMotor.enableSoftLimit(SoftLimitDirection.kReverse, true);
 
@@ -269,12 +242,10 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
     joint3Motor.enableSoftLimit(SoftLimitDirection.kForward, true);
     joint3Motor.enableSoftLimit(SoftLimitDirection.kReverse, true);
 
-    wristMotor.enableSoftLimit(SoftLimitDirection.kForward, true);
-    wristMotor.enableSoftLimit(SoftLimitDirection.kReverse, true);
     clampSolenoidState = clampSolenoid.get();
 
     // sets refresh rate for various types of CAN data
-    for (CANSparkMax motor : new CANSparkMax[] {turretMotor, joint1Motor, joint2Motor, joint3Motor, wristMotor}) {
+    for (CANSparkMax motor : new CANSparkMax[] {turretMotor, joint1Motor, joint2Motor, joint3Motor}) {
       motor.setPeriodicFramePeriod(PeriodicFrame.kStatus0, 100);
       motor.setPeriodicFramePeriod(PeriodicFrame.kStatus1, 100);
       motor.setPeriodicFramePeriod(PeriodicFrame.kStatus2, 10);
@@ -284,7 +255,7 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
       motor.setPeriodicFramePeriod(PeriodicFrame.kStatus6, 65529);
     }
 
-    setEncoderToPosition(ARM_POSITION.STARTING_CONFIG);
+    // setEncoderToPosition(ARM_POSITION.STARTING_CONFIG);
   }
 
   /**
@@ -324,15 +295,6 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
   }
 
   /**
-   * Sets the wrist motor to the given voltage.
-   * @param speed The speed to set the motor to.
-   */
-  public void setWristMotorVoltage(double power) {
-    power = Functions.clampDouble(power, 12, -12);
-    wristMotor.setVoltage(power);
-  }
-
-  /**
    * Sets the turret motor to the given position.
    * @param position The position to set the motor to in rotations.
    */
@@ -362,14 +324,6 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
    */
   public void setThirdJointMotorRotations(double motorRotations, double feedForward) {
     joint3PIDController.setReference(motorRotations, ControlType.kSmartMotion, 0, feedForward);
-  }
-
-  /**
-   * Sets the wrist motor to the given position.
-   * @param position The position to set the motor to in rotations.
-   */
-  public void setWristMotorRotations(double motorRotations) {
-    wristPIDController.setReference(motorRotations, ControlType.kSmartMotion, 0);
   }
 
   /**
@@ -405,14 +359,6 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
   }
 
   /**
-   * Gets the wrist's motor encoder position.
-   * @return The wrist motor's position in rotations.
-   */
-  public double getWristEncoderPosition() {
-    return wirstEncoder.getPosition();
-  }
-
-  /**
    * Returns the current configuration of the arm.
    * @return The current configuration of the arm.
    */
@@ -445,13 +391,16 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
     targetConfiguration = configuration;
     double joint1ArbFF = joint1FF.calculate(configuration.getFirstJointPosition(POSITION_TYPE.ENCODER_ROTATIONS), configuration.getJoint1FFData());
     double joint2ArbFF = joint2FF.calculate(configuration.getFirstJointPosition(POSITION_TYPE.ENCODER_ROTATIONS), configuration.getJoint2FFData());
+
+    // joint1ArbFF = 0;
+    // joint2ArbFF = 0;
+
     double joint3ArbFF = joint3FF.calculate(configuration.getFirstJointPosition(POSITION_TYPE.ENCODER_ROTATIONS), configuration.getJoint3FFData());
 
     setTurretMotorRotations(configuration.getTurretPosition(POSITION_TYPE.ENCODER_ROTATIONS));
     setFirstJointMotorRotations(configuration.getFirstJointPosition(POSITION_TYPE.ENCODER_ROTATIONS), joint1ArbFF);
     setSecondJointMotorRotations(configuration.getSecondJointPosition(POSITION_TYPE.ENCODER_ROTATIONS), joint2ArbFF);
     setThirdJointMotorRotations(configuration.getThirdJointPosition(POSITION_TYPE.ENCODER_ROTATIONS), joint3ArbFF);
-    setWristMotorRotations(configuration.getWristPosition(POSITION_TYPE.ENCODER_ROTATIONS));
   }
 
   public boolean atConfiguration(ArmConfiguration configuration, double tolerance) {
@@ -494,16 +443,14 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
     return clampSolenoidState;
   }
 
-  
-
   @Override
   public HomeableCANSparkMax[] getHomeables() {
     return new HomeableCANSparkMax[] {
-      new HomeableCANSparkMax(turretMotor, this, -0.1, 20.0, ARM_TURRET_FORWARD_SOFT_LIMIT, ARM_TURRET_REVERSE_SOFT_LIMIT, 0),
+      new HomeableCANSparkMax(turretMotor, this, -0.1, 22.0, ARM_TURRET_FORWARD_SOFT_LIMIT, ARM_TURRET_REVERSE_SOFT_LIMIT, 0),
       new HomeableCANSparkMax(joint1Motor, this, -0.1, 30.0, ARM_JOINT_1_FORWARD_SOFT_LIMIT, ARM_JOINT_1_REVERSE_SOFT_LIMIT, 0),
       new HomeableCANSparkMax(joint2Motor, this, -0.1, 30.0, ARM_JOINT_2_FORWARD_SOFT_LIMIT, ARM_JOINT_2_REVERSE_SOFT_LIMIT, 0),
-      new HomeableCANSparkMax(joint3Motor, this, 0.1, 10.0, ARM_JOINT_3_FORWARD_SOFT_LIMIT, ARM_JOINT_3_REVERSE_SOFT_LIMIT, 0),
-      new HomeableCANSparkMax(wristMotor, this, 0.08, 4.5, ARM_WRIST_FORWARD_SOFT_LIMIT, ARM_WRIST_REVERSE_SOFT_LIMIT, 0)
+      new HomeableCANSparkMax(joint3Motor, this, 0.15, 22.0, ARM_JOINT_3_FORWARD_SOFT_LIMIT, ARM_JOINT_3_REVERSE_SOFT_LIMIT, 0),
+      // new HomeableCANSparkMax(wristMotor, this, 0.08, 4.5, ARM_WRIST_FORWARD_SOFT_LIMIT, ARM_WRIST_REVERSE_SOFT_LIMIT, 0)
     };
   }
 
@@ -511,19 +458,23 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
 
   @Override
   public void initSendable(SendableBuilder builder) {
+    super.initSendable(builder);
     // builder.addStringProperty("armConfiguration", getCurrentArmConfiguration()::toString, null);
     builder.addStringProperty("grabberClamp", () -> clampSolenoidState ? "Open" : "Closed", null);
     builder.addDoubleProperty("turretEncoder", this::getTurretEncoderPosition, null);
     builder.addDoubleProperty("firstJointEncoder", this::getFirstJointEncoderPosition, null);
     builder.addDoubleProperty("secondJointEncoder", this::getSecondJointEncoderPosition, null);
     builder.addDoubleProperty("thirdJointEncoder", this::getThirdJointEncoderPosition, null);
-    builder.addDoubleProperty("wristEncoder", this::getWristEncoderPosition, null);
 
     builder.addDoubleProperty("turretAngle", () -> this.getCurrentArmConfiguration().getTurretPosition(POSITION_TYPE.ANGLE), null);
     builder.addDoubleProperty("firstJointAngle", () -> this.getCurrentArmConfiguration().getFirstJointPosition(POSITION_TYPE.ANGLE), null);
     builder.addDoubleProperty("secondJointAngle", () -> this.getCurrentArmConfiguration().getSecondJointPosition(POSITION_TYPE.ANGLE), null);
     builder.addDoubleProperty("thirdJointAngle", () -> this.getCurrentArmConfiguration().getThirdJointPosition(POSITION_TYPE.ANGLE), null);
-    builder.addDoubleProperty("wristAngle", () -> this.getCurrentArmConfiguration().getWristPosition(POSITION_TYPE.ANGLE), null);
+
+    builder.addDoubleProperty("targetTurretAngle", () -> this.getTargetArmConfiguration().getTurretPosition(POSITION_TYPE.ANGLE), null);
+    builder.addDoubleProperty("targetFirstJointAngle", () -> this.getTargetArmConfiguration().getFirstJointPosition(POSITION_TYPE.ANGLE), null);
+    builder.addDoubleProperty("targetSecondJointAngle", () -> this.getTargetArmConfiguration().getSecondJointPosition(POSITION_TYPE.ANGLE), null);
+    builder.addDoubleProperty("targetThirdJointAngle", () -> this.getTargetArmConfiguration().getThirdJointPosition(POSITION_TYPE.ANGLE), null);
 
     builder.addStringProperty("PosEstimateRS", () -> this.getCurrentArmConfiguration().getEndPosition().inRobotSpace().toString(), null);
     builder.addStringProperty("PosEstimateOS", () -> this.getCurrentArmConfiguration().getEndPosition().inOtherSpace(ROBOT_TO_TURRET_BASE).toString(), null);
@@ -542,7 +493,6 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
     out.put("First Joint Encoder", this::getFirstJointEncoderPosition);
     out.put("Second Joint Encoder", this::getSecondJointEncoderPosition);
     out.put("Third Joint Encoder", this::getThirdJointEncoderPosition);
-    out.put("Wrist Encoder", this::getWristEncoderPosition);
     return out;
   }
 
@@ -564,7 +514,6 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
         getFirstJointEncoderPosition(),
         getSecondJointEncoderPosition(),
         getThirdJointEncoderPosition(),
-        getWristEncoderPosition(),
         POSITION_TYPE.ENCODER_ROTATIONS
       );
 
@@ -622,8 +571,8 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
   }
 
   public void setWristSoftLimit(boolean enable) {
-    wristMotor.enableSoftLimit(SoftLimitDirection.kForward, enable);
-    wristMotor.enableSoftLimit(SoftLimitDirection.kReverse, enable);
+    // wristMotor.enableSoftLimit(SoftLimitDirection.kForward, enable);
+    // wristMotor.enableSoftLimit(SoftLimitDirection.kReverse, enable);
   }
 
   public void setAllSoftLimit(boolean enable) {
@@ -639,11 +588,10 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
     setJoint1MotorVoltage(0);
     setJoint2MotorVoltage(0);
     setJoint3MotorVoltage(0);
-    setWristMotorVoltage(0);
   }
 
-  public boolean isWithinRange(Positions.Pose3d pose, double grabberAngle, double wristAngle) { 
-    ArmConfiguration config = ArmConfiguration.fromEndPosition(pose, grabberAngle, wristAngle);
+  public boolean isWithinRange(Positions.Pose3d pose, double grabberAngle) { 
+    ArmConfiguration config = ArmConfiguration.fromEndPosition(pose, grabberAngle);
     if (!config.validConfig(getCurrentArmConfiguration())) {
       return false;
     }
@@ -658,13 +606,14 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
     return lidar.getAverageDistance();
   }
 
-  public void setEncoderToPosition(ArmPositions.ARM_POSITION position) {
-    ArmConfiguration config = position.config;
-
+  public void setEncoderToPosition(ArmConfiguration config) {
     turretEncoder.setPosition(config.getTurretPosition(POSITION_TYPE.ENCODER_ROTATIONS));
     joint1Encoder.setPosition(config.getFirstJointPosition(POSITION_TYPE.ENCODER_ROTATIONS));
     joint2Encoder.setPosition(config.getSecondJointPosition(POSITION_TYPE.ENCODER_ROTATIONS));
     joint3Encoder.setPosition(config.getThirdJointPosition(POSITION_TYPE.ENCODER_ROTATIONS));
-    wirstEncoder.setPosition(config.getWristPosition(POSITION_TYPE.ENCODER_ROTATIONS));
+  }
+
+  public void setEncoderToPosition(ArmPositions.ARM_POSITION position) {
+    setEncoderToPosition(position.config);
   }
 }

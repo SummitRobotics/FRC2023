@@ -1,7 +1,9 @@
 package frc.robot.utilities.lists;
 
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import frc.robot.subsystems.arm.ArmConfiguration;
 import frc.robot.subsystems.arm.ArmConfiguration.POSITION_TYPE;
@@ -9,14 +11,14 @@ import frc.robot.subsystems.arm.ArmConfiguration.POSITION_TYPE;
 public final class FieldElementPositions {
 
     public static final ArmConfiguration
-        substationPregrab = new ArmConfiguration(93.00, 7.00, 114, -50.16, -51.80, POSITION_TYPE.ENCODER_ROTATIONS);
+        substationPregrab = new ArmConfiguration(93.00, 7.00, 114, -50.16, POSITION_TYPE.ENCODER_ROTATIONS);
 
     // values of game elements placed at double substations
     public static final Translation3d
-        BLUE_LEFT_SUBSTATION = new Translation3d(16.273, 7.545, 1.07),
-        BLUE_RIGHT_SUBSTATION = new Translation3d(16.273, 6.092, 1.07),
-        RED_LEFT_SUBSTATION = new Translation3d(0.274, 6.092, 1.07),
-        RED_RIGHT_SUBSTATION = new Translation3d(0.274, 7.545, 1.07);
+        BLUE_LEFT_SUBSTATION = new Translation3d(16.303, 7.412, 1.07),
+        BLUE_RIGHT_SUBSTATION = new Translation3d(16.303, 6.112, 1.07),
+        RED_LEFT_SUBSTATION = new Translation3d(0.285, 6.112, 1.07),
+        RED_RIGHT_SUBSTATION = new Translation3d(0.285, 7.412, 1.07);
 
     // points to drive to for accessing double substation
     public static final Pose2d
@@ -71,5 +73,32 @@ public final class FieldElementPositions {
         BLUE_Z_VALUES = {0.3, 1.1414, 1.35},
         RED_X_VALUES = {15.395, 15.737, 16.149},
         RED_Y_VALUES = {0.40, 1.041, 1.615, 2.184, 2.737, 3.295, 3.870, 4.417, 4.986},
-        RED_Z_VALUES = {0.3, 1.1414, 1.35};
+        RED_Z_VALUES = {0.3, 1.17, 1.35};
+
+    // Fieldspace coordinates of the outer two game piece positions on each side
+    public static final Pose3d
+        BLUE_CLOSE_TO_SUBSTATION = new Pose3d(
+            7.10,
+            4.60,
+            0.1,
+            new Rotation3d(0, 0, 0) // rotation shouldn't matter
+        ),
+        BLUE_FAR_FROM_SUBSTATION = new Pose3d(
+            7.10,
+            0.93,
+            0.1,
+            new Rotation3d(0, 0, 0) // rotation shouldn't matter
+        ),
+        RED_CLOSE_TO_SUBSTATION = new Pose3d(
+            9.50,
+            4.60,
+            0.1,
+            new Rotation3d(0, 0, 0) // rotation shouldn't matter
+        ),
+        RED_FAR_FROM_SUBSTATION = new Pose3d(
+            9.50,
+            0.93,
+            0.1,
+            new Rotation3d(0, 0, 0) // rotation shouldn't matter
+        );
 }
