@@ -43,7 +43,7 @@ public class ChargeBalance extends SequentialCommandGroup {
         ), direction::get),
         new WaitUntilCommand(() -> Math.abs(drivetrain.gyro.getRoll()) > 12)
       ),
-      new WaitCommand(0.5),
+      new WaitCommand(1.25),
       new ParallelRaceGroup(
         new SelectCommand(Map.ofEntries(
           Map.entry(BalanceDirection.FORWARD, new InstantCommand(() -> drivetrain.setBothMotorPower(POWER_RAMP), drivetrain).repeatedly()),

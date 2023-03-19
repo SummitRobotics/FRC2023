@@ -57,9 +57,9 @@ public class LaunchpadDriver extends GenericDriver {
 
         reee = getAxisGetter(2);
 
-        funLeft = generateATDRangeButton(2, -1.0, -0.95);
-        funMiddle = generateATDRangeButton(2, -0.03, 0.03);
-        funRight = generateATDRangeButton(2, 0.95, 1.0);
+        funLeft = generateATDRangeButton(2, -0.03, 0.03);
+        funMiddle = generateATDRangeButton(2, 0.03, 0.09);
+        funRight = generateATDRangeButton(2, 0.09, 0.15);
 
         axisC = generateOIAxis(3);
         axisD = generateOIAxis(4);
