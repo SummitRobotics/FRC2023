@@ -5,6 +5,8 @@
 package frc.robot;
 
 import java.io.IOException;
+import java.util.Map;
+
 import org.photonvision.PhotonCamera;
 import com.kauailabs.navx.frc.AHRS;
 import com.pathplanner.lib.server.PathPlannerServer;
@@ -19,6 +21,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
+import edu.wpi.first.wpilibj2.command.SelectCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.StartEndCommand;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
@@ -50,6 +53,8 @@ import frc.robot.oi.drivers.ControllerDriver;
 import frc.robot.oi.drivers.LaunchpadDriver;
 import frc.robot.oi.drivers.ShuffleboardDriver;
 import frc.robot.subsystems.arm.Arm;
+import frc.robot.subsystems.arm.ArmIntake;
+import frc.robot.subsystems.arm.ArmIntake.State;
 import frc.robot.subsystems.arm.ArmPositions.ARM_POSITION;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.utilities.lists.AxisPriorities;
@@ -74,6 +79,7 @@ public class RobotContainer {
     // Subsystems
     private Drivetrain drivetrain;
     private Arm arm;
+    private ArmIntake armIntake;
 
     // Commands
     private Command arcadeDrive;
@@ -82,7 +88,7 @@ public class RobotContainer {
     private Command joint1Manual;
     private Command joint2Manual;
     private Command joint3Manual;
-    private Command fancyArmMo;
+    private Command intakeManual;
 
     private Command launchPadArmSelector;
 
@@ -117,6 +123,7 @@ public class RobotContainer {
         // Subsystems
         drivetrain = Drivetrain.init(navx, new Pose2d());
         arm = new Arm(gripperLidar);
+        armIntake = new ArmIntake();
 
         pcm = new PCM(Ports.Other.PCM, drivetrain);
 
@@ -141,11 +148,11 @@ public class RobotContainer {
     private void createCommands() {
         arcadeDrive = new ArcadeDrive(drivetrain, driverXBox.rightTrigger, driverXBox.leftTrigger, driverXBox.leftX, driverXBox.buttonY);
 
-        turretManual = new FullManualArm(arm, FullManualArm.Type.TURRET, gunnerXBox);
-        joint1Manual = new FullManualArm(arm, FullManualArm.Type.JOINT_1, gunnerXBox);
-        joint2Manual = new FullManualArm(arm, FullManualArm.Type.JOINT_2, gunnerXBox);
-        joint3Manual = new FullManualArm(arm, FullManualArm.Type.JOINT_3, gunnerXBox);
-        fancyArmMo = new ArmMO(arm, gunnerXBox, launchpad);
+        turretManual = new FullManualArm(arm, armIntake, FullManualArm.Type.TURRET, gunnerXBox);
+        joint1Manual = new FullManualArm(arm, armIntake, FullManualArm.Type.JOINT_1, gunnerXBox);
+        joint2Manual = new FullManualArm(arm, armIntake, FullManualArm.Type.JOINT_2, gunnerXBox);
+        joint3Manual = new FullManualArm(arm, armIntake, FullManualArm.Type.JOINT_3, gunnerXBox);
+        intakeManual = new FullManualArm(arm, armIntake, FullManualArm.Type.INTAKE, gunnerXBox);
 
         homeArm = new SequentialCommandGroup(
             new Home(arm.getHomeables()[3]),
@@ -188,14 +195,18 @@ public class RobotContainer {
         // driverXBox.buttonB.getTrigger().whileTrue(new MoveArmUnsafe(arm, ARM_POSITION.HOME));
 
         driverXBox.buttonX.getTrigger().whileTrue(new LimelightPlace(drivetrain, arm));
-        driverXBox.buttonA.getTrigger().whileTrue(new AutoPickup(drivetrain, arm, gripperCam)).onFalse(
-            new SequentialCommandGroup(
-                new InstantCommand(arm::clamp),
-                new WaitCommand(0.5),
-                new MoveArmUnsafe(arm, ARM_POSITION.HOME),
-                new InstantCommand(LEDCalls.INTAKE_DOWN::cancel)
-            )
-        );
+        driverXBox.buttonA.getTrigger().and(() -> armIntake.getState() == State.STATIONARY).onTrue(new SequentialCommandGroup(
+            new InstantCommand(() -> {
+                
+            }),
+            new AutoPickup(arm, armIntake)
+        ).handleInterrupt(LEDCalls.INTAKE_DOWN::cancel));
+        driverXBox.buttonA.getTrigger().and(() -> armIntake.getState() == State.INTAKE).onTrue(new SequentialCommandGroup(
+            new MoveArmUnsafe(arm, ARM_POSITION.GROUND_PICKUP_SAFE),
+            new MoveArmUnsafe(arm, ARM_POSITION.HOME),
+            new InstantCommand(() -> armIntake.setState(State.STATIONARY), armIntake),
+            new InstantCommand(LEDCalls.INTAKE_DOWN::cancel)
+        ).handleInterrupt(LEDCalls.INTAKE_DOWN::cancel));
 
 
         launchpad.missileA.getTrigger().whileTrue(new ChargeBalance(drivetrain, BalanceDirection.FORWARD));
@@ -210,7 +221,22 @@ public class RobotContainer {
         launchpad.buttonA.getTrigger().and(this::notAltMode).toggleOnTrue(joint2Manual);
         launchpad.buttonB.getTrigger().and(this::notAltMode).toggleOnTrue(joint1Manual);
         launchpad.buttonC.getTrigger().and(this::notAltMode).toggleOnTrue(turretManual);
-        launchpad.buttonD.getTrigger().onTrue(new InstantCommand(arm::toggleClamp));
+        // launchpad.buttonD.getTrigger().onTrue(new InstantCommand(arm::toggleClamp));
+
+        launchpad.buttonD.getTrigger().onTrue(new SelectCommand(Map.ofEntries(
+            Map.entry(State.OTHER, new InstantCommand(() -> armIntake.setState(State.STATIONARY), armIntake)),
+            Map.entry(State.INTAKE, new InstantCommand(() -> armIntake.setState(State.STATIONARY), armIntake)),
+            Map.entry(State.OUTTAKE, new InstantCommand(() -> armIntake.setState(State.STATIONARY), armIntake)),
+            Map.entry(State.STATIONARY, new InstantCommand(() -> armIntake.setState(State.INTAKE), armIntake)),
+            Map.entry(State.STALLING, new SequentialCommandGroup(
+                new InstantCommand(() -> armIntake.setState(State.OUTTAKE), armIntake),
+                new WaitCommand(0.25),
+                new InstantCommand(() -> armIntake.setState(State.STATIONARY), armIntake)
+            ))
+        ), 
+        armIntake::getState));
+
+        launchpad.buttonE.getTrigger().and(this::notAltMode).toggleOnTrue(intakeManual);
         launchpad.buttonF.getTrigger().and(this::notAltMode).toggleOnTrue(joint3Manual);
         launchpad.buttonH.getTrigger().and(this::notAltMode).whileTrue(homeArm);
         // launchpad.buttonI.getTrigger().and(this::notAltMode).toggleOnTrue(fancyArmMo);
@@ -224,8 +250,9 @@ public class RobotContainer {
         launchpad.buttonC.commandBind(turretManual);
         launchpad.buttonA.commandBind(joint2Manual);
         launchpad.buttonF.commandBind(joint3Manual);
+        launchpad.buttonE.commandBind(intakeManual);
         launchpad.buttonI.booleanSupplierBind(AutoPickup::isQuorb);
-        launchpad.buttonD.booleanSupplierBind(arm::getClampSolenoidState);
+        launchpad.buttonD.booleanSupplierBind(() -> !(armIntake.getState() == State.STATIONARY));
     }
 
     private void setDefaultCommands() {
@@ -243,6 +270,7 @@ public class RobotContainer {
         SmartDashboard.putData("Drivetrain", drivetrain);
         SmartDashboard.putData("PCM", pcm);
         SmartDashboard.putData("Lidar", gripperLidar);
+        SmartDashboard.putData("ArmIntake", armIntake);
     }
 
     public void createAutoCommands() {

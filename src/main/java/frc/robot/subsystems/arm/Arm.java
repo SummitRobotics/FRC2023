@@ -185,7 +185,7 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
     joint1PIDController.setFF(0.000156, 0);
     joint1PIDController.setOutputRange(-1, 1, 0);
     joint1PIDController.setSmartMotionAccelStrategy(AccelStrategy.kTrapezoidal, 0);
-    joint1PIDController.setSmartMotionMaxAccel(6000, 0);
+    joint1PIDController.setSmartMotionMaxAccel(12000, 0);
     joint1PIDController.setSmartMotionMaxVelocity(6000, 0);
 
     joint2PIDController.setP(ARM_JOINT_2_P, 0);
@@ -195,7 +195,7 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
     joint2PIDController.setOutputRange(-1, 1, 0);
     joint2PIDController.setOutputRange(-1, 1, 0);
     joint2PIDController.setSmartMotionAccelStrategy(AccelStrategy.kTrapezoidal, 0);
-    joint2PIDController.setSmartMotionMaxAccel(6000, 0);
+    joint2PIDController.setSmartMotionMaxAccel(12000, 0);
     joint2PIDController.setSmartMotionMaxVelocity(6000, 0);
 
     joint3PIDController.setP(ARM_JOINT_3_P, 0);
@@ -205,7 +205,7 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
     joint3PIDController.setOutputRange(-1, 1, 0);
     joint3PIDController.setOutputRange(-1, 1, 0);
     joint3PIDController.setSmartMotionAccelStrategy(AccelStrategy.kTrapezoidal, 0);
-    joint3PIDController.setSmartMotionMaxAccel(6000, 0);
+    joint3PIDController.setSmartMotionMaxAccel(12000, 0);
     joint3PIDController.setSmartMotionMaxVelocity(12000, 0);
 
     turretMotor.clearFaults();

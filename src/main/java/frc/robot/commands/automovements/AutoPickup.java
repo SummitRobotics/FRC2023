@@ -13,12 +13,15 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SelectCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
+import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
 import frc.robot.commands.arm.MoveArmUnsafe;
 import frc.robot.commands.drivetrain.EncoderDrive;
 import frc.robot.commands.drivetrain.MoveToElement;
 import frc.robot.devices.LEDs.LEDCalls;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.arm.Arm;
+import frc.robot.subsystems.arm.ArmIntake;
+import frc.robot.subsystems.arm.ArmIntake.State;
 import frc.robot.subsystems.arm.ArmPositions.ARM_POSITION;
 
 // NOTE:  Consider using this command inline, rather than writing a subclass.  For more
@@ -42,6 +45,10 @@ public class AutoPickup extends SequentialCommandGroup {
     return TYPE;
   }
 
+  public static void setType(ELEMENT_TYPE type) {
+    TYPE = type;
+  }
+
   public static ELEMENT_TYPE getType () {
     return TYPE;
   }
@@ -55,23 +62,19 @@ public class AutoPickup extends SequentialCommandGroup {
   }
 
   /** Creates a new AutoPickup. */
-  public AutoPickup(Drivetrain drivetrain, Arm arm, PhotonCamera grabberCam) {
+  public AutoPickup(Arm arm, ArmIntake intake) {
     addCommands(
-        new InstantCommand(() -> {
-          if (getType() == ELEMENT_TYPE.CONE) {
-            grabberCam.setPipelineIndex(0);
-          } else {
-            grabberCam.setPipelineIndex(1);
-          }
-        }),
         new InstantCommand(LEDCalls.INTAKE_DOWN::activate),
-        new InstantCommand(arm::unclamp),
+        new MoveArmUnsafe(arm, ARM_POSITION.GROUND_PICKUP_SAFE),
         new SelectCommand(Map.ofEntries(
           Map.entry(ELEMENT_TYPE.CONE, new MoveArmUnsafe(arm, ARM_POSITION.GROUND_PICKUP_CONE)),
           Map.entry(ELEMENT_TYPE.QUORB, new MoveArmUnsafe(arm, ARM_POSITION.GROUND_PICKUP_QUORB))
         ), () -> getType()),
-        new WaitCommand(0.25),
-        new MoveToElement(drivetrain, grabberCam, getType())
+        new InstantCommand(() -> intake.setState(State.INTAKE), intake),
+        new WaitUntilCommand(() -> intake.getState() == State.STALLING),
+        new MoveArmUnsafe(arm, ARM_POSITION.GROUND_PICKUP_SAFE),
+        new MoveArmUnsafe(arm, ARM_POSITION.HOME),
+        new InstantCommand(LEDCalls.INTAKE_DOWN::cancel)
     );
   }
 }

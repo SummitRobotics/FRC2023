@@ -3,11 +3,14 @@ package frc.robot.subsystems.arm;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
+
+import edu.wpi.first.util.sendable.Sendable;
+import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.utilities.RollingAverage;
 import frc.robot.utilities.lists.Ports;
 
-public class ArmIntake extends SubsystemBase {
+public class ArmIntake extends SubsystemBase implements Sendable {
     
     private final CANSparkMax motor = new CANSparkMax(Ports.Arm.INTAKE_MOTOR, MotorType.kBrushless);
     private final RelativeEncoder encoder = motor.getEncoder();
@@ -28,14 +31,16 @@ public class ArmIntake extends SubsystemBase {
         }
     }
 
-    private final double INTAKE_SPEED = 0.5;
-    private final double STALL_SPEED = 0.2;
-    private final double STALL_CURRENT = 15.0;
+    private final double INTAKE_SPEED = -0.8;
+    private final double OUTTAKE_SPEED = 0.5;
+    private final double STALL_SPEED = -0.6;
+    private final double STALL_CURRENT = 70.0;
 
     public ArmIntake() {
         state = State.STATIONARY;
         otherSpeed = 0;
-        current = new RollingAverage(10, true);
+        current = new RollingAverage(10, false);
+        current.update(0);
     }
 
     /**
@@ -75,9 +80,26 @@ public class ArmIntake extends SubsystemBase {
     @Override
     public void periodic() {
         current.update(motor.getOutputCurrent());
-        if (current.getAverage() > STALL_CURRENT) state = State.STALLING;
-        motor.set(state == State.INTAKE ? INTAKE_SPEED : state == State.OUTTAKE ? -INTAKE_SPEED :
-            state == State.STALLING ? STALL_SPEED : state == State.STALLING ? 0 : otherSpeed);
+        if (state == State.OTHER) {
+            motor.set(otherSpeed);
+            return;
+        }
+        if (state == State.INTAKE && current.getAverage() > STALL_CURRENT) state = State.STALLING;
+
+        double power = 0;
+
+        if (state == State.INTAKE) {
+            power = INTAKE_SPEED;
+        } else if (state == State.OUTTAKE) {
+            power = OUTTAKE_SPEED;
+        } else if (state == State.STALLING) {
+            power = STALL_SPEED;
+        } else if (state == State.STATIONARY) {
+            power = 0;
+        }
+        motor.set(power);
+        // motor.set(state == State.INTAKE ? INTAKE_SPEED : state == State.OUTTAKE ? -INTAKE_SPEED :
+        //     state == State.STALLING ? STALL_SPEED : state == State.STALLING ? 0 : otherSpeed);
     }
 
     /**
@@ -86,5 +108,14 @@ public class ArmIntake extends SubsystemBase {
     public void stop() {
         state = State.STATIONARY;
         motor.set(0);
+    }
+
+    @Override
+    public void initSendable(SendableBuilder builder) {
+      super.initSendable(builder);
+      // builder.addStringProperty("armConfiguration", getCurrentArmConfiguration()::toString, null);
+      builder.addStringProperty("State", () -> getState().toString(), null);
+      builder.addDoubleProperty("Current", current::getAverage, null);
+
     }
 }
