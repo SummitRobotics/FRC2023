@@ -17,6 +17,7 @@ public class ArmIntake extends SubsystemBase implements Sendable {
     private State state;
     private double otherSpeed;
     private RollingAverage current;
+    private boolean lock = false;
 
     public enum State {
         INTAKE,
@@ -31,9 +32,9 @@ public class ArmIntake extends SubsystemBase implements Sendable {
         }
     }
 
-    private final double INTAKE_SPEED = -0.8;
-    private final double OUTTAKE_SPEED = 0.5;
-    private final double STALL_SPEED = -0.6;
+    private final double INTAKE_SPEED = -0.7 * 12;
+    private final double OUTTAKE_SPEED = 0.5 * 12;
+    private final double STALL_SPEED = -0.6 * 12;
     private final double STALL_CURRENT = 70.0;
 
     public ArmIntake() {
@@ -41,6 +42,22 @@ public class ArmIntake extends SubsystemBase implements Sendable {
         otherSpeed = 0;
         current = new RollingAverage(10, false);
         current.update(0);
+    }
+
+    public void lock() {
+        lock = true;
+    }
+
+    public void unlock() {
+        lock = false;
+    }
+    // So this can be used in the end of a command.
+    public void unlock(boolean nothing) {
+        lock = false;
+    }
+
+    public boolean notLocked() {
+        return !lock;
     }
 
     /**
@@ -97,7 +114,7 @@ public class ArmIntake extends SubsystemBase implements Sendable {
         } else if (state == State.STATIONARY) {
             power = 0;
         }
-        motor.set(power);
+        motor.setVoltage(power);
         // motor.set(state == State.INTAKE ? INTAKE_SPEED : state == State.OUTTAKE ? -INTAKE_SPEED :
         //     state == State.STALLING ? STALL_SPEED : state == State.STALLING ? 0 : otherSpeed);
     }

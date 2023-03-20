@@ -62,7 +62,7 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
 
     ARM_LINKAGE_1_CG_DISTANCE = 14 / 39.3701, // Distance from the pivot to the center of gravity in meters
     ARM_LINKAGE_2_CG_DISTANCE = 19 / 39.3701, // Distance from the pivot to the center of gravity in meters
-    ARM_LINKAGE_3_CG_DISTANCE = 8 / 39.3701, // Distance from the pivot to the center of gravity in meters
+    ARM_LINKAGE_3_CG_DISTANCE = 6.5 / 39.3701, // Distance from the pivot to the center of gravity in meters
 
     ARM_LINKAGE_1_MASS = 13.5 / 2.205, // Mass in kilograms
     ARM_LINKAGE_2_MASS = 4, // Mass in kilograms

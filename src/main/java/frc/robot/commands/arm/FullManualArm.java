@@ -31,6 +31,9 @@ public class FullManualArm extends CommandBase {
         this.type = type;
         this.controller = controller;
 
+        if (type == Type.INTAKE) {
+            addRequirements(intake);
+        }
         addRequirements(arm);
     }
 
