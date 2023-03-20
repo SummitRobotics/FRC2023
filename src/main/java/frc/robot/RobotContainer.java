@@ -41,12 +41,16 @@ import frc.robot.commands.auto.PlaceNMoveNGrabNPlace;
 import frc.robot.commands.auto.PlaceNMoveNGrabNPlace.Type;
 import frc.robot.commands.automovements.AutoPickup;
 import frc.robot.commands.automovements.LimelightPlace;
+import frc.robot.commands.automovements.NewLimelightPlace;
+import frc.robot.commands.automovements.AutoPickup.ELEMENT_TYPE;
+import frc.robot.commands.automovements.AutoPickup.LOCATION;
 import frc.robot.commands.drivetrain.ArcadeDrive;
 import frc.robot.commands.drivetrain.ChargeBalance;
 import frc.robot.commands.drivetrain.EncoderDrive;
 import frc.robot.commands.drivetrain.ChargeBalance.BalanceDirection;
 import frc.robot.devices.Lidar;
 import frc.robot.devices.LidarV3;
+import frc.robot.devices.LidarV3New;
 import frc.robot.devices.PCM;
 import frc.robot.devices.LEDs.LEDCalls;
 import frc.robot.oi.drivers.ControllerDriver;
@@ -134,7 +138,7 @@ public class RobotContainer {
         // backRight = new AprilTagCameraWrapper("backRight", new Transform3d(new Translation3d(-0.3302,-0.307137,0.235153), new Rotation3d(0,Math.toRadians(-25.3), Math.toRadians(-90))));  //68.7
         // front = new AprilTagCameraWrapper("front", new Transform3d(new Translation3d(0.3683,0.2159,0.24765), new Rotation3d(0,Math.toRadians(-15), 0)));  //68.7
 
-        gripperCam = new PhotonCamera("Gripper");
+        gripperCam = new PhotonCamera("Arducam_16MP");
         createCommands();
         createAutoCommands();
         setDefaultCommands();
@@ -161,6 +165,11 @@ public class RobotContainer {
             new ParallelCommandGroup(new TimedMoveMotor(arm::setJoint1MotorVoltage, 2, 0.2), new TimedMoveMotor(arm::setJoint2MotorVoltage, 2, 0.2)), new Home(gunnerXBox.buttonB.getTrigger()::getAsBoolean, arm.getHomeables()[0]),
             new TimedMoveMotor(arm::setTurretMotorVoltage, 5, 0.1), new MoveArmUnsafe(arm, ARM_POSITION.HOME)
             );
+
+        // homeArm = new SequentialCommandGroup(
+        //     new MoveArmUnsafe(arm, ARM_POSITION.PRE_HOME),
+        //     new Home(arm)
+        // );
 
         launchPadArmSelector = new MovePositionsLaunchpad(arm, launchpad, this);
 
@@ -197,9 +206,15 @@ public class RobotContainer {
         driverXBox.buttonX.getTrigger().whileTrue(new LimelightPlace(drivetrain, arm));
         driverXBox.buttonA.getTrigger().and(() -> armIntake.getState() == State.STATIONARY).onTrue(new SequentialCommandGroup(
             new InstantCommand(() -> {
-                
+                if (launchpad.funLeft.get()) {
+                    AutoPickup.setType(ELEMENT_TYPE.CONE);
+                } else if (launchpad.funRight.get()) {
+                    AutoPickup.setType(ELEMENT_TYPE.QUORB);
+                } else {
+                    AutoPickup.setType(ELEMENT_TYPE.NONE);
+                }
             }),
-            new AutoPickup(arm, armIntake)
+            new AutoPickup(arm, armIntake, LOCATION.GROUND).unless(AutoPickup::isNone)
         ).handleInterrupt(LEDCalls.INTAKE_DOWN::cancel));
         driverXBox.buttonA.getTrigger().and(() -> armIntake.getState() == State.INTAKE).onTrue(new SequentialCommandGroup(
             new MoveArmUnsafe(arm, ARM_POSITION.GROUND_PICKUP_SAFE),
@@ -208,6 +223,27 @@ public class RobotContainer {
             new InstantCommand(LEDCalls.INTAKE_DOWN::cancel)
         ).handleInterrupt(LEDCalls.INTAKE_DOWN::cancel));
 
+        driverXBox.buttonB.getTrigger().and(() -> armIntake.getState() == State.STATIONARY).onTrue(new SequentialCommandGroup(
+            new InstantCommand(() -> {
+                if (launchpad.funLeft.get()) {
+                    AutoPickup.setType(ELEMENT_TYPE.CONE);
+                } else if (launchpad.funRight.get()) {
+                    AutoPickup.setType(ELEMENT_TYPE.QUORB);
+                } else {
+                    AutoPickup.setType(ELEMENT_TYPE.NONE);
+                }
+            }),
+            new AutoPickup(arm, armIntake, LOCATION.LOADING_STATION).unless(AutoPickup::isNone)
+        ).handleInterrupt(LEDCalls.INTAKE_DOWN::cancel));
+        driverXBox.buttonB.getTrigger().and(() -> armIntake.getState() == State.INTAKE).onTrue(new SequentialCommandGroup(
+            new MoveArmUnsafe(arm, ARM_POSITION.HOME),
+            new InstantCommand(() -> armIntake.setState(State.STATIONARY), armIntake),
+            new InstantCommand(LEDCalls.INTAKE_DOWN::cancel)
+        ).handleInterrupt(LEDCalls.INTAKE_DOWN::cancel));
+        driverXBox.buttonB.getTrigger().and(() -> armIntake.getState() == State.STALLING).onTrue(new SequentialCommandGroup(
+            new MoveArmUnsafe(arm, ARM_POSITION.HOME),
+            new InstantCommand(LEDCalls.INTAKE_DOWN::cancel)
+        ).handleInterrupt(LEDCalls.INTAKE_DOWN::cancel));
 
         launchpad.missileA.getTrigger().whileTrue(new ChargeBalance(drivetrain, BalanceDirection.FORWARD));
         // launchpad.missileA.getTrigger().whileTrue(new AutoPickup(drivetrain, arm, QuorbCamera, QuorbCamera));
@@ -217,6 +253,7 @@ public class RobotContainer {
         gunnerXBox.buttonY.getTrigger().whileTrue(new MoveArmUnsafe(arm, ARM_POSITION.HOME));
         gunnerXBox.buttonA.getTrigger().onTrue(new InstantCommand(arm::toggleClamp));
         gunnerXBox.buttonX.getTrigger().whileTrue(new MoveArmUnsafe(arm, ARM_POSITION.HIGH_ASPECT));
+        // gunnerXBox.buttonB.getTrigger().whileTrue(new MoveArmUnsafe(arm, ARM_POSITION.AUTO_PLACE_RIGHT));
 
         launchpad.buttonA.getTrigger().and(this::notAltMode).toggleOnTrue(joint2Manual);
         launchpad.buttonB.getTrigger().and(this::notAltMode).toggleOnTrue(joint1Manual);
@@ -238,7 +275,12 @@ public class RobotContainer {
 
         launchpad.buttonE.getTrigger().and(this::notAltMode).toggleOnTrue(intakeManual);
         launchpad.buttonF.getTrigger().and(this::notAltMode).toggleOnTrue(joint3Manual);
-        launchpad.buttonH.getTrigger().and(this::notAltMode).whileTrue(homeArm);
+        launchpad.buttonH.getTrigger().and(this::notAltMode).and(() -> !launchpad.missileB.getTrigger().getAsBoolean()).whileTrue(homeArm);
+        launchpad.buttonH.getTrigger().and(this::notAltMode).and(() -> launchpad.missileB.getTrigger().getAsBoolean()).whileTrue(new SequentialCommandGroup(
+            new MoveArmUnsafe(arm, ARM_POSITION.PRE_HOME),
+            new Home(arm),
+            new MoveArmUnsafe(arm, ARM_POSITION.HOME)
+        ));
         // launchpad.buttonI.getTrigger().and(this::notAltMode).toggleOnTrue(fancyArmMo);
         launchpad.buttonI.getTrigger().and(this::notAltMode).onTrue(new InstantCommand(AutoPickup::toggleType));
 
@@ -315,12 +357,12 @@ public class RobotContainer {
         // PathPlannerServer.startServer(5468);
     }
     public void robotPeriodic() {
-        String val = HPSelector.get();
+        // String val = HPSelector.get();
 
-        if (val.equalsIgnoreCase("cube")) {
+        if (launchpad.funRight.get()) {
             LEDCalls.CUBE_HP.activate();
             LEDCalls.CONE_HP.cancel();
-        } else if (val.equalsIgnoreCase("cone")) {
+        } else if (launchpad.funLeft.get()) {
             LEDCalls.CUBE_HP.cancel();
             LEDCalls.CONE_HP.activate();
         } else {

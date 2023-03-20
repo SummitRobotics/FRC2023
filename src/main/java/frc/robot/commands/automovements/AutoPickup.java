@@ -31,7 +31,13 @@ public class AutoPickup extends SequentialCommandGroup {
 
   public enum ELEMENT_TYPE {
     CONE,
-    QUORB
+    QUORB,
+    NONE
+  }
+
+  public enum LOCATION {
+    GROUND,
+    LOADING_STATION
   }
 
   private static ELEMENT_TYPE TYPE = ELEMENT_TYPE.CONE;
@@ -61,20 +67,40 @@ public class AutoPickup extends SequentialCommandGroup {
     return TYPE == ELEMENT_TYPE.QUORB;
   }
 
+  public static boolean isNone() {
+    return TYPE == ELEMENT_TYPE.NONE;
+  }
+
   /** Creates a new AutoPickup. */
-  public AutoPickup(Arm arm, ArmIntake intake) {
-    addCommands(
-        new InstantCommand(LEDCalls.INTAKE_DOWN::activate),
-        new MoveArmUnsafe(arm, ARM_POSITION.GROUND_PICKUP_SAFE),
-        new SelectCommand(Map.ofEntries(
-          Map.entry(ELEMENT_TYPE.CONE, new MoveArmUnsafe(arm, ARM_POSITION.GROUND_PICKUP_CONE)),
-          Map.entry(ELEMENT_TYPE.QUORB, new MoveArmUnsafe(arm, ARM_POSITION.GROUND_PICKUP_QUORB))
-        ), () -> getType()),
-        new InstantCommand(() -> intake.setState(State.INTAKE), intake),
-        new WaitUntilCommand(() -> intake.getState() == State.STALLING),
-        new MoveArmUnsafe(arm, ARM_POSITION.GROUND_PICKUP_SAFE),
-        new MoveArmUnsafe(arm, ARM_POSITION.HOME),
-        new InstantCommand(LEDCalls.INTAKE_DOWN::cancel)
-    );
+  public AutoPickup(Arm arm, ArmIntake intake, LOCATION location) {
+
+    if (location == LOCATION.GROUND) {
+      addCommands(
+          new InstantCommand(LEDCalls.INTAKE_DOWN::activate),
+          new MoveArmUnsafe(arm, ARM_POSITION.GROUND_PICKUP_SAFE),
+          new SelectCommand(Map.ofEntries(
+            Map.entry(ELEMENT_TYPE.CONE, new MoveArmUnsafe(arm, ARM_POSITION.GROUND_PICKUP_CONE)),
+            Map.entry(ELEMENT_TYPE.QUORB, new MoveArmUnsafe(arm, ARM_POSITION.GROUND_PICKUP_QUORB)),
+            Map.entry(ELEMENT_TYPE.NONE, new MoveArmUnsafe(arm, ARM_POSITION.GROUND_PICKUP_CONE))
+          ), () -> getType()),
+          new InstantCommand(() -> intake.setState(State.INTAKE), intake),
+          new WaitUntilCommand(() -> intake.getState() == State.STALLING),
+          new MoveArmUnsafe(arm, ARM_POSITION.GROUND_PICKUP_SAFE),
+          new MoveArmUnsafe(arm, ARM_POSITION.HOME),
+          new InstantCommand(LEDCalls.INTAKE_DOWN::cancel)
+      );
+    } else if (location == LOCATION.LOADING_STATION) {
+      addCommands(
+          new InstantCommand(LEDCalls.INTAKE_DOWN::activate),
+          new SelectCommand(Map.ofEntries(
+            Map.entry(ELEMENT_TYPE.CONE, new MoveArmUnsafe(arm, ARM_POSITION.SUBSTATION_PICKUP_CONE)),
+            Map.entry(ELEMENT_TYPE.QUORB, new MoveArmUnsafe(arm, ARM_POSITION.SUBSTATION_PICKUP_QUORB)),
+            Map.entry(ELEMENT_TYPE.NONE, new MoveArmUnsafe(arm, ARM_POSITION.SUBSTATION_PICKUP_CONE))
+          ), () -> getType()),
+          new InstantCommand(() -> intake.setState(State.INTAKE), intake),
+          new WaitUntilCommand(() -> intake.getState() == State.STALLING),
+          new InstantCommand(LEDCalls.INTAKE_DOWN::cancel)
+      );
+    }
   }
 }

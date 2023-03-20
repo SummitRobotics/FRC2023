@@ -23,13 +23,9 @@ public class PlaceNMove extends SequentialCommandGroup {
         new EncoderDrive(-0.75, drivetrain),
         new ArmOutOfStart(arm)
       ),
-      new ParallelCommandGroup(
-        new EncoderDrive(0.75, drivetrain),
-        new SequentialCommandGroup(
-          new MoveArmUnsafe(arm, ARM_POSITION.MIDDLE_HIGH),
-          new WaitCommand(0.5)
-        )
-      ),
+      new MoveArmUnsafe(arm, ARM_POSITION.MIDDLE_HIGH),
+      new EncoderDrive(0.75, drivetrain),
+      new WaitCommand(0.25),
       new InstantCommand(arm::unclamp),
       new WaitCommand(0.25),
       new ParallelCommandGroup(

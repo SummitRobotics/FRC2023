@@ -44,9 +44,9 @@ public class MoveToElement extends CommandBase {
   @Override
   public void initialize() {
     if (type == ELEMENT_TYPE.CONE) {
-      sizeThreshold = 30;
+      sizeThreshold = 35;
     } else {
-      sizeThreshold = 30;
+      sizeThreshold = 35;
     }
 
     resulTimeout.reset();

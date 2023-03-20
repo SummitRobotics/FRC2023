@@ -84,7 +84,7 @@ public class LidarV3New implements Lidar {
 
         if ((status[0] & 1) == 0) {
             byte[] low = new byte[1];
-            byte[] high = new byte[1];
+            byte[] high = new byte[1];  
 
             // reads distance from lidar
             portI2C.read(0x0f, 1, high);

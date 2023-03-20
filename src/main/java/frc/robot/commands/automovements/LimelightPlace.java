@@ -11,7 +11,8 @@ import edu.wpi.first.networktables.NetworkTableEntry;
 
 public class LimelightPlace extends CommandBase {
 
-    private PIDController pidController = new PIDController(0.013, 0, 0.0008);
+    private PIDController pidController = new PIDController(0.02
+    , 0, 0);
     private Drivetrain drivetrain;
     private Arm arm;
 
@@ -26,12 +27,13 @@ public class LimelightPlace extends CommandBase {
         table = NetworkTableInstance.getDefault().getTable("limelight");
         tx = table.getEntry("tx");
         tv = table.getEntry("tv");
+        addRequirements(drivetrain);
     }
 
     @Override
     public void initialize() {
         pidController.reset();
-        pidController.setTolerance(8, 1);
+        pidController.setTolerance(0.25, 1);
         pidController.setSetpoint(0);
     }
 
@@ -40,8 +42,8 @@ public class LimelightPlace extends CommandBase {
         if (tv.getDouble(0) == 1) { // if we have a target
             double turretPos = arm.getCurrentArmConfiguration().getTurretPosition(POSITION_TYPE.ANGLE);
             drivetrain.setBothMotorPower(
-                turretPos < 90 ? -1 : 1
-                * pidController.calculate(tx.getDouble(0.0) + turretPos < 90 ? 12 : -12)
+                turretPos < 0 ? 1 : -1
+                * pidController.calculate(tx.getDouble(0.0) + (turretPos < 0 ? -2.25 : 2.25))
             );
         }
     }
