@@ -5,6 +5,7 @@ import frc.robot.devices.LEDs.LEDCalls;
 import frc.robot.oi.drivers.ControllerDriver;
 import frc.robot.oi.inputs.OIAxis.PrioritizedAxis;
 import frc.robot.subsystems.arm.Arm;
+import frc.robot.subsystems.arm.ArmIntake;
 import frc.robot.utilities.lists.AxisPriorities;
 
 public class FullManualArm extends CommandBase {
@@ -13,20 +14,26 @@ public class FullManualArm extends CommandBase {
         TURRET,
         JOINT_1,
         JOINT_2,
-        JOINT_3
+        JOINT_3,
+        INTAKE
     }
 
     Arm arm;
+    ArmIntake intake;
     Type type;
     PrioritizedAxis leftTriggerAxis;
     PrioritizedAxis rightTriggerAxis;
     ControllerDriver controller;
 
-    public FullManualArm(Arm arm, Type type, ControllerDriver controller) {
+    public FullManualArm(Arm arm, ArmIntake intake, Type type, ControllerDriver controller) {
         this.arm = arm;
+        this.intake = intake;
         this.type = type;
         this.controller = controller;
 
+        if (type == Type.INTAKE) {
+            addRequirements(intake);
+        }
         addRequirements(arm);
     }
 
@@ -56,6 +63,8 @@ public class FullManualArm extends CommandBase {
             arm.setJoint2MotorVoltage(12 * leftTriggerAxis.get() - 12 * rightTriggerAxis.get());
         } else if (type == Type.JOINT_3) {
             arm.setJoint3MotorVoltage(12 * leftTriggerAxis.get() - 12 * rightTriggerAxis.get());
+        } else if (type == Type.INTAKE) {
+            intake.setSpeed(leftTriggerAxis.get() - rightTriggerAxis.get());
         }
     }
 
@@ -75,6 +84,8 @@ public class FullManualArm extends CommandBase {
         } else if (type == Type.JOINT_3) {
             arm.setJoint3MotorVoltage(0);
             // arm.setThirdJointSoftLimit(true);
+        } else if (type == Type.INTAKE) {
+            intake.stop();
         }
         LEDCalls.MO.cancel();
     }
