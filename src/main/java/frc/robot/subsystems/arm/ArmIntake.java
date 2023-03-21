@@ -1,16 +1,25 @@
 package frc.robot.subsystems.arm;
 
+import org.littletonrobotics.junction.AutoLog;
+import org.littletonrobotics.junction.Logger;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
-
-import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.utilities.RollingAverage;
 import frc.robot.utilities.lists.Ports;
 
-public class ArmIntake extends SubsystemBase implements Sendable {
+public class ArmIntake extends SubsystemBase {
+
+    @AutoLog
+    public static class IntakeIOInputs {
+        public double encoderPosition = 0.0;
+        public double encoderVelocity = 0.0;
+        public String state = "";
+    }
+
+    private final IntakeIOInputsAutoLogged inputs = new IntakeIOInputsAutoLogged();
     
     private final CANSparkMax motor = new CANSparkMax(Ports.Arm.INTAKE_MOTOR, MotorType.kBrushless);
     private final RelativeEncoder encoder = motor.getEncoder();
@@ -117,6 +126,10 @@ public class ArmIntake extends SubsystemBase implements Sendable {
         motor.setVoltage(power);
         // motor.set(state == State.INTAKE ? INTAKE_SPEED : state == State.OUTTAKE ? -INTAKE_SPEED :
         //     state == State.STALLING ? STALL_SPEED : state == State.STALLING ? 0 : otherSpeed);
+
+        // Update logs
+        updateInputs(inputs);
+        Logger.getInstance().processInputs("Arm", inputs);
     }
 
     /**
@@ -134,5 +147,11 @@ public class ArmIntake extends SubsystemBase implements Sendable {
       builder.addStringProperty("State", () -> getState().toString(), null);
       builder.addDoubleProperty("Current", current::getAverage, null);
 
+    }
+
+    private void updateInputs(IntakeIOInputs inputs) {
+        inputs.encoderPosition = getEncoderPos();
+        inputs.encoderVelocity = encoder.getVelocity();
+        inputs.state = state.toString();
     }
 }

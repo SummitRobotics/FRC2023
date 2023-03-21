@@ -2,6 +2,8 @@ package frc.robot.subsystems;
 
 import java.util.ArrayList;
 import java.util.Optional;
+import org.littletonrobotics.junction.AutoLog;
+import org.littletonrobotics.junction.Logger;
 import org.photonvision.EstimatedRobotPose;
 import com.kauailabs.navx.frc.AHRS;
 import com.revrobotics.CANSparkMax;
@@ -39,6 +41,22 @@ import frc.robot.utilities.lists.Ports;
  * Subsystem to control the drivetrain of the robot.
  */
 public class Drivetrain extends SubsystemBase implements Testable {
+
+    @AutoLog
+    public static class DriveIOInputs {
+        public double xPos = 0.0;
+        public double yPos = 0.0;
+        public double rotation = 0.0;
+        public double leftEncoderPos = 0.0;
+        public double rightEncoderPos = 0.0;
+        public double leftEncoderVelocity = 0.0;
+        public double rightEncoderVelocity = 0.0;
+        public double leftDistanceAccumulator = 0.0;
+        public double rightDistanceAccumulator = 0.0;
+        public boolean shiftState = false;
+    }
+
+    private final DriveIOInputsAutoLogged inputs = new DriveIOInputsAutoLogged();
 
     private static Drivetrain instance;
 
@@ -773,10 +791,11 @@ public class Drivetrain extends SubsystemBase implements Testable {
     public void periodic() {
         // Update the odometry in the periodic block
         updateOdometry();
-        // System.out.println(getPose());
-        // System.out.println(MPStoRPM(getRightSpeed()));
-        // System.out.println(rightEncoder.getVelocity());
-        // System.out.println("------------------------");
+
+        // Update logs
+        updateInputs(inputs);
+        Logger.getInstance().processInputs("Drivetrain", inputs);
+        Logger.getInstance().recordOutput("Odometry", getPose());
     }
 
     @Override
@@ -820,5 +839,18 @@ public class Drivetrain extends SubsystemBase implements Testable {
         double inner = 4.38442E8 - (4.06266E8 * x);
         double val = 1.37166 - (0.0000655072 * Math.sqrt(inner));
         return val * Math.signum(turnSpeed);
+    }
+
+    private void updateInputs(DriveIOInputs inputs) {
+        inputs.xPos = getPose().getX();
+        inputs.yPos = getPose().getY();
+        inputs.rotation = getPose().getRotation().getDegrees();
+        inputs.leftEncoderPos = leftEncoder.getPosition();
+        inputs.rightEncoderPos = rightEncoder.getPosition();
+        inputs.leftEncoderVelocity = leftEncoder.getVelocity();
+        inputs.rightEncoderVelocity = rightEncoder.getVelocity();
+        inputs.leftDistanceAccumulator = leftDistanceAcum;
+        inputs.rightDistanceAccumulator = rightDistanceAcum;
+        inputs.shiftState = getShift();
     }
 }

@@ -4,6 +4,8 @@
 
 package frc.robot.subsystems.arm;
 
+import org.littletonrobotics.junction.AutoLog;
+import org.littletonrobotics.junction.Logger;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkMaxPIDController;
@@ -29,6 +31,17 @@ import frc.robot.utilities.homing.HomeableSubsystem;
 import frc.robot.utilities.lists.Ports;
 
 public class Arm extends SubsystemBase implements HomeableSubsystem {
+
+  @AutoLog
+  public static class ArmIOInputs {
+    public double turretEncoder = 0.0;
+    public double firstJointEncoder = 0.0;
+    public double secondJointEncoder = 0.0;
+    public double thirdJointEncoder = 0.0;
+    public String armConfiguration = "";
+  }
+
+  private final ArmIOInputsAutoLogged inputs = new ArmIOInputsAutoLogged();
   
   public static final Transform3d ROBOT_TO_TURRET_BASE = new Transform3d(new Translation3d(-0.2413, 0, 0.18265), new Rotation3d());
   // public static final Transform3d ROBOT_TO_TURRET_BASE = new Transform3d(new Translation3d(), new Rotation3d());
@@ -486,36 +499,40 @@ public class Arm extends SubsystemBase implements HomeableSubsystem {
         getSecondJointEncoderPosition(),
         getThirdJointEncoderPosition(),
         POSITION_TYPE.ENCODER_ROTATIONS
-      );
+    );
 
-      if (!setSoftLimits && distanceCheck && !this.currentConfiguration.withinDistance()) {
-        setSoftLimits = true;
-        turretMotor.setSoftLimit(SoftLimitDirection.kForward, -100000);
-        turretMotor.setSoftLimit(SoftLimitDirection.kReverse, 1000000);
+    if (!setSoftLimits && distanceCheck && !this.currentConfiguration.withinDistance()) {
+      setSoftLimits = true;
+      turretMotor.setSoftLimit(SoftLimitDirection.kForward, -100000);
+      turretMotor.setSoftLimit(SoftLimitDirection.kReverse, 1000000);
 
-        joint1Motor.setSoftLimit(SoftLimitDirection.kForward, -100000);
-        joint1Motor.setSoftLimit(SoftLimitDirection.kReverse, 1000000);
+      joint1Motor.setSoftLimit(SoftLimitDirection.kForward, -100000);
+      joint1Motor.setSoftLimit(SoftLimitDirection.kReverse, 1000000);
 
-        joint2Motor.setSoftLimit(SoftLimitDirection.kForward, -100000);
-        joint2Motor.setSoftLimit(SoftLimitDirection.kReverse, 1000000);
+      joint2Motor.setSoftLimit(SoftLimitDirection.kForward, -100000);
+      joint2Motor.setSoftLimit(SoftLimitDirection.kReverse, 1000000);
 
-        joint3Motor.setSoftLimit(SoftLimitDirection.kForward, -100000);
-        joint3Motor.setSoftLimit(SoftLimitDirection.kReverse, 1000000);
-      } else if (setSoftLimits && !(distanceCheck && !this.currentConfiguration.withinDistance())) {
-        setSoftLimits = false;
-        turretMotor.setSoftLimit(SoftLimitDirection.kForward, ARM_TURRET_FORWARD_SOFT_LIMIT);
-        turretMotor.setSoftLimit(SoftLimitDirection.kReverse, ARM_TURRET_REVERSE_SOFT_LIMIT);
+      joint3Motor.setSoftLimit(SoftLimitDirection.kForward, -100000);
+      joint3Motor.setSoftLimit(SoftLimitDirection.kReverse, 1000000);
+    } else if (setSoftLimits && !(distanceCheck && !this.currentConfiguration.withinDistance())) {
+      setSoftLimits = false;
+      turretMotor.setSoftLimit(SoftLimitDirection.kForward, ARM_TURRET_FORWARD_SOFT_LIMIT);
+      turretMotor.setSoftLimit(SoftLimitDirection.kReverse, ARM_TURRET_REVERSE_SOFT_LIMIT);
 
-        joint1Motor.setSoftLimit(SoftLimitDirection.kForward, ARM_JOINT_1_FORWARD_SOFT_LIMIT);
-        joint1Motor.setSoftLimit(SoftLimitDirection.kReverse, ARM_JOINT_1_REVERSE_SOFT_LIMIT);
+      joint1Motor.setSoftLimit(SoftLimitDirection.kForward, ARM_JOINT_1_FORWARD_SOFT_LIMIT);
+      joint1Motor.setSoftLimit(SoftLimitDirection.kReverse, ARM_JOINT_1_REVERSE_SOFT_LIMIT);
 
-        joint2Motor.setSoftLimit(SoftLimitDirection.kForward, ARM_JOINT_2_FORWARD_SOFT_LIMIT);
-        joint2Motor.setSoftLimit(SoftLimitDirection.kReverse, ARM_JOINT_2_REVERSE_SOFT_LIMIT);
+      joint2Motor.setSoftLimit(SoftLimitDirection.kForward, ARM_JOINT_2_FORWARD_SOFT_LIMIT);
+      joint2Motor.setSoftLimit(SoftLimitDirection.kReverse, ARM_JOINT_2_REVERSE_SOFT_LIMIT);
 
-        joint3Motor.setSoftLimit(SoftLimitDirection.kForward, ARM_JOINT_3_FORWARD_SOFT_LIMIT);
-        joint3Motor.setSoftLimit(SoftLimitDirection.kReverse, ARM_JOINT_3_REVERSE_SOFT_LIMIT);
-      }
+      joint3Motor.setSoftLimit(SoftLimitDirection.kForward, ARM_JOINT_3_FORWARD_SOFT_LIMIT);
+      joint3Motor.setSoftLimit(SoftLimitDirection.kReverse, ARM_JOINT_3_REVERSE_SOFT_LIMIT);
     }
+
+    // Update logs
+    updateInputs(inputs);
+    Logger.getInstance().processInputs("Arm", inputs);
+  }
 
   public static void setDistanceCheck(boolean value) {
     distanceCheck = value;
@@ -586,5 +603,13 @@ public class Arm extends SubsystemBase implements HomeableSubsystem {
 
   public void setEncoderToPosition(ArmPositions.ARM_POSITION position) {
     setEncoderToPosition(position.config);
+  }
+
+  private void updateInputs(ArmIOInputs inputs) {
+    inputs.turretEncoder = getTurretEncoderPosition();
+    inputs.firstJointEncoder = getFirstJointEncoderPosition();
+    inputs.secondJointEncoder = getSecondJointEncoderPosition();
+    inputs.thirdJointEncoder = getThirdJointEncoderPosition();
+    inputs.armConfiguration = getCurrentArmConfiguration().toString();
   }
 }
