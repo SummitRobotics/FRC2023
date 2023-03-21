@@ -14,6 +14,7 @@ import edu.wpi.first.networktables.StringSubscriber;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.I2C.Port;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
@@ -46,6 +47,7 @@ import frc.robot.commands.drivetrain.ChargeBalance.BalanceDirection;
 import frc.robot.devices.Lidar;
 import frc.robot.devices.LidarV3;
 import frc.robot.devices.LidarV3New;
+import frc.robot.devices.LidarV3Jack;
 import frc.robot.devices.PCM;
 import frc.robot.devices.LEDs.LEDCalls;
 import frc.robot.oi.drivers.ControllerDriver;
@@ -114,7 +116,7 @@ public class RobotContainer {
 
         // Devices
         navx = new AHRS();
-        gripperLidar = new LidarV3();
+        gripperLidar = new LidarV3Jack(Port.kMXP);
         
         // Subsystems
         drivetrain = Drivetrain.init(navx, new Pose2d());
