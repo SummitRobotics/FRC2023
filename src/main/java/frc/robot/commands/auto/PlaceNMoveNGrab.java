@@ -7,6 +7,7 @@ import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.commands.arm.MoveArmUnsafe;
 import frc.robot.commands.automovements.AutoPickup;
+import frc.robot.commands.automovements.AutoPickup.ELEMENT_TYPE;
 import frc.robot.commands.drivetrain.EncoderDrive;
 import frc.robot.commands.drivetrain.TurnByEncoder;
 import frc.robot.subsystems.Drivetrain;
@@ -30,8 +31,8 @@ public class PlaceNMoveNGrab extends SequentialCommandGroup {
             ),
             new InstantCommand(arm::unclamp),
             new EncoderDrive(-4.25, drivetrain),
-            new TurnByEncoder(180, drivetrain),
-            new AutoPickup(drivetrain, arm, quorbCamera, coneCamera)
+            new TurnByEncoder(180, drivetrain)
+            // new AutoPickup(drivetrain, arm, quorbCamera, coneCamera)
         );
     }
 }

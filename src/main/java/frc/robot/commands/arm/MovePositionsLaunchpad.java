@@ -184,7 +184,7 @@ public class MovePositionsLaunchpad extends CommandBase {
       if (position == POSITION.LEFT) {
         arm.setToConfiguration(ARM_POSITION.LEFT_LOW.config);
       } else if (position == POSITION.MIDDLE) {
-        arm.setToConfiguration(ARM_POSITION.GROUND_PICKUP.config);
+        arm.setToConfiguration(ARM_POSITION.GROUND_PICKUP_QUORB.config);
       } else if (position == POSITION.RIGHT) {
         arm.setToConfiguration(ARM_POSITION.RIGHT_LOW.config);
       }
