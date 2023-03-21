@@ -5,6 +5,12 @@
 package frc.robot;
 
 import java.io.IOException;
+import org.littletonrobotics.junction.LogFileUtil;
+import org.littletonrobotics.junction.Logger;
+import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
+import org.littletonrobotics.junction.networktables.NT4Publisher;
+import org.littletonrobotics.junction.wpilog.WPILOGReader;
+import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 import org.photonvision.PhotonCamera;
 import com.kauailabs.navx.frc.AHRS;
 import com.pathplanner.lib.server.PathPlannerServer;
@@ -13,9 +19,8 @@ import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.trajectory.TrajectoryUtil;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StringSubscriber;
-import edu.wpi.first.wpilibj.DataLogManager;
-import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Filesystem;
+import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
@@ -57,7 +62,6 @@ import frc.robot.subsystems.Drivetrain;
 import frc.robot.utilities.lists.AxisPriorities;
 import frc.robot.utilities.lists.Ports;
 import frc.robot.commands.Home;
-import frc.robot.commands.LogComponents;
 import frc.robot.commands.TimedMoveMotor;
 
 public class RobotContainer {
@@ -108,6 +112,7 @@ public class RobotContainer {
     Trajectory blueLow;
     Trajectory redLow;
 
+    private final LoggedDashboardChooser<Command> autoChooser = new LoggedDashboardChooser<>("Auto Routine");
 
     StringSubscriber HPSelector;
 
@@ -237,8 +242,21 @@ public class RobotContainer {
     }
 
     private void initLogging() {
-        scheduler.schedule(new LogComponents(drivetrain, arm));
-        DriverStation.startDataLog(DataLogManager.getLog());
+        Logger.getInstance().recordMetadata("ProjectName", "MyProject"); // Set a metadata value
+
+        if (RobotBase.isReal()) {
+            Logger.getInstance().addDataReceiver(new WPILOGWriter("/media/sda1/")); // Log to a USB stick
+            Logger.getInstance().addDataReceiver(new NT4Publisher()); // Publish data to NetworkTables
+            // new PowerDistribution(1, ModuleType.kRev); // Enables power distribution logging
+        } else {
+            // setUseTiming(false); // Run as fast as possible
+            String logPath = LogFileUtil.findReplayLog(); // Pull the replay log from AdvantageScope (or prompt the user)
+            Logger.getInstance().setReplaySource(new WPILOGReader(logPath)); // Read replay log
+            Logger.getInstance().addDataReceiver(new WPILOGWriter(LogFileUtil.addPathSuffix(logPath, "_sim"))); // Save outputs to a new log
+        }
+        
+        // Logger.getInstance().disableDeterministicTimestamps() // See "Deterministic Timestamps" in the "Understanding Data Flow" page
+        Logger.getInstance().start(); // Start logging! No more data receivers, replay sources, or metadata values may be added.
     }
 
     private void initTelemetry() {
@@ -249,38 +267,38 @@ public class RobotContainer {
     }
 
     public void createAutoCommands() {
-        ShuffleboardDriver.autoChooser.setDefaultOption("Move", new ParallelCommandGroup(
+        autoChooser.addDefaultOption("Move", new ParallelCommandGroup(
             new SequentialCommandGroup(
                 new ArmOutOfStart(arm),
                 new MoveArmUnsafe(arm, ARM_POSITION.HOME)
             ),
             new EncoderDrive(1.5, drivetrain)
         ));
-        ShuffleboardDriver.autoChooser.addOption("DoNothing", new ArmOutOfStart(arm));
-        ShuffleboardDriver.autoChooser.addOption("Place", new Place(arm, drivetrain));
-        ShuffleboardDriver.autoChooser.addOption("PlaceNMove", new PlaceNMove(drivetrain, arm));
-        ShuffleboardDriver.autoChooser.addOption("Balance", new SequentialCommandGroup(
+        autoChooser.addOption("DoNothing", new ArmOutOfStart(arm));
+        autoChooser.addOption("Place", new Place(arm, drivetrain));
+        autoChooser.addOption("PlaceNMove", new PlaceNMove(drivetrain, arm));
+        autoChooser.addOption("Balance", new SequentialCommandGroup(
             new ArmOutOfStart(arm),
             new ChargeStationBalance(drivetrain)
         ));
-        ShuffleboardDriver.autoChooser.addOption("BackwardsBalance", new SequentialCommandGroup(
+        autoChooser.addOption("BackwardsBalance", new SequentialCommandGroup(
             new ArmOutOfStart(arm),
             new BackwardsBalance(drivetrain)
         ));
-        ShuffleboardDriver.autoChooser.addOption("PlaceNBalance", new PlaceNBalance(drivetrain, arm));
-        ShuffleboardDriver.autoChooser.addOption("MoveNBalance", new MoveNBalance(arm, drivetrain));
-        ShuffleboardDriver.autoChooser.addOption("PlaceNMoveNBalance", new PlaceNMoveNBalance(arm, drivetrain));
-        ShuffleboardDriver.autoChooser.addOption("PlaceNMoveNGrab", new PlaceNMoveNGrab(arm, drivetrain, quorbCamera, coneCamera));
-        ShuffleboardDriver.autoChooser.addOption("Close PlaceNMoveNGrabNPlace", new PlaceNMoveNGrabNPlace(arm, drivetrain, Type.CloseToSubstation));
-        ShuffleboardDriver.autoChooser.addOption("Far PlaceNMoveNGrabNPlace", new PlaceNMoveNGrabNPlace(arm, drivetrain, Type.FarFromSubstation));
-
+        autoChooser.addOption("PlaceNBalance", new PlaceNBalance(drivetrain, arm));
+        autoChooser.addOption("MoveNBalance", new MoveNBalance(arm, drivetrain));
+        autoChooser.addOption("PlaceNMoveNBalance", new PlaceNMoveNBalance(arm, drivetrain));
+        autoChooser.addOption("PlaceNMoveNGrab", new PlaceNMoveNGrab(arm, drivetrain, quorbCamera, coneCamera));
+        autoChooser.addOption("Close PlaceNMoveNGrabNPlace", new PlaceNMoveNGrabNPlace(arm, drivetrain, Type.CloseToSubstation));
+        autoChooser.addOption("Far PlaceNMoveNGrabNPlace", new PlaceNMoveNGrabNPlace(arm, drivetrain, Type.FarFromSubstation));
     }
 
     public Command getAutonomousCommand() {
-        return ShuffleboardDriver.autoChooser.getSelected();
+        return autoChooser.get();
     }
 
     public void robotInit() {
+        initLogging();
         pcm.enableCompressorAnalog(80, 120);
         ShuffleboardDriver.init();
         LEDCalls.ON.activate();

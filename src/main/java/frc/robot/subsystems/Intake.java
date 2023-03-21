@@ -1,20 +1,16 @@
 package frc.robot.subsystems;
 
-import java.util.HashMap;
-import java.util.function.DoubleSupplier;
-import java.util.function.Supplier;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.utilities.Loggable;
 import frc.robot.utilities.homing.HomeableCANSparkMax;
 import frc.robot.utilities.homing.HomeableSubsystem;
 import frc.robot.utilities.lists.Ports;
 
-public class Intake extends SubsystemBase implements HomeableSubsystem, Loggable {
+public class Intake extends SubsystemBase implements HomeableSubsystem {
 
     private final CANSparkMax intakeMotor = new CANSparkMax(Ports.Intake.INTAKE_MOTOR, MotorType.kBrushless);
     private final RelativeEncoder intakeEncoder = intakeMotor.getEncoder();
@@ -133,25 +129,5 @@ public class Intake extends SubsystemBase implements HomeableSubsystem, Loggable
     @Override
     public void periodic() {
         setIntakeMotor(state == State.LOWERED_MOVING ? INTAKE_SPEED : 0);
-    }
-
-    @Override
-    public String getLogName() {
-        return "Intake";
-    }
-
-    @Override
-    public HashMap<String, Supplier<String>> getStringLogData() {
-        HashMap<String, Supplier<String>> out = new HashMap<>();
-        out.put("Intake Piston", getState()::toString);
-        return out;
-    }
-
-    @Override
-    public HashMap<String, DoubleSupplier> getDoubleLogData() {
-        HashMap<String, DoubleSupplier> out = new HashMap<>();
-        out.put("Intake Motor Velocity", intakeEncoder::getVelocity);
-        out.put("Pivot Motor Position", pivotEncoder::getPosition);
-        return out;
     }
 }

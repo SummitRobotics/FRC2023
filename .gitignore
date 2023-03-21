@@ -314,4 +314,6 @@ gradle-app.setting
 
 *.wpilog
 
+src/main/java/frc/robot/BuildConstants.java
+
 # End of https://www.gitignore.io/api/c++,java,linux,macos,gradle,windows,eclipse,intellij+all,visualstudiocode

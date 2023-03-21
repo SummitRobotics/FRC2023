@@ -4,10 +4,6 @@
 
 package frc.robot.subsystems.arm;
 
-import java.util.HashMap;
-import java.util.function.DoubleSupplier;
-import java.util.function.Supplier;
-
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkMaxPIDController;
@@ -16,7 +12,6 @@ import com.revrobotics.CANSparkMax.SoftLimitDirection;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import com.revrobotics.CANSparkMaxLowLevel.PeriodicFrame;
 import com.revrobotics.SparkMaxPIDController.AccelStrategy;
-
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
@@ -28,13 +23,12 @@ import frc.robot.devices.Lidar;
 import frc.robot.subsystems.arm.ArmConfiguration.POSITION_TYPE;
 import frc.robot.utilities.FancyArmFeedForward;
 import frc.robot.utilities.Functions;
-import frc.robot.utilities.Loggable;
 import frc.robot.utilities.Positions;
 import frc.robot.utilities.homing.HomeableCANSparkMax;
 import frc.robot.utilities.homing.HomeableSubsystem;
 import frc.robot.utilities.lists.Ports;
 
-public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
+public class Arm extends SubsystemBase implements HomeableSubsystem {
   
   public static final Transform3d ROBOT_TO_TURRET_BASE = new Transform3d(new Translation3d(-0.2413, 0, 0.18265), new Rotation3d());
   // public static final Transform3d ROBOT_TO_TURRET_BASE = new Transform3d(new Translation3d(), new Rotation3d());
@@ -474,29 +468,6 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
     builder.addStringProperty("PosEstimateRS", () -> this.getCurrentArmConfiguration().getEndPosition().inRobotSpace().toString(), null);
     builder.addStringProperty("PosEstimateOS", () -> this.getCurrentArmConfiguration().getEndPosition().inOtherSpace(ROBOT_TO_TURRET_BASE).toString(), null);
     builder.addStringProperty("PosEstimateFS", () -> this.getCurrentArmConfiguration().getEndPosition().inFieldSpace().toString(), null);
-  }
-
-  @Override
-  public String getLogName() {
-    return "Arm";
-  }
-
-  @Override
-  public HashMap<String, DoubleSupplier> getDoubleLogData() {
-    HashMap<String, DoubleSupplier> out = new HashMap<String, DoubleSupplier>();
-    out.put("Turret Encoder", this::getTurretEncoderPosition);
-    out.put("First Joint Encoder", this::getFirstJointEncoderPosition);
-    out.put("Second Joint Encoder", this::getSecondJointEncoderPosition);
-    out.put("Third Joint Encoder", this::getThirdJointEncoderPosition);
-    return out;
-  }
-
-  @Override
-  public HashMap<String, Supplier<String>> getStringLogData() {
-    HashMap<String, Supplier<String>> out = new HashMap<String, Supplier<String>>();
-    out.put("Arm Configuration", getCurrentArmConfiguration()::toString);
-    out.put("Grabber Clamp", () -> clampSolenoidState ? "Open" : "Closed");
-    return out;
   }
 
   public boolean setSoftLimits = false; 
