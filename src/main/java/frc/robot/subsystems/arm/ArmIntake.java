@@ -1,23 +1,40 @@
 package frc.robot.subsystems.arm;
 
+import com.ctre.phoenix.motorcontrol.NeutralMode;
+import com.ctre.phoenix.motorcontrol.StatusFrame;
+import com.ctre.phoenix.motorcontrol.SupplyCurrentLimitConfiguration;
+import com.ctre.phoenix.motorcontrol.TalonFXControlMode;
+import com.ctre.phoenix.motorcontrol.can.TalonFX;
+import com.ctre.phoenix.motorcontrol.can.TalonFXConfiguration;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.revrobotics.CANSparkMax;
-import com.revrobotics.RelativeEncoder;
+import com.revrobotics.CANSparkMax.IdleMode;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
-import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.util.sendable.SendableBuilder;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.utilities.RollingAverage;
 import frc.robot.utilities.lists.Ports;
 
-public class ArmIntake extends SubsystemBase implements Sendable {
+public class ArmIntake extends SubsystemBase {
     
-    private final CANSparkMax motor = new CANSparkMax(Ports.Arm.INTAKE_MOTOR, MotorType.kBrushless);
-    private final RelativeEncoder encoder = motor.getEncoder();
+
+    // private final CANSparkMax motor = new CANSparkMax(Ports.Arm.INTAKE_MOTOR, MotorType.kBrushless);
+    private final TalonFX motor = new TalonFX(Ports.Arm.INTAKE_MOTOR);
+
+
     private State state;
+    private State oldState = state;
+    private INTAKE_ELEMENT_TYPE type = INTAKE_ELEMENT_TYPE.CONE;
+
     private double otherSpeed;
     private RollingAverage current;
-    private boolean lock = false;
+    private Timer stallTimerRampup = new Timer();
+    private Timer stallTimer = new Timer();
+
+    private boolean overheated = false;
 
     public enum State {
         INTAKE,
@@ -32,32 +49,55 @@ public class ArmIntake extends SubsystemBase implements Sendable {
         }
     }
 
-    private final double INTAKE_SPEED = -0.7 * 12;
-    private final double OUTTAKE_SPEED = 0.5 * 12;
-    private final double STALL_SPEED = -0.6 * 12;
-    private final double STALL_CURRENT = 70.0;
+    public final static double STALL_TIME = 0.25;
+
+    public enum INTAKE_ELEMENT_TYPE {
+        CONE(-1, 0.5, -0.6, 80.0, 0.75, 5.0),
+        QUORB(0.5, -0.5, 0.2, 30.0, 0.75, 5.0);
+
+        public final double intakeSpeed;
+        public final double outtakeSpeed;
+        public final double stallSpeed;
+        public final double stallCurrent;
+        public final double minStallTime;
+        public final double thresholdCurrent;
+
+        INTAKE_ELEMENT_TYPE(double intakeSpeed, double outtakeSpeed, double stallSpeed, double thresholdCurrent, double minStallTime, double stallCurrent) {
+            this.intakeSpeed = intakeSpeed;
+            this.outtakeSpeed = outtakeSpeed;
+            this.stallSpeed = stallSpeed;
+            this.stallCurrent = stallCurrent;
+            this.minStallTime = minStallTime;
+            this.thresholdCurrent = thresholdCurrent;
+        }
+    }
+
+    // private final double INTAKE_SPEED = -1;
+    // private final double OUTTAKE_SPEED = 0.5;
+    // private final double STALL_SPEED = -0.6;
+    // private final double STALL_CURRENT = 50.0;
 
     public ArmIntake() {
         state = State.STATIONARY;
         otherSpeed = 0;
         current = new RollingAverage(10, false);
         current.update(0);
-    }
+        // motor.setSmartCurrentLimit((int) type.stallCurrent);
+        // motor.setIdleMode(IdleMode.kBrake);
 
-    public void lock() {
-        lock = true;
-    }
+        TalonFXConfiguration config = new TalonFXConfiguration();
+        config.supplyCurrLimit.currentLimit = (int) type.thresholdCurrent;
+        config.supplyCurrLimit.enable = true;
 
-    public void unlock() {
-        lock = false;
-    }
-    // So this can be used in the end of a command.
-    public void unlock(boolean nothing) {
-        lock = false;
-    }
+        motor.configFactoryDefault();
+        motor.configAllSettings(config);
 
-    public boolean notLocked() {
-        return !lock;
+        motor.enableVoltageCompensation(true);
+        motor.configVoltageCompSaturation(12.0);
+        motor.setNeutralMode(NeutralMode.Brake);
+        motor.setStatusFramePeriod(StatusFrame.Status_1_General,5);
+        motor.setStatusFramePeriod(StatusFrame.Status_2_Feedback0, 255);
+
     }
 
     /**
@@ -73,7 +113,15 @@ public class ArmIntake extends SubsystemBase implements Sendable {
      * @return The current intake state
      */
     public State getState() {
+        // System.out.println(state);
         return state;
+    }
+
+    public boolean setType(INTAKE_ELEMENT_TYPE type) {
+        if (state != State.STATIONARY) return false;
+
+        this.type = type;
+        return true;
     }
 
     /**
@@ -85,38 +133,82 @@ public class ArmIntake extends SubsystemBase implements Sendable {
         state = State.OTHER;
     }
 
-    /**
-     * Gets the current encoder position of the intake motor.
-     *
-     * @return The current encoder position of the intake motor.
-     */
-    public double getEncoderPos() {
-        return encoder.getPosition();
-    }
-
     @Override
     public void periodic() {
-        current.update(motor.getOutputCurrent());
-        if (state == State.OTHER) {
-            motor.set(otherSpeed);
-            return;
+        // current.update(motor.getOutputCurrent());
+        current.update(motor.getSupplyCurrent());
+        if (state ==  State.STALLING) {
+            if (state != oldState) {
+                // System.out.println("STALLING SETTING CURRENT");
+                motor.configSupplyCurrentLimit(new SupplyCurrentLimitConfiguration(true, (int) type.stallCurrent, (int) type.stallCurrent, 0));
+                oldState = state;
+            }
+        } else {
+            if (state != oldState) {
+                // System.out.println("NOT STALLING SETTING CURRENT");
+                motor.configSupplyCurrentLimit(new SupplyCurrentLimitConfiguration(true, (int) type.thresholdCurrent, (int) type.thresholdCurrent, 0));
+                oldState = state;
+            }
         }
-        if (state == State.INTAKE && current.getAverage() > STALL_CURRENT) state = State.STALLING;
-
-        double power = 0;
 
         if (state == State.INTAKE) {
-            power = INTAKE_SPEED;
+            stallTimerRampup.start();
+        } else {
+            stallTimerRampup.stop();
+            stallTimerRampup.reset();
+        }
+
+        if (!overheated && motor.getTemperature() > 105) overheated = true;
+        if (overheated && motor.getTemperature() < 95) overheated = false;
+
+        if (!DriverStation.isFMSAttached() && overheated) {
+            state = State.STATIONARY;
+            motor.set(TalonFXControlMode.PercentOutput, 0);
+            return;
+        }
+
+        // if (!DriverStation.isFMSAttached() && motor.getTemperature() > 100) {
+        //     motor.set(TalonFXControlMode.PercentOutput, INTAKE_SPEED);
+        //     return;
+        // }
+
+        // if (state == State.OTHER) {
+        //     motor.set(otherSpeed);
+        //     return;
+        // }
+
+        if (state == State.OTHER) {
+            motor.set(TalonFXControlMode.PercentOutput, otherSpeed);
+            return;
+        }
+
+        if (state == State.INTAKE && stallTimerRampup.get() > type.minStallTime && current.getAverage() > type.thresholdCurrent) {
+            if (stallTimer.get() == 0) {
+                stallTimer.start();
+            }
+            if (stallTimer.get() > STALL_TIME) {
+                state = State.STALLING;
+                stallTimer.stop();
+                stallTimer.reset();
+            }
+        } else if (stallTimer.get() != 0) {
+            stallTimer.stop();
+            stallTimer.reset();
+        }
+
+        double power = 0;
+        if (state == State.INTAKE) {
+            power = type.intakeSpeed;
         } else if (state == State.OUTTAKE) {
-            power = OUTTAKE_SPEED;
+            power = type.outtakeSpeed;
         } else if (state == State.STALLING) {
-            power = STALL_SPEED;
+            power = type.stallSpeed;
         } else if (state == State.STATIONARY) {
             power = 0;
         }
-        motor.setVoltage(power);
-        // motor.set(state == State.INTAKE ? INTAKE_SPEED : state == State.OUTTAKE ? -INTAKE_SPEED :
-        //     state == State.STALLING ? STALL_SPEED : state == State.STALLING ? 0 : otherSpeed);
+
+        // motor.setVoltage(power * 12);
+        motor.set(TalonFXControlMode.PercentOutput, power); 
     }
 
     /**
@@ -124,7 +216,8 @@ public class ArmIntake extends SubsystemBase implements Sendable {
      */
     public void stop() {
         state = State.STATIONARY;
-        motor.set(0);
+        motor.set(TalonFXControlMode.PercentOutput, 0);
+        // motor.set(0);
     }
 
     @Override
@@ -133,6 +226,9 @@ public class ArmIntake extends SubsystemBase implements Sendable {
       // builder.addStringProperty("armConfiguration", getCurrentArmConfiguration()::toString, null);
       builder.addStringProperty("State", () -> getState().toString(), null);
       builder.addDoubleProperty("Current", current::getAverage, null);
-
+    //   builder.addDoubleProperty("MotorTemp-C", motor::getMotorTemperature, null);
+    //   builder.addDoubleProperty("MotorTemp-F", () -> ((motor.getMotorTemperature() * 1.8) + 32), null);
+    builder.addDoubleProperty("MotorTemp-C", motor::getTemperature, null);
+    builder.addDoubleProperty("MotorTemp-F", () -> ((motor.getTemperature() * 1.8) + 32), null);
     }
 }

@@ -22,7 +22,7 @@ public class Colors {
     public static final Color8Bit BLUE = new Color8Bit(0, 0, 255);
     public static final Color8Bit YELLOW = new Color8Bit(255, 200, 0);
     public static final Color8Bit ORANGE = new Color8Bit(255, 20, 0);
-    public static final Color8Bit PURPLE = new Color8Bit(128, 0, 128);
-    public static final Color8Bit PINK = new Color8Bit(255,192,203);
+    public static final Color8Bit PURPLE = new Color8Bit(100, 0, 170);
+    public static final Color8Bit PINK = new Color8Bit(255,0,125);
     // add more as we make them
 }

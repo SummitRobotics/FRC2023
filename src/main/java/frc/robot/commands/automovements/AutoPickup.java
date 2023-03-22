@@ -21,6 +21,7 @@ import frc.robot.devices.LEDs.LEDCalls;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.arm.Arm;
 import frc.robot.subsystems.arm.ArmIntake;
+import frc.robot.subsystems.arm.ArmIntake.INTAKE_ELEMENT_TYPE;
 import frc.robot.subsystems.arm.ArmIntake.State;
 import frc.robot.subsystems.arm.ArmPositions.ARM_POSITION;
 
@@ -72,7 +73,7 @@ public class AutoPickup extends SequentialCommandGroup {
   }
 
   /** Creates a new AutoPickup. */
-  public AutoPickup(Arm arm, ArmIntake intake, LOCATION location) {
+  public AutoPickup(Arm arm, ArmIntake intake, Drivetrain drivetrain, LOCATION location) {
 
     if (location == LOCATION.GROUND) {
       addCommands(
@@ -83,8 +84,14 @@ public class AutoPickup extends SequentialCommandGroup {
             Map.entry(ELEMENT_TYPE.QUORB, new MoveArmUnsafe(arm, ARM_POSITION.GROUND_PICKUP_QUORB)),
             Map.entry(ELEMENT_TYPE.NONE, new MoveArmUnsafe(arm, ARM_POSITION.GROUND_PICKUP_CONE))
           ), () -> getType()),
+          new SelectCommand(Map.ofEntries(
+            Map.entry(ELEMENT_TYPE.CONE, new InstantCommand(() -> intake.setType(INTAKE_ELEMENT_TYPE.CONE))),
+            Map.entry(ELEMENT_TYPE.QUORB, new InstantCommand(() -> intake.setType(INTAKE_ELEMENT_TYPE.QUORB))),
+            Map.entry(ELEMENT_TYPE.NONE, new InstantCommand(() -> intake.setType(INTAKE_ELEMENT_TYPE.CONE)))
+          ), () -> getType()),
           new InstantCommand(() -> intake.setState(State.INTAKE), intake),
           new WaitUntilCommand(() -> intake.getState() == State.STALLING),
+          new InstantCommand(drivetrain::highGear),
           new MoveArmUnsafe(arm, ARM_POSITION.GROUND_PICKUP_SAFE),
           new MoveArmUnsafe(arm, ARM_POSITION.HOME),
           new InstantCommand(LEDCalls.INTAKE_DOWN::cancel)
@@ -97,8 +104,14 @@ public class AutoPickup extends SequentialCommandGroup {
             Map.entry(ELEMENT_TYPE.QUORB, new MoveArmUnsafe(arm, ARM_POSITION.SUBSTATION_PICKUP_QUORB)),
             Map.entry(ELEMENT_TYPE.NONE, new MoveArmUnsafe(arm, ARM_POSITION.SUBSTATION_PICKUP_CONE))
           ), () -> getType()),
+          new SelectCommand(Map.ofEntries(
+            Map.entry(ELEMENT_TYPE.CONE, new InstantCommand(() -> intake.setType(INTAKE_ELEMENT_TYPE.CONE))),
+            Map.entry(ELEMENT_TYPE.QUORB, new InstantCommand(() -> intake.setType(INTAKE_ELEMENT_TYPE.QUORB))),
+            Map.entry(ELEMENT_TYPE.NONE, new InstantCommand(() -> intake.setType(INTAKE_ELEMENT_TYPE.CONE)))
+          ), () -> getType()),
           new InstantCommand(() -> intake.setState(State.INTAKE), intake),
           new WaitUntilCommand(() -> intake.getState() == State.STALLING),
+          new InstantCommand(drivetrain::highGear),
           new InstantCommand(LEDCalls.INTAKE_DOWN::cancel)
       );
     }

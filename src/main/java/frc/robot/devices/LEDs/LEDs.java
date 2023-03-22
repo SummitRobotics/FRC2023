@@ -65,9 +65,13 @@ public class LEDs extends SubsystemBase {
      * @param name the call's name (for removal later)
      * @param call the LEDCall object
      */
-    public void addCall(String name, LEDCall call) {
+    public boolean addCall(String name, LEDCall call) {
+        if (calls.containsKey(name)) {
+            return false;
+        }
         callsOutOfDate = true;
         calls.putIfAbsent(name, call);
+        return true;
     }
 
     /**
