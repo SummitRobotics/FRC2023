@@ -144,7 +144,7 @@ public class RobotContainer {
 
         gripperCam = new PhotonCamera("Arducam_16MP");
 
-        CommandScheduler.getInstance().registerSubsystem(drivetrain, arm, armIntake);
+        // CommandScheduler.getInstance().registerSubsystem(drivetrain, arm, armIntake);
 
         createCommands();
         createAutoCommands();
@@ -341,8 +341,8 @@ public class RobotContainer {
             new EncoderDrive(1.5, drivetrain)
         ));
         ShuffleboardDriver.autoChooser.setDefaultOption("DoNothing", new ArmOutOfStart(arm));
-        ShuffleboardDriver.autoChooser.addOption("Place", new Place(arm, drivetrain));
-        ShuffleboardDriver.autoChooser.addOption("PlaceNMove", new PlaceNMove(drivetrain, arm));
+        ShuffleboardDriver.autoChooser.addOption("Place", new Place(arm, armIntake, drivetrain));
+        ShuffleboardDriver.autoChooser.addOption("PlaceNMove", new PlaceNMove(drivetrain, armIntake, arm));
         ShuffleboardDriver.autoChooser.addOption("Balance", new SequentialCommandGroup(
             new ArmOutOfStart(arm),
             new ChargeBalance(drivetrain, BalanceDirection.FORWARD)
@@ -351,14 +351,14 @@ public class RobotContainer {
             new ArmOutOfStart(arm),
             new ChargeBalance(drivetrain, BalanceDirection.BACKWARD)
         ));
-        ShuffleboardDriver.autoChooser.addOption("PlaceNBalance", new PlaceNBalance(drivetrain, arm));
+        ShuffleboardDriver.autoChooser.addOption("PlaceNBalance", new PlaceNBalance(drivetrain, armIntake, arm));
         ShuffleboardDriver.autoChooser.addOption("MoveNBalance", new MoveNBalance(arm, drivetrain));
-        ShuffleboardDriver.autoChooser.addOption("PlaceNMoveNBalance", new PlaceNMoveNBalance(arm, drivetrain));
+        ShuffleboardDriver.autoChooser.addOption("PlaceNMoveNBalance", new PlaceNMoveNBalance(arm, armIntake, drivetrain));
         // ShuffleboardDriver.autoChooser.addOption("PlaceNMoveNGrab", new PlaceNMoveNGrab(arm, drivetrain, quorbCamera, coneCamera));
-        ShuffleboardDriver.autoChooser.addOption("CloseBluePlaceNMoveNGrabNPlace", new PlaceNMoveNGrabNPlace(arm, drivetrain, Type.CloseToSubstation, Alliance.Blue));
-        ShuffleboardDriver.autoChooser.addOption("FarBluePlaceNMoveNGrabNPlace", new PlaceNMoveNGrabNPlace(arm, drivetrain, Type.FarFromSubstation, Alliance.Blue));
-        ShuffleboardDriver.autoChooser.addOption("CloseRedPlaceNMoveNGrabNPlace", new PlaceNMoveNGrabNPlace(arm, drivetrain, Type.CloseToSubstation, Alliance.Red));
-        ShuffleboardDriver.autoChooser.addOption("FarRedPlaceNMoveNGrabNPlace", new PlaceNMoveNGrabNPlace(arm, drivetrain, Type.FarFromSubstation, Alliance.Red));
+        ShuffleboardDriver.autoChooser.addOption("CloseBluePlaceNMoveNGrabNPlace", new PlaceNMoveNGrabNPlace(arm, armIntake, drivetrain, Type.CloseToSubstation, Alliance.Blue));
+        ShuffleboardDriver.autoChooser.addOption("FarBluePlaceNMoveNGrabNPlace", new PlaceNMoveNGrabNPlace(arm, armIntake, drivetrain, Type.FarFromSubstation, Alliance.Blue));
+        ShuffleboardDriver.autoChooser.addOption("CloseRedPlaceNMoveNGrabNPlace", new PlaceNMoveNGrabNPlace(arm, armIntake, drivetrain, Type.CloseToSubstation, Alliance.Red));
+        ShuffleboardDriver.autoChooser.addOption("FarRedPlaceNMoveNGrabNPlace", new PlaceNMoveNGrabNPlace(arm, armIntake, drivetrain, Type.FarFromSubstation, Alliance.Red));
     }
 
     public Command getAutonomousCommand() {
@@ -398,6 +398,7 @@ public class RobotContainer {
     public void disabledExit() {}
 
     public void autonomousInit() {
+        armIntake.setState(State.STALLING);
     }
     public void autonomousPeriodic() {}
     public void autonomousExit() {}

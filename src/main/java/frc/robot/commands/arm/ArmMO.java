@@ -106,9 +106,9 @@ public class ArmMO extends CommandBase {
         arm.setToConfiguration(
             ArmConfiguration.fromEndPosition(endPose, grabberRadians));
 
-        if (clampButton.getTrigger().debounce(0.1, DebounceType.kRising).getAsBoolean()) {
-            if (arm.getClampSolenoidState()) arm.unclamp(); else arm.clamp(); 
-        }
+        // if (clampButton.getTrigger().debounce(0.1, DebounceType.kRising).getAsBoolean()) {
+        //     if (arm.getClampSolenoidState()) arm.unclamp(); else arm.clamp(); 
+        // }
 
         endPose = arm.getTargetArmConfiguration().getEndPosition();
         grabberRadians

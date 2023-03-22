@@ -16,8 +16,6 @@ import frc.robot.subsystems.arm.ArmIntake.State;
 public class EjectElement extends SequentialCommandGroup {
   /** Creates a new EjectElement. */
   public EjectElement(ArmIntake armIntake) {
-    // Add your commands in the addCommands() call, e.g.
-    // addCommands(new FooCommand(), new BarCommand());
     addCommands(
       new InstantCommand(() -> armIntake.setState(State.OUTTAKE), armIntake),
       new WaitCommand(0.25),

@@ -30,8 +30,6 @@ public class MovePositionsLaunchpad extends CommandBase {
   POSITION position;
   POSITION prevPosition;
 
-  boolean shouldClamp = true;
-
 
   /** Creates a new MovePositionsLaunchpad. */
   public MovePositionsLaunchpad(Arm arm, LaunchpadDriver launchpad, RobotContainer robotContainer) {
@@ -62,10 +60,6 @@ public class MovePositionsLaunchpad extends CommandBase {
     launchpadDriver.buttonF.setLED(false);
     launchpadDriver.buttonI.setLED(false);
     launchpadDriver.buttonA.setLED(true);
-
-    if (Arm.LIDAR_CLAMP_NEAR < arm.getLidarDistance() && arm.getLidarDistance() < Arm.LIDAR_CLAMP_FAR) {
-      shouldClamp = false;
-    }
   }
 
   // Called every time the scheduler runs while the command is scheduled.
@@ -75,14 +69,7 @@ public class MovePositionsLaunchpad extends CommandBase {
     // System.out.println(arm.getClampSolenoidState());
     // System.out.println(shouldClamp);
     // System.out.println(arm.getLidarDistance());
-    if (arm.getClampSolenoidState() && shouldClamp && Arm.LIDAR_CLAMP_NEAR < arm.getLidarDistance() && arm.getLidarDistance() < Arm.LIDAR_CLAMP_FAR) {
-      // arm.clamp();
-      shouldClamp = false;
-    }
-    if (arm.getClampSolenoidState() && !shouldClamp && (Arm.LIDAR_CLAMP_NEAR > arm.getLidarDistance() || arm.getLidarDistance() > Arm.LIDAR_CLAMP_FAR)) {
-      shouldClamp = true;
-    }
-
+    
     if (prevPosition != position) {
       if (position != POSITION.NONE) {
         LEDCalls.CARDIANL_SELECT.activate();

@@ -8,16 +8,18 @@ import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
+import frc.robot.commands.arm.EjectElement;
 import frc.robot.commands.arm.MoveArmUnsafe;
 import frc.robot.commands.drivetrain.ChargeBalance;
 import frc.robot.commands.drivetrain.EncoderDrive;
 import frc.robot.commands.drivetrain.ChargeBalance.BalanceDirection;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.arm.Arm;
+import frc.robot.subsystems.arm.ArmIntake;
 import frc.robot.subsystems.arm.ArmPositions.ARM_POSITION;
 
 public class PlaceNMoveNBalance extends SequentialCommandGroup {
-    public PlaceNMoveNBalance(Arm arm, Drivetrain drivetrain) {
+    public PlaceNMoveNBalance(Arm arm, ArmIntake armIntake, Drivetrain drivetrain) {
         addCommands(
             new InstantCommand(drivetrain::highGear),
             new ArmOutOfStart(arm),
@@ -27,7 +29,7 @@ public class PlaceNMoveNBalance extends SequentialCommandGroup {
                 new EncoderDrive(0.4748, drivetrain),
                 new MoveArmUnsafe(arm, ARM_POSITION.MIDDLE_HIGH)
             ),
-            new InstantCommand(arm::unclamp),
+            new EjectElement(armIntake),
             new WaitCommand(0.25),
             new InstantCommand(drivetrain::lowGear),
             new ParallelCommandGroup(

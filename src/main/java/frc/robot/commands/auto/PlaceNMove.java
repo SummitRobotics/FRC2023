@@ -8,15 +8,17 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
+import frc.robot.commands.arm.EjectElement;
 import frc.robot.commands.arm.MoveArmUnsafe;
 import frc.robot.commands.drivetrain.EncoderDrive;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.arm.Arm;
+import frc.robot.subsystems.arm.ArmIntake;
 import frc.robot.subsystems.arm.ArmPositions.ARM_POSITION;
 
 public class PlaceNMove extends SequentialCommandGroup {
   /** Creates a new PlaceNMove. */
-  public PlaceNMove(Drivetrain drivetrain, Arm arm) {
+  public PlaceNMove(Drivetrain drivetrain, ArmIntake armIntake, Arm arm) {
     addCommands(
       new InstantCommand(drivetrain::highGear),
       new ParallelCommandGroup(
@@ -26,7 +28,7 @@ public class PlaceNMove extends SequentialCommandGroup {
       new MoveArmUnsafe(arm, ARM_POSITION.MIDDLE_HIGH),
       new EncoderDrive(0.75, drivetrain),
       new WaitCommand(0.25),
-      new InstantCommand(arm::unclamp),
+      new EjectElement(armIntake),
       new WaitCommand(0.25),
       new ParallelCommandGroup(
         new EncoderDrive(-4, drivetrain),

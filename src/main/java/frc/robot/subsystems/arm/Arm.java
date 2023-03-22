@@ -151,10 +151,6 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
   private ArmConfiguration currentConfiguration = new ArmConfiguration();
   private ArmConfiguration targetConfiguration = new ArmConfiguration();
 
-    // Seperate boolean to store clamp state because it is slow to get the state of the solenoid.
-  private final Solenoid clampSolenoid = new Solenoid(Ports.Other.PCM, PneumaticsModuleType.REVPH, Ports.Arm.CLAMP_SOLENOID);
-  private boolean clampSolenoidState;
-
   private final Lidar lidar;
 
   /** 
@@ -241,8 +237,6 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
 
     joint3Motor.enableSoftLimit(SoftLimitDirection.kForward, true);
     joint3Motor.enableSoftLimit(SoftLimitDirection.kReverse, true);
-
-    clampSolenoidState = clampSolenoid.get();
 
     // sets refresh rate for various types of CAN data
     for (CANSparkMax motor : new CANSparkMax[] {turretMotor, joint1Motor, joint2Motor, joint3Motor}) {
@@ -411,38 +405,6 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
     return currentConfiguration.equals(targetConfiguration, tolerance);
   }
 
-  /**
-   * Actuates the clamp on the end of the arm
-  */
-  public void clamp() {
-    clampSolenoid.set(false);
-    clampSolenoidState = false;
-  }
-
-  /**
-   * Releases the clamp on the end of the arm
-   */
-  public void unclamp() {
-    clampSolenoid.set(true);
-    clampSolenoidState = true;
-  }
-
-  public void toggleClamp() {
-    if (clampSolenoidState) {
-      clamp();
-    } else {
-      unclamp();
-    }
-  }
-
-  /**
-   * Gets the state of the clamp solenoid
-   * @return The state of the clamp solenoid
-   */
-  public boolean getClampSolenoidState() {
-    return clampSolenoidState;
-  }
-
   @Override
   public HomeableCANSparkMax[] getHomeables() {
     return new HomeableCANSparkMax[] {
@@ -460,7 +422,6 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
   public void initSendable(SendableBuilder builder) {
     super.initSendable(builder);
     // builder.addStringProperty("armConfiguration", getCurrentArmConfiguration()::toString, null);
-    builder.addStringProperty("grabberClamp", () -> clampSolenoidState ? "Open" : "Closed", null);
     builder.addDoubleProperty("turretEncoder", this::getTurretEncoderPosition, null);
     builder.addDoubleProperty("firstJointEncoder", this::getFirstJointEncoderPosition, null);
     builder.addDoubleProperty("secondJointEncoder", this::getSecondJointEncoderPosition, null);
@@ -500,7 +461,6 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
   public HashMap<String, Supplier<String>> getStringLogData() {
     HashMap<String, Supplier<String>> out = new HashMap<String, Supplier<String>>();
     out.put("Arm Configuration", getCurrentArmConfiguration()::toString);
-    out.put("Grabber Clamp", () -> clampSolenoidState ? "Open" : "Closed");
     return out;
   }
 
