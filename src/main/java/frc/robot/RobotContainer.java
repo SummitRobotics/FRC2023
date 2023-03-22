@@ -27,10 +27,12 @@ import edu.wpi.first.wpilibj2.command.StartEndCommand;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.commands.arm.ArmMO;
 import frc.robot.commands.arm.DefaultArmCommand;
+import frc.robot.commands.arm.EjectElement;
 import frc.robot.commands.arm.FullManualArm;
 import frc.robot.commands.arm.MoveArmUnsafe;
 import frc.robot.commands.arm.MovePositionsLaunchpad;
 import frc.robot.commands.arm.MoveToPickupSubstation;
+import frc.robot.commands.arm.TuneTurret;
 import frc.robot.commands.auto.ArmOutOfStart;
 import frc.robot.commands.auto.MoveNBalance;
 import frc.robot.commands.auto.Place;
@@ -190,12 +192,11 @@ public class RobotContainer {
         driverXBox.rightBumper.prioritize(AxisPriorities.DRIVE).getTrigger().onTrue(new InstantCommand(drivetrain::highGear));
         driverXBox.leftBumper.prioritize(AxisPriorities.DRIVE).getTrigger().onTrue(new InstantCommand(drivetrain::lowGear));
 
-        driverXBox.buttonX.getTrigger().whileTrue(new LimelightPlaceTurret(arm, driverXBox.dPadLeft, driverXBox.dPadRight)).onFalse(new SequentialCommandGroup(
-            new SequentialCommandGroup(
-                new InstantCommand(() -> armIntake.setState(State.OUTTAKE), armIntake),
-                new WaitCommand(0.25),
-                new InstantCommand(() -> armIntake.setState(State.STATIONARY), armIntake)
-            ).unless(() -> armIntake.getState() != State.STALLING),
+        driverXBox.buttonX.getTrigger().whileTrue(new SequentialCommandGroup(
+                new LimelightPlaceTurret(arm),
+                new TuneTurret(arm, driverXBox.dPadLeft, driverXBox.dPadRight)
+                )).onFalse(new SequentialCommandGroup(
+            new EjectElement(armIntake).unless(() -> armIntake.getState() != State.STALLING),
             new MoveArmUnsafe(arm, ARM_POSITION.HOME)
         ));
         driverXBox.buttonA.getTrigger().and(() -> armIntake.getState() == State.STATIONARY).onTrue(new SequentialCommandGroup(
@@ -249,7 +250,24 @@ public class RobotContainer {
         launchpad.missileB.getTrigger().whileTrue(new StartEndCommand(() -> arm.setAllSoftLimit(false), () -> arm.setAllSoftLimit(true)));
         
         gunnerXBox.buttonY.getTrigger().whileTrue(new MoveArmUnsafe(arm, ARM_POSITION.HOME));
-        gunnerXBox.buttonA.getTrigger().onTrue(new InstantCommand(arm::toggleClamp));
+        gunnerXBox.buttonA.getTrigger().onTrue(
+            new SequentialCommandGroup(
+            new InstantCommand(() -> {
+                if (launchpad.funLeft.get()) {
+                    armIntake.setType(INTAKE_ELEMENT_TYPE.CONE);
+                } else if (launchpad.funRight.get()) {
+                    armIntake.setType(INTAKE_ELEMENT_TYPE.QUORB);
+                }
+            }),
+            new SelectCommand(Map.ofEntries(
+            Map.entry(State.OTHER, new InstantCommand(() -> armIntake.setState(State.STATIONARY), armIntake)),
+            Map.entry(State.INTAKE, new InstantCommand(() -> armIntake.setState(State.STATIONARY), armIntake)),
+            Map.entry(State.OUTTAKE, new InstantCommand(() -> armIntake.setState(State.STATIONARY), armIntake)),
+            Map.entry(State.STATIONARY, new InstantCommand(() -> armIntake.setState(State.INTAKE), armIntake)),
+            Map.entry(State.STALLING, new EjectElement(armIntake))
+        ), 
+        armIntake::getState))
+        );
         gunnerXBox.buttonX.getTrigger().whileTrue(new MoveArmUnsafe(arm, ARM_POSITION.HIGH_ASPECT));
         // gunnerXBox.buttonB.getTrigger().whileTrue(new MoveArmUnsafe(arm, ARM_POSITION.AUTO_PLACE_RIGHT));
 
@@ -271,11 +289,7 @@ public class RobotContainer {
             Map.entry(State.INTAKE, new InstantCommand(() -> armIntake.setState(State.STATIONARY), armIntake)),
             Map.entry(State.OUTTAKE, new InstantCommand(() -> armIntake.setState(State.STATIONARY), armIntake)),
             Map.entry(State.STATIONARY, new InstantCommand(() -> armIntake.setState(State.INTAKE), armIntake)),
-            Map.entry(State.STALLING, new SequentialCommandGroup(
-                new InstantCommand(() -> armIntake.setState(State.OUTTAKE), armIntake),
-                new WaitCommand(0.25),
-                new InstantCommand(() -> armIntake.setState(State.STATIONARY), armIntake)
-            ))
+            Map.entry(State.STALLING, new EjectElement(armIntake))
         ), 
         armIntake::getState)));
 
