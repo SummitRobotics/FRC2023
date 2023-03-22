@@ -2,9 +2,9 @@
 
 [![Build](https://github.com/SummitRobotics/FRC2023/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/SummitRobotics/FRC2023/actions/workflows/build.yml)
 
-Team 5468's 2023 FRC robot code. This code is written in Java and is based off of WPILib's Java control system and utilizes a command based system.
+FRC code from team Chaos Theory (5468, Summit High School) for Apophis, our 2023 robot. This code is written in Java and based off of WPILib's Java control system. It utilizes a command-based architecture.
 
-The code is divided into several packages, each responsible for a different aspect of the robot function. This README explains setup instructions, the function of each package, and some of the variable naming conventions used. Additional information about each specific class can be found in that class' Java file.
+The code is divided into several packages, each responsible for a different aspect of the robot function. This README explains setup instructions, the function of each package, and some of the variable naming conventions used. Additional information about each specific class can be found in their respective Java files.
 
 ## Setup Instructions
 
@@ -28,9 +28,14 @@ The code is divided into several packages, each responsible for a different aspe
 1. Set the import source to the `FRC-2023-Public` folder then click finish
 
 ### Basic Gradle Commands
-* Run `./gradlew deploy` to deploy to the robot in Terminal (*nix) or Powershell (Windows)
-* Run `./gradlew build` to build the code.  Use the `--info` flag for more details
-* Run `./gradlew test` to run all of the JUnit tests
+- Run `./gradlew deploy` to deploy to the robot in Terminal (*nix) or Powershell (Windows)
+- Run `./gradlew build` to build the code.  Use the `--info` flag for more details
+- Run `./gradlew test` to run all of the JUnit tests
+
+### List of IP Addresses on Robot Network
+- RoboRIO: 10.54.68.2
+- Limelight: 10.54.68.16:5801
+- PhotonVision: 10.54.68.202:5800
 
 ## Conventions
 
