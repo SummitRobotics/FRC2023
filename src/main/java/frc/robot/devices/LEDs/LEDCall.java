@@ -129,8 +129,8 @@ public class LEDCall implements LEDHandler {
         return new LEDCall(priority, range) {
             @Override
             public Color8Bit getColor(int loop, int led) {
-                int time = loop % 14;
-                if (time < 7) {
+                int time = loop % 28;
+                if (time < 14) {
                     return onColor;
 
                 } else {

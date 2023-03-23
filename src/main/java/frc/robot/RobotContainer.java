@@ -9,7 +9,6 @@ import java.util.Map;
 
 import org.photonvision.PhotonCamera;
 import com.kauailabs.navx.frc.AHRS;
-import com.pathplanner.lib.server.PathPlannerServer;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StringSubscriber;
@@ -24,14 +23,11 @@ import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.SelectCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.StartEndCommand;
-import edu.wpi.first.wpilibj2.command.WaitCommand;
-import frc.robot.commands.arm.ArmMO;
 import frc.robot.commands.arm.DefaultArmCommand;
 import frc.robot.commands.arm.EjectElement;
 import frc.robot.commands.arm.FullManualArm;
 import frc.robot.commands.arm.MoveArmUnsafe;
 import frc.robot.commands.arm.MovePositionsLaunchpad;
-import frc.robot.commands.arm.MoveToPickupSubstation;
 import frc.robot.commands.arm.TuneTurret;
 import frc.robot.commands.auto.ArmOutOfStart;
 import frc.robot.commands.auto.MoveNBalance;
@@ -42,9 +38,7 @@ import frc.robot.commands.auto.PlaceNMoveNBalance;
 import frc.robot.commands.auto.PlaceNMoveNGrabNPlace;
 import frc.robot.commands.auto.PlaceNMoveNGrabNPlace.Type;
 import frc.robot.commands.automovements.AutoPickup;
-import frc.robot.commands.automovements.LimelightPlace;
 import frc.robot.commands.automovements.LimelightPlaceTurret;
-import frc.robot.commands.automovements.NewLimelightPlace;
 import frc.robot.commands.automovements.AutoPickup.ELEMENT_TYPE;
 import frc.robot.commands.automovements.AutoPickup.LOCATION;
 import frc.robot.commands.drivetrain.ArcadeDrive;
@@ -53,7 +47,6 @@ import frc.robot.commands.drivetrain.EncoderDrive;
 import frc.robot.commands.drivetrain.ChargeBalance.BalanceDirection;
 import frc.robot.devices.Lidar;
 import frc.robot.devices.LidarV3;
-import frc.robot.devices.LidarV3New;
 import frc.robot.devices.PCM;
 import frc.robot.devices.LEDs.LEDCalls;
 import frc.robot.oi.drivers.ControllerDriver;
@@ -398,7 +391,7 @@ public class RobotContainer {
     public void disabledExit() {}
 
     public void autonomousInit() {
-        armIntake.setState(State.STALLING);
+        // armIntake.setState(State.STALLING);
     }
     public void autonomousPeriodic() {}
     public void autonomousExit() {}
