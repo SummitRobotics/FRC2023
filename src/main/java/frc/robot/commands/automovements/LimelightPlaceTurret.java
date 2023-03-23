@@ -46,7 +46,7 @@ public class LimelightPlaceTurret extends CommandBase {
         if (tv.getDouble(0) == 1) { // if we have a target
             ArmConfiguration currentArmConfig = arm.getCurrentArmConfiguration();
             double turretAngle = currentArmConfig.getTurretPosition(POSITION_TYPE.ANGLE);
-            dAngle = -Math.toRadians((tx.getDouble(0.0) * 0.3) + (turretAngle < 0 ? -2.25 : 2.25));
+            dAngle = -Math.toRadians((tx.getDouble(0.0) * 0.2) + (turretAngle < 0 ? -2.25 : 2.25));
             ArmConfiguration newArmConfig = new ArmConfiguration(
             turretAngle + dAngle,
             currentArmConfig.getFirstJointPosition(POSITION_TYPE.ANGLE),
