@@ -196,8 +196,8 @@ public class RobotContainer {
                 new LimelightPlaceTurret(arm),
                 new TuneTurret(arm, driverXBox.dPadLeft, driverXBox.dPadRight)
                 )).onFalse(new SequentialCommandGroup(
-            new EjectElement(armIntake).unless(() -> armIntake.getState() != State.STALLING),
-            new MoveArmUnsafe(arm, ARM_POSITION.HOME)
+            new EjectElement(armIntake).unless(() -> armIntake.getState() != State.STALLING)
+            // new MoveArmUnsafe(arm, ARM_POSITION.HOME)
         ));
         driverXBox.buttonA.getTrigger().and(() -> armIntake.getState() == State.STATIONARY).onTrue(new SequentialCommandGroup(
             new InstantCommand(() -> {
@@ -268,7 +268,7 @@ public class RobotContainer {
         ), 
         armIntake::getState))
         );
-        gunnerXBox.buttonX.getTrigger().whileTrue(new MoveArmUnsafe(arm, ARM_POSITION.HIGH_ASPECT));
+        // gunnerXBox.buttonX.getTrigger().whileTrue(new MoveArmUnsafe(arm, ARM_POSITION.HIGH_ASPECT));
         // gunnerXBox.buttonB.getTrigger().whileTrue(new MoveArmUnsafe(arm, ARM_POSITION.AUTO_PLACE_RIGHT));
 
         launchpad.buttonA.getTrigger().and(this::notAltMode).toggleOnTrue(joint2Manual);
@@ -416,8 +416,8 @@ public class RobotContainer {
     public void teleopExit() {}
 
     public void testInit() {
-        armIntake.setSpeed(0.1);
-        // (new MoveArmUnsafe(arm, ARM_POSITION.HOME, true)).initialize();
+        // armIntake.setSpeed(0.1);
+        (new MoveArmUnsafe(arm, ARM_POSITION.HOME, true)).initialize();
         // (new SequentialCommandGroup(
         //     new InstantCommand(arm::unclamp),
         //     new WaitCommand(0.25),

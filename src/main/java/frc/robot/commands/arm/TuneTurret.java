@@ -37,9 +37,9 @@ public class TuneTurret extends CommandBase {
   public void execute() {
     if (initalConfiguration == null) return;
     if (lefTrigger.get()) {
-      turretOffset -= 0.01;
+      turretOffset -= 0.001;
     } else if (rightTrigger.get()) {
-      turretOffset += 0.01;
+      turretOffset += 0.001;
     }
     ArmConfiguration newArmConfig = new ArmConfiguration(
       initalConfiguration.getTurretPosition(ArmConfiguration.POSITION_TYPE.ANGLE) + turretOffset,
