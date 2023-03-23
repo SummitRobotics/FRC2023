@@ -79,9 +79,13 @@ public class LEDs extends SubsystemBase {
      *
      * @param name the call's name
      */
-    public void removeCall(String name) {
+    public boolean removeCall(String name) {
+        if (!calls.containsKey(name)) {
+            return false;
+        }
         callsOutOfDate = true;
         calls.remove(name);
+        return true;
     }
 
     /**

@@ -25,6 +25,8 @@ import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.devices.Lidar;
+import frc.robot.devices.LEDs.LEDCall;
+import frc.robot.devices.LEDs.LEDCalls;
 import frc.robot.subsystems.arm.ArmConfiguration.POSITION_TYPE;
 import frc.robot.utilities.FancyArmFeedForward;
 import frc.robot.utilities.Functions;
@@ -124,6 +126,8 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
     MAX_HEIGHT = 1.905;
 
     private static boolean distanceCheck = true;
+    private boolean encodersHomed = false;
+    private boolean inBrakeMode = false;
   
   private final CANSparkMax
     turretMotor = new CANSparkMax(Ports.Arm.TURRET, MotorType.kBrushless),
@@ -209,10 +213,10 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
     joint2Motor.clearFaults();
     joint3Motor.clearFaults();
 
-    turretMotor.setIdleMode(CANSparkMax.IdleMode.kBrake);
-    joint1Motor.setIdleMode(CANSparkMax.IdleMode.kBrake);
-    joint2Motor.setIdleMode(CANSparkMax.IdleMode.kBrake);
-    joint3Motor.setIdleMode(CANSparkMax.IdleMode.kBrake);
+    turretMotor.setIdleMode(CANSparkMax.IdleMode.kCoast);
+    joint1Motor.setIdleMode(CANSparkMax.IdleMode.kCoast);
+    joint2Motor.setIdleMode(CANSparkMax.IdleMode.kCoast);
+    joint3Motor.setIdleMode(CANSparkMax.IdleMode.kCoast);
 
     turretMotor.setSoftLimit(SoftLimitDirection.kForward, ARM_TURRET_FORWARD_SOFT_LIMIT);
     turretMotor.setSoftLimit(SoftLimitDirection.kReverse, ARM_TURRET_REVERSE_SOFT_LIMIT);
@@ -504,10 +508,28 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
         joint3Motor.setSoftLimit(SoftLimitDirection.kForward, ARM_JOINT_3_FORWARD_SOFT_LIMIT);
         joint3Motor.setSoftLimit(SoftLimitDirection.kReverse, ARM_JOINT_3_REVERSE_SOFT_LIMIT);
       }
+
+      if (!areEncodersHomed()) {
+        LEDCalls.ARM_NOT_HOMED.activate();
+      } else {
+        LEDCalls.ARM_NOT_HOMED.cancel();
+      }
+
+      if (!inBrakeMode && areEncodersHomed()) {
+        brakeMode();
+      }
     }
 
   public static void setDistanceCheck(boolean value) {
     distanceCheck = value;
+  }
+
+  public void brakeMode() {
+    inBrakeMode = true;
+    turretMotor.setIdleMode(CANSparkMax.IdleMode.kBrake);
+    joint1Motor.setIdleMode(CANSparkMax.IdleMode.kBrake);
+    joint2Motor.setIdleMode(CANSparkMax.IdleMode.kBrake);
+    joint3Motor.setIdleMode(CANSparkMax.IdleMode.kBrake);
   }
 
   public void setTurretSoftLimit(boolean enable) {
@@ -576,4 +598,18 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
   public void setEncoderToPosition(ArmPositions.ARM_POSITION position) {
     setEncoderToPosition(position.config);
   }
+
+  public void encodersAreHomed() {
+    encodersHomed = true;
+  }
+
+  public void unhomeArm() {
+    encodersHomed = true;
+    brakeMode();
+  }
+
+  public boolean areEncodersHomed() {
+    return encodersHomed;
+  }
+
 }

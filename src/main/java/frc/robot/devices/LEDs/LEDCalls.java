@@ -20,7 +20,8 @@ public class LEDCalls {
         ARM_PRESETS(3),
         ARM_CARDINAL_SELECT(4),
         MO(5),
-        HP_SIGNAL(6);
+        HP_SIGNAL(6),
+        ARM_HOMED(10);
 
 
         public int value;
@@ -39,5 +40,6 @@ public class LEDCalls {
         CARDIANL_SELECT = new LEDCall(Priority.ARM_CARDINAL_SELECT.value, LEDRange.All).fff(Colors.GREEN, Colors.OFF),
         MO = new LEDCall(Priority.MO.value, LEDRange.All).sine(Colors.PINK),
         CONE_HP = new LEDCall(Priority.HP_SIGNAL.value, LEDRange.HumanPlayer).flashing(Colors.YELLOW, Colors.OFF),
-        CUBE_HP = new LEDCall(Priority.HP_SIGNAL.value, LEDRange.HumanPlayer).flashing(Colors.PURPLE, Colors.OFF);
+        CUBE_HP = new LEDCall(Priority.HP_SIGNAL.value, LEDRange.HumanPlayer).flashing(Colors.PURPLE, Colors.OFF),
+        ARM_NOT_HOMED = new LEDCall(Priority.ARM_HOMED.value, LEDRange.All).flashing(Colors.RED, Colors.GREEN);
 }

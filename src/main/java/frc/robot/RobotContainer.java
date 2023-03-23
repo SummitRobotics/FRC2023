@@ -159,11 +159,14 @@ public class RobotContainer {
         intakeManual = new FullManualArm(arm, armIntake, FullManualArm.Type.INTAKE, gunnerXBox);
 
         homeArm = new SequentialCommandGroup(
+            new InstantCommand(arm::unhomeArm),
             new Home(arm.getHomeables()[3]),
             new TimedMoveMotor(arm::setJoint3MotorVoltage, -3, 0.25),
             new Home(arm.getHomeables()[2], arm.getHomeables()[1]),
             new ParallelCommandGroup(new TimedMoveMotor(arm::setJoint1MotorVoltage, 2, 0.2), new TimedMoveMotor(arm::setJoint2MotorVoltage, 2, 0.2)), new Home(gunnerXBox.buttonB.getTrigger()::getAsBoolean, arm.getHomeables()[0]),
-            new TimedMoveMotor(arm::setTurretMotorVoltage, 5, 0.1), new MoveArmUnsafe(arm, ARM_POSITION.HOME)
+            new TimedMoveMotor(arm::setTurretMotorVoltage, 5, 0.1), 
+            new InstantCommand(arm::encodersAreHomed),
+            new MoveArmUnsafe(arm, ARM_POSITION.HOME)
             );
 
         // homeArm = new SequentialCommandGroup(
@@ -261,6 +264,19 @@ public class RobotContainer {
         ), 
         armIntake::getState))
         );
+
+        gunnerXBox.dPadAny.getTrigger()
+            .and(() -> !launchpad.missileB.getTrigger().getAsBoolean())
+            .and(() -> !arm.areEncodersHomed()).whileTrue(
+                new ArmOutOfStart(arm)
+            );
+
+        gunnerXBox.dPadAny.getTrigger()
+            .and(() -> launchpad.missileB.getTrigger().getAsBoolean())
+            .and(() -> arm.areEncodersHomed()).whileTrue(
+                new InstantCommand(arm::unhomeArm)
+            );
+
         // gunnerXBox.buttonX.getTrigger().whileTrue(new MoveArmUnsafe(arm, ARM_POSITION.HIGH_ASPECT));
         // gunnerXBox.buttonB.getTrigger().whileTrue(new MoveArmUnsafe(arm, ARM_POSITION.AUTO_PLACE_RIGHT));
 
@@ -291,7 +307,9 @@ public class RobotContainer {
         launchpad.buttonH.getTrigger().and(this::notAltMode).and(() -> !launchpad.missileB.getTrigger().getAsBoolean()).whileTrue(homeArm);
         launchpad.buttonH.getTrigger().and(this::notAltMode).and(() -> launchpad.missileB.getTrigger().getAsBoolean()).whileTrue(new SequentialCommandGroup(
             new MoveArmUnsafe(arm, ARM_POSITION.PRE_HOME),
+            new InstantCommand(arm::unhomeArm),
             new Home(arm),
+            new InstantCommand(arm::encodersAreHomed),
             new MoveArmUnsafe(arm, ARM_POSITION.HOME)
         ));
         // launchpad.buttonI.getTrigger().and(this::notAltMode).toggleOnTrue(fancyArmMo);
