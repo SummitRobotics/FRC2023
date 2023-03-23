@@ -61,7 +61,7 @@ public class Drivetrain extends SubsystemBase implements Testable, Loggable {
     public static final double 
         HIGH_GEAR_RATIO = 9.1,
         LOW_GEAR_RATIO = 19.65,
-        WHEEL_RADIUS_IN_METERS = 0.075819,
+        WHEEL_RADIUS_IN_METERS = 0.075819 * 6.115 / 5.95,
         WHEEL_CIRCUMFERENCE_IN_METERS = (2 * WHEEL_RADIUS_IN_METERS) * Math.PI,
         MAX_OUTPUT_VOLTAGE = 11,
         DRIVE_WIDTH = -0.64135,
