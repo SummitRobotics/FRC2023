@@ -216,7 +216,7 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
     turretMotor.setIdleMode(CANSparkMax.IdleMode.kCoast);
     joint1Motor.setIdleMode(CANSparkMax.IdleMode.kCoast);
     joint2Motor.setIdleMode(CANSparkMax.IdleMode.kCoast);
-    joint3Motor.setIdleMode(CANSparkMax.IdleMode.kCoast);
+    joint3Motor.setIdleMode(CANSparkMax.IdleMode.kBrake);
 
     turretMotor.setSoftLimit(SoftLimitDirection.kForward, ARM_TURRET_FORWARD_SOFT_LIMIT);
     turretMotor.setSoftLimit(SoftLimitDirection.kReverse, ARM_TURRET_REVERSE_SOFT_LIMIT);
@@ -251,6 +251,17 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
       motor.setPeriodicFramePeriod(PeriodicFrame.kStatus4, 65533);
       motor.setPeriodicFramePeriod(PeriodicFrame.kStatus5, 65531);
       motor.setPeriodicFramePeriod(PeriodicFrame.kStatus6, 65529);
+    }
+
+    if (
+      Functions.isWithin(turretEncoder.getPosition(), 0, 5) ||
+      Functions.isWithin(joint1Encoder.getPosition(), 0, 2) ||
+      // Functions.isWithin(joint2Encoder.getPosition(), 0, 5) ||
+      Functions.isWithin(joint3Encoder.getPosition(), 0, 15)
+    ) {
+      encodersHomed = false;
+    } else {
+      encodersHomed = true;
     }
 
     // setEncoderToPosition(ARM_POSITION.STARTING_CONFIG);
