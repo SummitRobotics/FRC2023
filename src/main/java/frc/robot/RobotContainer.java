@@ -286,7 +286,7 @@ public class RobotContainer {
         ), 
         armIntake::getState)));
 
-        launchpad.buttonE.getTrigger().and(this::notAltMode).toggleOnTrue(intakeManual);
+        // launchpad.buttonE.getTrigger().and(this::notAltMode).toggleOnTrue(intakeManual);
         launchpad.buttonF.getTrigger().and(this::notAltMode).toggleOnTrue(joint3Manual);
         launchpad.buttonH.getTrigger().and(this::notAltMode).and(() -> !launchpad.missileB.getTrigger().getAsBoolean()).whileTrue(homeArm);
         launchpad.buttonH.getTrigger().and(this::notAltMode).and(() -> launchpad.missileB.getTrigger().getAsBoolean()).whileTrue(new SequentialCommandGroup(

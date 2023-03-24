@@ -6,6 +6,7 @@ import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
+import frc.robot.commands.Home;
 import frc.robot.commands.arm.EjectElement;
 import frc.robot.commands.arm.MoveArmUnsafe;
 import frc.robot.commands.drivetrain.ChargeBalance;
@@ -39,6 +40,8 @@ public class PlaceNMoveNBalance extends SequentialCommandGroup {
             new ParallelCommandGroup(
                 new SequentialCommandGroup(
                     new WaitCommand(0.25),
+                    new MoveArmUnsafe(arm, ARM_POSITION.HOME),
+                    new Home(arm.getHomeables()[1], arm.getHomeables()[2], arm.getHomeables()[3]),
                     new MoveArmUnsafe(arm, ARM_POSITION.HOME)
                 ),
                 new ParallelRaceGroup(

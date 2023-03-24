@@ -46,7 +46,7 @@ public class ArmIntake extends SubsystemBase {
     public final static double STALL_TIME = 0.25;
 
     public enum INTAKE_ELEMENT_TYPE {
-        CONE(-1, 0.5, -0.6, 80.0, 0.75, 5.0),
+        CONE(-1, 0.4, -0.6, 80.0, 0.75, 5.0),
         QUORB(0.5, -0.5, 0.2, 30.0, 0.75, 5.0);
 
         public final double intakeSpeed;
@@ -152,14 +152,14 @@ public class ArmIntake extends SubsystemBase {
             stallTimerRampup.reset();
         }
 
-        if (!overheated && motor.getTemperature() > 105) overheated = true;
-        if (overheated && motor.getTemperature() < 95) overheated = false;
+        // if (!overheated && motor.getTemperature() > 105) overheated = true;
+        // if (overheated && motor.getTemperature() < 95) overheated = false;
 
-        if (!DriverStation.isFMSAttached() && overheated) {
-            state = State.STATIONARY;
-            motor.set(TalonFXControlMode.PercentOutput, 0);
-            return;
-        }
+        // if (!DriverStation.isFMSAttached() && overheated) {
+        //     state = State.STATIONARY;
+        //     motor.set(TalonFXControlMode.PercentOutput, 0);
+        //     return;
+        // }
 
         // if (!DriverStation.isFMSAttached() && motor.getTemperature() > 100) {
         //     motor.set(TalonFXControlMode.PercentOutput, INTAKE_SPEED);

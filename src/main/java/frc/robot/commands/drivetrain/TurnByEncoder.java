@@ -13,7 +13,7 @@ public class TurnByEncoder extends ParallelCommandGroup {
     /**
      * Constructor to turn the robot using encoders, rotating clockwise.
      *
-     * @param angle Angle to turn the robot.
+     * @param angle Angle to turn the robot degrees.
      * @param drivetrain Drivetrain subsystem.
      */
     public TurnByEncoder(double angle, Drivetrain drivetrain) {
