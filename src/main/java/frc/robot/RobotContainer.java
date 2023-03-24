@@ -186,7 +186,7 @@ public class RobotContainer {
         driverXBox.leftBumper.prioritize(AxisPriorities.DRIVE).getTrigger().onTrue(new InstantCommand(drivetrain::lowGear));
 
         driverXBox.buttonX.getTrigger().whileTrue(new SequentialCommandGroup(
-                new LimelightPlaceTurret(arm),
+                // new LimelightPlaceTurret(arm),
                 new TuneTurret(arm, driverXBox.dPadLeft, driverXBox.dPadRight)
                 )).onFalse(new SequentialCommandGroup(
             new EjectElement(armIntake).unless(() -> armIntake.getState() != State.STALLING)
@@ -290,8 +290,8 @@ public class RobotContainer {
         launchpad.buttonF.getTrigger().and(this::notAltMode).toggleOnTrue(joint3Manual);
         launchpad.buttonH.getTrigger().and(this::notAltMode).and(() -> !launchpad.missileB.getTrigger().getAsBoolean()).whileTrue(homeArm);
         launchpad.buttonH.getTrigger().and(this::notAltMode).and(() -> launchpad.missileB.getTrigger().getAsBoolean()).whileTrue(new SequentialCommandGroup(
-            new MoveArmUnsafe(arm, ARM_POSITION.PRE_HOME),
-            new Home(arm),
+            // new MoveArmUnsafe(arm, ARM_POSITION.PRE_HOME),
+            new Home(arm.getHomeables()[1], arm.getHomeables()[2], arm.getHomeables()[3]),
             new MoveArmUnsafe(arm, ARM_POSITION.HOME)
         ));
         // launchpad.buttonI.getTrigger().and(this::notAltMode).toggleOnTrue(fancyArmMo);

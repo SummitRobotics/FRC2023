@@ -14,7 +14,6 @@ import frc.robot.utilities.RollingAverage;
 import frc.robot.utilities.lists.Ports;
 
 public class ArmIntake extends SubsystemBase {
-    
 
     // private final CANSparkMax motor = new CANSparkMax(Ports.Arm.INTAKE_MOTOR, MotorType.kBrushless);
     private final TalonFX motor = new TalonFX(Ports.Arm.INTAKE_MOTOR);

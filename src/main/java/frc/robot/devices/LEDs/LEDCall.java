@@ -139,10 +139,10 @@ public class LEDCall implements LEDHandler {
         return new LEDCall(priority, range) {
             @Override
             public Color8Bit getColor(int loop, int led) {
-                if (startLoop == 0) {
-                    startLoop = loop;
+                if (this.startLoop == 0) {
+                    this.startLoop = loop;
                 }
-                int time = loop - startLoop;
+                int time = loop - this.startLoop;
                 if (time <= 8) {
                     return onColor;
 
@@ -175,10 +175,10 @@ public class LEDCall implements LEDHandler {
         return new LEDCall(priority, range) {
             @Override
             public Color8Bit getColor(int loop, int led) {
-                if (startLoop == 0) {
-                    startLoop = loop;
+                if (this.startLoop == 0) {
+                    this.startLoop = loop;
                 }
-                int time = loop - startLoop;
+                int time = loop - this.startLoop;
                 if (time <= 8) {
                     return onColor;
 
