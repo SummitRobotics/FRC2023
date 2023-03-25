@@ -39,9 +39,9 @@ public class PlaceNMove extends SequentialCommandGroup {
       new ParallelCommandGroup(
         new EncoderDrive(-4, drivetrain),
         new SequentialCommandGroup(
-          new MoveArmUnsafe(arm, ARM_POSITION.HOME),
-          new Home(arm.getHomeables()[1], arm.getHomeables()[2], arm.getHomeables()[3]),
           new MoveArmUnsafe(arm, ARM_POSITION.HOME)
+          // new Home(arm.getHomeables()[1], arm.getHomeables()[2], arm.getHomeables()[3]),
+          // new MoveArmUnsafe(arm, ARM_POSITION.HOME)
         )
       )
     );

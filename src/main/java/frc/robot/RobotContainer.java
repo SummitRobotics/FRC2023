@@ -35,6 +35,7 @@ import frc.robot.commands.auto.Place;
 import frc.robot.commands.auto.PlaceNBalance;
 import frc.robot.commands.auto.PlaceNMove;
 import frc.robot.commands.auto.PlaceNMoveNBalance;
+import frc.robot.commands.auto.PlaceNMoveNGrab;
 import frc.robot.commands.auto.PlaceNMoveNGrabNPlace;
 import frc.robot.commands.auto.PlaceNMoveNGrabNPlace.Type;
 import frc.robot.commands.automovements.AutoPickup;
@@ -352,6 +353,7 @@ public class RobotContainer {
         ShuffleboardDriver.autoChooser.addOption("FarBluePlaceNMoveNGrabNPlace", new PlaceNMoveNGrabNPlace(arm, armIntake, drivetrain, Type.FarFromSubstation, Alliance.Blue));
         ShuffleboardDriver.autoChooser.addOption("CloseRedPlaceNMoveNGrabNPlace", new PlaceNMoveNGrabNPlace(arm, armIntake, drivetrain, Type.CloseToSubstation, Alliance.Red));
         ShuffleboardDriver.autoChooser.addOption("FarRedPlaceNMoveNGrabNPlace", new PlaceNMoveNGrabNPlace(arm, armIntake, drivetrain, Type.FarFromSubstation, Alliance.Red));
+        ShuffleboardDriver.autoChooser.addOption("PlaceNMoveNGrab", new PlaceNMoveNGrab(arm, drivetrain, armIntake));
     }
 
     public Command getAutonomousCommand() {

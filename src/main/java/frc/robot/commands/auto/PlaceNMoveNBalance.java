@@ -40,8 +40,6 @@ public class PlaceNMoveNBalance extends SequentialCommandGroup {
             new ParallelCommandGroup(
                 new SequentialCommandGroup(
                     new WaitCommand(0.25),
-                    new MoveArmUnsafe(arm, ARM_POSITION.HOME),
-                    new Home(arm.getHomeables()[1], arm.getHomeables()[2], arm.getHomeables()[3]),
                     new MoveArmUnsafe(arm, ARM_POSITION.HOME)
                 ),
                 new ParallelRaceGroup(
