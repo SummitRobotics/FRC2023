@@ -4,6 +4,7 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
+import frc.robot.commands.Home;
 import frc.robot.commands.arm.EjectElement;
 import frc.robot.commands.arm.MoveArmUnsafe;
 import frc.robot.commands.automovements.AutoPickup;
@@ -33,22 +34,24 @@ public class PlaceNMoveNGrab extends SequentialCommandGroup {
             new EncoderDrive(0.75, drivetrain),
             new WaitCommand(0.25),
             new EjectElement(armIntake),
-            // new WaitCommand(0.25),
             new ParallelCommandGroup(
               new EncoderDrive(-4, drivetrain),
               new SequentialCommandGroup(
                 new MoveArmUnsafe(arm, ARM_POSITION.HOME)
-                // new Home(arm.getHomeables()[1], arm.getHomeables()[2], arm.getHomeables()[3]),
-                // new MoveArmUnsafe(arm, ARM_POSITION.HOME)
               )
             ),
             new TurnByEncoder(180, drivetrain),
             new InstantCommand(armIntake::stop),
             new InstantCommand(() -> AutoPickup.setType(ELEMENT_TYPE.QUORB)),
             new ParallelCommandGroup(
-                new EncoderDrive(1, drivetrain),
-                new AutoPickup(arm, armIntake, drivetrain, LOCATION.GROUND)
-            )
+              new SequentialCommandGroup(
+                new WaitCommand(0.5),
+                new EncoderDrive(1, drivetrain)
+              ),
+              new AutoPickup(arm, armIntake, drivetrain, LOCATION.GROUND)
+            ),
+            new Home(arm.getHomeables()[1], arm.getHomeables()[2], arm.getHomeables()[3]),
+            new MoveArmUnsafe(arm, ARM_POSITION.HOME)
         );
     }
 }

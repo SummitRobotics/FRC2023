@@ -35,15 +35,10 @@ public class PlaceNMove extends SequentialCommandGroup {
       new EncoderDrive(0.75, drivetrain),
       new WaitCommand(0.25),
       new EjectElement(armIntake),
-      // new WaitCommand(0.25),
-      new ParallelCommandGroup(
-        new EncoderDrive(-4, drivetrain),
-        new SequentialCommandGroup(
-          new MoveArmUnsafe(arm, ARM_POSITION.HOME)
-          // new Home(arm.getHomeables()[1], arm.getHomeables()[2], arm.getHomeables()[3]),
-          // new MoveArmUnsafe(arm, ARM_POSITION.HOME)
-        )
-      )
+      new EncoderDrive(-4, drivetrain),
+      new MoveArmUnsafe(arm, ARM_POSITION.HOME),
+      new Home(arm.getHomeables()[1], arm.getHomeables()[2], arm.getHomeables()[3]),
+      new MoveArmUnsafe(arm, ARM_POSITION.HOME)
     );
   }
 }
