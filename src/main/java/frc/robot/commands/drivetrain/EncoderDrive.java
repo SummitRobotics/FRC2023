@@ -11,7 +11,7 @@ public class EncoderDrive extends CommandBase {
     private final Drivetrain drivetrain;
     private double left;
     private double right;
-    private double maximumPower = 0.5;
+    private double maximumPower = 0.3;
     /**
      * drives each whele the set dist using encoders, regardless of gear
      * This is in meters!

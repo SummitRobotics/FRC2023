@@ -6,13 +6,13 @@ import frc.robot.oi.inputs.OITrigger;
 import frc.robot.subsystems.arm.Arm;
 import frc.robot.subsystems.arm.ArmConfiguration;
 import frc.robot.subsystems.arm.ArmConfiguration.POSITION_TYPE;
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 
 public class LimelightPlaceTurret extends CommandBase {
 
-    // private PIDController pidController = new PIDController(0.2
-    // , 0, 0);
+    private PIDController pidController = new PIDController(0.2, 0, 0);
     private Arm arm;
 
     // TODO - change to use our "Lemonlight" wrapper class instead of directly reading networktables
@@ -36,26 +36,26 @@ public class LimelightPlaceTurret extends CommandBase {
 
     @Override
     public void initialize() {
-        // pidController.reset();
-        // pidController.setTolerance(0.25, 1);
-        // pidController.setSetpoint(0);
+        pidController.reset();
+        pidController.setTolerance(0.25, 1);
+        pidController.setSetpoint(0);
         manualOffset = 0;
     }
 
     @Override
     public void execute() {
         if (leftButton.getTrigger().getAsBoolean()) {
-          manualOffset += 0.05;
+          manualOffset += 0.15;
         }
         if (rightButton.getTrigger().getAsBoolean()) {
-          manualOffset += -0.05;
+          manualOffset += -0.15;
         }
 
         if (tv.getDouble(0) == 1) { // if we have a target
             ArmConfiguration currentArmConfig = arm.getCurrentArmConfiguration();
             double turretAngle = currentArmConfig.getTurretPosition(POSITION_TYPE.ANGLE);
-            double dAngle = -Math.toRadians((tx.getDouble(0.0) * 0.3) + (turretAngle < 0 ? -2.25 : 2.25) + manualOffset);
-            double pidafiledAngle = dAngle;
+            double dAngle = Math.toRadians(tx.getDouble(0.0) + (turretAngle < 0 ? -2.25 : 2.25) + manualOffset);
+            double pidafiledAngle = pidController.calculate(dAngle);
             ArmConfiguration newArmConfig = new ArmConfiguration(
             turretAngle + pidafiledAngle,
             currentArmConfig.getFirstJointPosition(POSITION_TYPE.ANGLE),

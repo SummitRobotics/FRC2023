@@ -10,6 +10,8 @@ import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.subsystems.arm.Arm;
 import frc.robot.subsystems.arm.ArmIntake;
+import frc.robot.subsystems.arm.ArmIntake.INTAKE_ELEMENT_TYPE;
+import frc.robot.subsystems.arm.ArmIntake.State;
 import frc.robot.subsystems.arm.ArmPositions.ARM_POSITION;
 import frc.robot.commands.arm.EjectElement;
 import frc.robot.commands.arm.MoveArmUnsafe;
@@ -55,6 +57,9 @@ public class PlaceNMoveNGrabNPlace extends SequentialCommandGroup {
         }
 
         addCommands(
+            new InstantCommand(() -> armIntake.setState(State.STATIONARY)),
+            new InstantCommand(() -> armIntake.setType(INTAKE_ELEMENT_TYPE.CONE)),
+            new InstantCommand(() -> armIntake.setState(State.STALLING)),
             new InstantCommand(drivetrain::highGear),
             new ArmOutOfStart(arm),
             new MoveArmUnsafe(arm, ARM_POSITION.MIDDLE_HIGH),

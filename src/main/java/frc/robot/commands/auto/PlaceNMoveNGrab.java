@@ -35,23 +35,26 @@ public class PlaceNMoveNGrab extends SequentialCommandGroup {
             new WaitCommand(0.25),
             new EjectElement(armIntake),
             new ParallelCommandGroup(
-              new EncoderDrive(-4, drivetrain),
               new SequentialCommandGroup(
-                new MoveArmUnsafe(arm, ARM_POSITION.HOME)
-              )
-            ),
-            new TurnByEncoder(180, drivetrain),
-            new InstantCommand(armIntake::stop),
-            new InstantCommand(() -> AutoPickup.setType(ELEMENT_TYPE.QUORB)),
-            new ParallelCommandGroup(
-              new SequentialCommandGroup(
+                new WaitCommand(1),
+                new EncoderDrive(-2, drivetrain),
                 new WaitCommand(0.5),
-                new EncoderDrive(1, drivetrain)
+                new EncoderDrive(-2, drivetrain)
               ),
-              new AutoPickup(arm, armIntake, drivetrain, LOCATION.GROUND)
+              new MoveArmUnsafe(arm, ARM_POSITION.HOME)
             ),
-            new Home(arm.getHomeables()[1], arm.getHomeables()[2], arm.getHomeables()[3]),
-            new MoveArmUnsafe(arm, ARM_POSITION.HOME)
+            new TurnByEncoder(195, drivetrain),
+            new InstantCommand(armIntake::stop),
+            new InstantCommand(() -> AutoPickup.setType(ELEMENT_TYPE.CONE)),
+            new ParallelCommandGroup(
+              new AutoPickup(arm, armIntake, drivetrain, LOCATION.GROUND),
+              new SequentialCommandGroup(
+                new WaitCommand(2),
+                new EncoderDrive(1, drivetrain)
+              )
+            )
+            // new Home(arm.getHomeables()[1], arm.getHomeables()[2], arm.getHomeables()[3]),
+            // new MoveArmUnsafe(arm, ARM_POSITION.HOME)
         );
     }
 }

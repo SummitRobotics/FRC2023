@@ -116,4 +116,45 @@ public class AutoPickup extends SequentialCommandGroup {
       );
     }
   }
+  public AutoPickup(Arm arm, ArmIntake intake, Boolean left, LOCATION location) {
+
+    if (location == LOCATION.GROUND) {
+      addCommands(
+          new InstantCommand(LEDCalls.INTAKE_DOWN::activate),
+          new MoveArmUnsafe(arm, ARM_POSITION.GROUND_PICKUP_SAFE),
+          new SelectCommand(Map.ofEntries(
+            Map.entry(ELEMENT_TYPE.CONE, new MoveArmUnsafe(arm, ARM_POSITION.GROUND_PICKUP_CONE)),
+            Map.entry(ELEMENT_TYPE.QUORB, new MoveArmUnsafe(arm, ARM_POSITION.GROUND_PICKUP_QUORB)),
+            Map.entry(ELEMENT_TYPE.NONE, new MoveArmUnsafe(arm, ARM_POSITION.GROUND_PICKUP_CONE))
+          ), () -> getType()),
+          new SelectCommand(Map.ofEntries(
+            Map.entry(ELEMENT_TYPE.CONE, new InstantCommand(() -> intake.setType(INTAKE_ELEMENT_TYPE.CONE))),
+            Map.entry(ELEMENT_TYPE.QUORB, new InstantCommand(() -> intake.setType(INTAKE_ELEMENT_TYPE.QUORB))),
+            Map.entry(ELEMENT_TYPE.NONE, new InstantCommand(() -> intake.setType(INTAKE_ELEMENT_TYPE.CONE)))
+          ), () -> getType()),
+          new InstantCommand(() -> intake.setState(State.INTAKE), intake),
+          new WaitUntilCommand(() -> intake.getState() == State.STALLING),
+          new MoveArmUnsafe(arm, ARM_POSITION.GROUND_PICKUP_SAFE),
+          new MoveArmUnsafe(arm, ARM_POSITION.HOME),
+          new InstantCommand(LEDCalls.INTAKE_DOWN::cancel)
+      );
+    } else if (location == LOCATION.LOADING_STATION) {
+      addCommands(
+          new InstantCommand(LEDCalls.INTAKE_DOWN::activate),
+          new SelectCommand(Map.ofEntries(
+            Map.entry(ELEMENT_TYPE.CONE, new MoveArmUnsafe(arm, ARM_POSITION.SUBSTATION_PICKUP_CONE)),
+            Map.entry(ELEMENT_TYPE.QUORB, new MoveArmUnsafe(arm, ARM_POSITION.SUBSTATION_PICKUP_QUORB)),
+            Map.entry(ELEMENT_TYPE.NONE, new MoveArmUnsafe(arm, ARM_POSITION.SUBSTATION_PICKUP_CONE))
+          ), () -> getType()),
+          new SelectCommand(Map.ofEntries(
+            Map.entry(ELEMENT_TYPE.CONE, new InstantCommand(() -> intake.setType(INTAKE_ELEMENT_TYPE.CONE))),
+            Map.entry(ELEMENT_TYPE.QUORB, new InstantCommand(() -> intake.setType(INTAKE_ELEMENT_TYPE.QUORB))),
+            Map.entry(ELEMENT_TYPE.NONE, new InstantCommand(() -> intake.setType(INTAKE_ELEMENT_TYPE.CONE)))
+          ), () -> getType()),
+          new InstantCommand(() -> intake.setState(State.INTAKE), intake),
+          new WaitUntilCommand(() -> intake.getState() == State.STALLING),
+          new InstantCommand(LEDCalls.INTAKE_DOWN::cancel)
+      );
+    }
+  }
 }

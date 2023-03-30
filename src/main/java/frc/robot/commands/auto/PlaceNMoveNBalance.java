@@ -34,8 +34,8 @@ public class PlaceNMoveNBalance extends SequentialCommandGroup {
                 // new MoveArmUnsafe(arm, ARM_POSITION.MIDDLE_HIGH)
             // ),
             new EncoderDrive(0.4748, drivetrain),
-            new EjectElement(armIntake),
             new WaitCommand(0.25),
+            new EjectElement(armIntake),
             new InstantCommand(drivetrain::lowGear),
             new ParallelCommandGroup(
                 new SequentialCommandGroup(

@@ -37,7 +37,8 @@ import frc.robot.commands.auto.PlaceNMove;
 import frc.robot.commands.auto.PlaceNMoveNBalance;
 import frc.robot.commands.auto.PlaceNMoveNGrab;
 import frc.robot.commands.auto.PlaceNMoveNGrabNPlace;
-import frc.robot.commands.auto.PlaceNMoveNGrabNPlace.Type;
+import frc.robot.commands.auto.twoPieceSlow;
+import frc.robot.commands.auto.twoPieceSlow.Type;
 import frc.robot.commands.automovements.AutoPickup;
 import frc.robot.commands.automovements.LimelightPlaceTurret;
 import frc.robot.commands.automovements.AutoPickup.ELEMENT_TYPE;
@@ -64,6 +65,7 @@ import frc.robot.utilities.lists.Ports;
 import frc.robot.commands.Home;
 import frc.robot.commands.LogComponents;
 import frc.robot.commands.TimedMoveMotor;
+import frc.robot.commands.arm.MoveArmUnsafe;
 
 public class RobotContainer {
 
@@ -190,9 +192,10 @@ public class RobotContainer {
             new SequentialCommandGroup(
                 new InstantCommand(() -> armIntake.setState(State.OUTTAKE), armIntake),
                 new WaitCommand(0.25),
-                new InstantCommand(() -> armIntake.setState(State.STATIONARY), armIntake)
-            ).unless(() -> armIntake.getState() != State.STALLING),
-            new MoveArmUnsafe(arm, ARM_POSITION.HOME)
+                new InstantCommand(() -> armIntake.setState(State.STATIONARY), armIntake),
+                new MoveArmUnsafe(arm, ARM_POSITION.HOME)
+            ).unless(() -> armIntake.getState() != State.STALLING)
+            // new MoveArmUnsafe(arm, ARM_POSITION.HOME)
         ));
         driverXBox.buttonA.getTrigger().and(() -> armIntake.getState() == State.STATIONARY).onTrue(new SequentialCommandGroup(
             new InstantCommand(() -> {
@@ -239,7 +242,7 @@ public class RobotContainer {
             new InstantCommand(LEDCalls.INTAKE_DOWN::cancel)
         ).handleInterrupt(LEDCalls.INTAKE_DOWN::cancel));
 
-        launchpad.missileA.getTrigger().whileTrue(new ChargeBalance(drivetrain, BalanceDirection.FORWARD));
+        launchpad.missileA.getTrigger().whileTrue(homeArm);
         // launchpad.missileA.getTrigger().whileTrue(new AutoPickup(drivetrain, arm, QuorbCamera, QuorbCamera));
         // launchpad.missileA.getTrigger().whileTrue(new MeasureSpinSpin(drivetrain, 0.05, 0.75, 0.025));
         launchpad.missileB.getTrigger().whileTrue(new StartEndCommand(() -> arm.setAllSoftLimit(false), () -> arm.setAllSoftLimit(true)));
@@ -290,7 +293,6 @@ public class RobotContainer {
 
         // launchpad.buttonE.getTrigger().and(this::notAltMode).toggleOnTrue(intakeManual);
         launchpad.buttonF.getTrigger().and(this::notAltMode).toggleOnTrue(joint3Manual);
-        launchpad.buttonH.getTrigger().and(this::notAltMode).and(() -> !launchpad.missileB.getTrigger().getAsBoolean()).whileTrue(homeArm);
         launchpad.buttonH.getTrigger().and(this::notAltMode).and(() -> launchpad.missileB.getTrigger().getAsBoolean()).whileTrue(new SequentialCommandGroup(
             // new MoveArmUnsafe(arm, ARM_POSITION.PRE_HOME),
             new Home(arm.getHomeables()[1], arm.getHomeables()[2], arm.getHomeables()[3]),
@@ -300,7 +302,6 @@ public class RobotContainer {
         launchpad.buttonG.getTrigger().toggleOnTrue(launchPadArmSelector);
         launchpad.buttonG.commandBind(launchPadArmSelector);
 
-        launchpad.buttonH.commandBind(homeArm);
         launchpad.buttonB.commandBind(joint1Manual);
         launchpad.buttonC.commandBind(turretManual);
         launchpad.buttonA.commandBind(joint2Manual);
@@ -350,11 +351,12 @@ public class RobotContainer {
         ShuffleboardDriver.autoChooser.addOption("MoveNBalance", new MoveNBalance(arm, drivetrain));
         ShuffleboardDriver.autoChooser.addOption("PlaceNMoveNBalance", new PlaceNMoveNBalance(arm, armIntake, drivetrain));
         // ShuffleboardDriver.autoChooser.addOption("PlaceNMoveNGrab", new PlaceNMoveNGrab(arm, drivetrain, quorbCamera, coneCamera));
-        ShuffleboardDriver.autoChooser.addOption("CloseBluePlaceNMoveNGrabNPlace", new PlaceNMoveNGrabNPlace(arm, armIntake, drivetrain, Type.CloseToSubstation, Alliance.Blue));
-        ShuffleboardDriver.autoChooser.addOption("FarBluePlaceNMoveNGrabNPlace", new PlaceNMoveNGrabNPlace(arm, armIntake, drivetrain, Type.FarFromSubstation, Alliance.Blue));
-        ShuffleboardDriver.autoChooser.addOption("CloseRedPlaceNMoveNGrabNPlace", new PlaceNMoveNGrabNPlace(arm, armIntake, drivetrain, Type.CloseToSubstation, Alliance.Red));
-        ShuffleboardDriver.autoChooser.addOption("FarRedPlaceNMoveNGrabNPlace", new PlaceNMoveNGrabNPlace(arm, armIntake, drivetrain, Type.FarFromSubstation, Alliance.Red));
-        ShuffleboardDriver.autoChooser.addOption("PlaceNMoveNGrab", new PlaceNMoveNGrab(arm, drivetrain, armIntake));
+        ShuffleboardDriver.autoChooser.addOption("BluePlaceNGrab", new twoPieceSlow(arm, armIntake, drivetrain, Type.CloseToSubstation, Alliance.Blue));
+        ShuffleboardDriver.autoChooser.addOption("RedPlaceNGrab", new twoPieceSlow(arm, armIntake, drivetrain, Type.CloseToSubstation, Alliance.Red));
+        // ShuffleboardDriver.autoChooser.addOption("FarBluePlaceNMoveNGrabNPlace", new PlaceNMoveNGrabNPlace(arm, armIntake, drivetrain, Type.FarFromSubstation, Alliance.Blue));
+        // ShuffleboardDriver.autoChooser.addOption("CloseRedPlaceNMoveNGrabNPlace", new PlaceNMoveNGrabNPlace(arm, armIntake, drivetrain, Type.CloseToSubstation, Alliance.Red));
+        // ShuffleboardDriver.autoChooser.addOption("FarRedPlaceNMoveNGrabNPlace", new PlaceNMoveNGrabNPlace(arm, armIntake, drivetrain, Type.FarFromSubstation, Alliance.Red));
+        // ShuffleboardDriver.autoChooser.addOption("PlaceNMoveNGrab", new PlaceNMoveNGrab(arm, drivetrain, armIntake));
     }
 
     public Command getAutonomousCommand() {
