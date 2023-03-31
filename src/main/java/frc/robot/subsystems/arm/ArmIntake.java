@@ -91,7 +91,7 @@ public class ArmIntake extends SubsystemBase {
         motor.setNeutralMode(NeutralMode.Brake);
         motor.setStatusFramePeriod(StatusFrame.Status_1_General,5);
         motor.setStatusFramePeriod(StatusFrame.Status_2_Feedback0, 255);
-
+        motor.setInverted(true);
     }
 
     /**

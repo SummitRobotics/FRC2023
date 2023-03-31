@@ -76,10 +76,10 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
     ARM_TURRET_REVERSE_SOFT_LIMIT = 1,
     ARM_JOINT_1_FORWARD_SOFT_LIMIT = 142,
     ARM_JOINT_1_REVERSE_SOFT_LIMIT = 1,
-    ARM_JOINT_2_FORWARD_SOFT_LIMIT = 141,
+    ARM_JOINT_2_FORWARD_SOFT_LIMIT = 144.1161f,
     ARM_JOINT_2_REVERSE_SOFT_LIMIT = 1,
     ARM_JOINT_3_FORWARD_SOFT_LIMIT = -10,
-    ARM_JOINT_3_REVERSE_SOFT_LIMIT = -175 * (5.0f/4);
+    ARM_JOINT_3_REVERSE_SOFT_LIMIT = -175 * (5.0f/4/0.925925925925f);
 
     public static final double
 
@@ -114,8 +114,8 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
     ARM_JOINT_2_MOTOR_GEAR_RATIO = 5, // Ratio Example a 9:1 gear ratio would be 9
     ARM_JOINT_2_LEADSCREW_PITCH = 0.00635, // Length in meters. The distance the lead screw moves per revolution
 
-    ARM_JOINT_3_GEAR_RATIO_OVERALL = 405, // Ratio Example a 9:1 would be 9
-    ARM_JOINT_3_HOME_ANGLE = -1.77156, // Angle in radians where 0 is straight forward and positive is counter clockwise.
+    ARM_JOINT_3_GEAR_RATIO_OVERALL = 375, // Ratio Example a 9:1 would be 9
+    ARM_JOINT_3_HOME_ANGLE = -1.7310, // Angle in radians where 0 is straight forward and positive is counter clockwise.
 
     LIDAR_CLAMP_NEAR = 60,
     LIDAR_CLAMP_FAR = 70,
@@ -248,7 +248,7 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
       motor.setPeriodicFramePeriod(PeriodicFrame.kStatus5, 65531);
       motor.setPeriodicFramePeriod(PeriodicFrame.kStatus6, 65529);
     }
-
+    turretMotor.setInverted(true);
     // setEncoderToPosition(ARM_POSITION.STARTING_CONFIG);
   }
 

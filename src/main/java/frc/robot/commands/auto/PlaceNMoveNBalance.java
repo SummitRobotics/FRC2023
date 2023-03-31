@@ -55,7 +55,9 @@ public class PlaceNMoveNBalance extends SequentialCommandGroup {
             new InstantCommand(() -> drivetrain.setBothMotorPower(0), drivetrain),
             new EncoderDrive(-1, drivetrain),
             new WaitCommand(1.25),
+            //add grab command here
             new ChargeBalance(drivetrain, BalanceDirection.FORWARD)
+            //talk to owen and Eric about how to cycle over charge station
         );
     }
 }
