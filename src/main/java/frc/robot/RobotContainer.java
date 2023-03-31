@@ -37,8 +37,9 @@ import frc.robot.commands.auto.PlaceNMove;
 import frc.robot.commands.auto.PlaceNMoveNBalance;
 import frc.robot.commands.auto.PlaceNMoveNGrab;
 import frc.robot.commands.auto.PlaceNMoveNGrabNPlace;
-import frc.robot.commands.auto.twoPieceSlow;
-import frc.robot.commands.auto.twoPieceSlow.Type;
+import frc.robot.commands.auto.TwoPieceGood;
+import frc.robot.commands.auto.OnePointFive;
+import frc.robot.commands.auto.OnePointFive.Type;
 import frc.robot.commands.automovements.AutoPickup;
 import frc.robot.commands.automovements.LimelightPlaceTurret;
 import frc.robot.commands.automovements.AutoPickup.ELEMENT_TYPE;
@@ -351,12 +352,9 @@ public class RobotContainer {
         ShuffleboardDriver.autoChooser.addOption("MoveNBalance", new MoveNBalance(arm, drivetrain));
         ShuffleboardDriver.autoChooser.addOption("PlaceNMoveNBalance", new PlaceNMoveNBalance(arm, armIntake, drivetrain));
         // ShuffleboardDriver.autoChooser.addOption("PlaceNMoveNGrab", new PlaceNMoveNGrab(arm, drivetrain, quorbCamera, coneCamera));
-        ShuffleboardDriver.autoChooser.addOption("BluePlaceNGrab", new twoPieceSlow(arm, armIntake, drivetrain, Type.CloseToSubstation, Alliance.Blue));
-        ShuffleboardDriver.autoChooser.addOption("RedPlaceNGrab", new twoPieceSlow(arm, armIntake, drivetrain, Type.CloseToSubstation, Alliance.Red));
-        // ShuffleboardDriver.autoChooser.addOption("FarBluePlaceNMoveNGrabNPlace", new PlaceNMoveNGrabNPlace(arm, armIntake, drivetrain, Type.FarFromSubstation, Alliance.Blue));
-        // ShuffleboardDriver.autoChooser.addOption("CloseRedPlaceNMoveNGrabNPlace", new PlaceNMoveNGrabNPlace(arm, armIntake, drivetrain, Type.CloseToSubstation, Alliance.Red));
-        // ShuffleboardDriver.autoChooser.addOption("FarRedPlaceNMoveNGrabNPlace", new PlaceNMoveNGrabNPlace(arm, armIntake, drivetrain, Type.FarFromSubstation, Alliance.Red));
-        // ShuffleboardDriver.autoChooser.addOption("PlaceNMoveNGrab", new PlaceNMoveNGrab(arm, drivetrain, armIntake));
+        ShuffleboardDriver.autoChooser.addOption("BluePlaceNGrab", new OnePointFive(arm, armIntake, drivetrain, Type.CloseToSubstation, Alliance.Blue));
+        ShuffleboardDriver.autoChooser.addOption("RedPlaceNGrab", new OnePointFive(arm, armIntake, drivetrain, Type.CloseToSubstation, Alliance.Red));
+        ShuffleboardDriver.autoChooser.addOption("RedTwoPieceCharge", new TwoPieceGood(arm, armIntake, drivetrain, Alliance.Red));
     }
 
     public Command getAutonomousCommand() {

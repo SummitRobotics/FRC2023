@@ -30,14 +30,14 @@ import frc.robot.commands.drivetrain.TurnByEncoder;
 // NOTE:  Consider using this command inline, rather than writing a subclass.  For more
 // information, see:
 // https://docs.wpilib.org/en/stable/docs/software/commandbased/convenience-features.html
-public class twoPieceSlow extends SequentialCommandGroup {
+public class OnePointFive extends SequentialCommandGroup {
   /** Creates a new twoPieceBetter. */
   public enum Type {
     FarFromSubstation,
     CloseToSubstation
   }
 
-  public twoPieceSlow(Arm arm, ArmIntake armIntake, Drivetrain drivetrain, Type type, Alliance alliance) {
+  public OnePointFive(Arm arm, ArmIntake armIntake, Drivetrain drivetrain, Type type, Alliance alliance) {
     PathPlannerTrajectory firstTraj;
         PathPlannerTrajectory secondTraj;
         ARM_POSITION placePos;
@@ -76,10 +76,10 @@ public class twoPieceSlow extends SequentialCommandGroup {
             new EncoderDrive(-0.75, drivetrain),
             new ArmOutOfStart(arm)
           ),
-          new MoveArmUnsafe(arm, ARM_POSITION.AUTO_CONE_MIDDLE),
+          new MoveArmUnsafe(arm, ARM_POSITION.MIDDLE_HIGH),
           new EncoderDrive(0.75, drivetrain),
-          new WaitCommand(3),
-          new MoveArmUnsafe(arm, ARM_POSITION.AUTO_CONE_MIDDLE),
+          new WaitCommand(1),
+          new MoveArmUnsafe(arm, ARM_POSITION.MIDDLE_HIGH),
           new EjectElement(armIntake),
           new InstantCommand(() -> AutoPickup.setType(ELEMENT_TYPE.QUORB)),
           new ParallelCommandGroup(
@@ -89,24 +89,24 @@ public class twoPieceSlow extends SequentialCommandGroup {
             ),
             new MoveArmUnsafe(arm, ARM_POSITION.HOME)
           ),
-          new TurnByEncoder(245, drivetrain),
+          new TurnByEncoder(270, drivetrain),
           new InstantCommand(armIntake::stop),
           
           new ParallelCommandGroup(
             new AutoPickup(arm, armIntake, drivetrain, LOCATION.GROUND),
             new SequentialCommandGroup(
-              new WaitCommand(2),
-              new EncoderDrive(1, drivetrain)
+              new WaitCommand(3),
+              new EncoderDrive(.5, drivetrain)
             )
-          ),
-            new WaitCommand(0.25),
-            new EncoderDrive(-1, drivetrain),
-            new TurnByEncoder(-245, drivetrain),
-            new SequentialCommandGroup(
-              new MoveArmUnsafe(arm, placePos),
-              new EncoderDrive(4, drivetrain)
-            ),
-            new EjectElement(armIntake)
+          )
+            // new WaitCommand(0.25),
+            // new EncoderDrive(-1, drivetrain),
+            // new TurnByEncoder(-245, drivetrain),
+            // new SequentialCommandGroup(
+            //   new MoveArmUnsafe(arm, placePos),
+            //   new EncoderDrive(4, drivetrain)
+            // ),
+            // new EjectElement(armIntake)
           
 
         );
