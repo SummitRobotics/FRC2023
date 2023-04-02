@@ -15,19 +15,16 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StringSubscriber;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.I2C.Port;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
-import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
 import edu.wpi.first.wpilibj2.command.SelectCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.StartEndCommand;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
-import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
 import frc.robot.commands.arm.DefaultArmCommand;
 import frc.robot.commands.arm.EjectElement;
 import frc.robot.commands.arm.FullManualArm;
@@ -40,7 +37,6 @@ import frc.robot.commands.auto.PlaceNBalance;
 import frc.robot.commands.auto.PlaceNMove;
 import frc.robot.commands.auto.PlaceNMoveNBalance;
 import frc.robot.commands.auto.PlaceNMoveNGrab;
-import frc.robot.commands.auto.PlaceNMoveNGrabNPlace;
 import frc.robot.commands.auto.PlaceNMoveNGrabNBalance;
 import frc.robot.commands.automovements.AutoPickup;
 import frc.robot.commands.automovements.LimelightPlaceTurret;
@@ -49,12 +45,8 @@ import frc.robot.commands.automovements.AutoPickup.LOCATION;
 import frc.robot.commands.drivetrain.ArcadeDrive;
 import frc.robot.commands.drivetrain.ChargeBalance;
 import frc.robot.commands.drivetrain.EncoderDrive;
-import frc.robot.commands.drivetrain.TurnByEncoder;
 import frc.robot.commands.drivetrain.ChargeBalance.BalanceDirection;
 import frc.robot.devices.Lidar;
-import frc.robot.devices.LidarV3;
-
-import frc.robot.devices.LidarV3New;
 import frc.robot.devices.LidarV3Jack;
 import frc.robot.devices.PCM;
 import frc.robot.devices.LEDs.LEDCalls;
@@ -72,7 +64,6 @@ import frc.robot.utilities.lists.Ports;
 import frc.robot.commands.Home;
 import frc.robot.commands.LogComponents;
 import frc.robot.commands.TimedMoveMotor;
-import frc.robot.commands.arm.MoveArmUnsafe;
 
 public class RobotContainer {
 
@@ -358,10 +349,9 @@ public class RobotContainer {
         ShuffleboardDriver.autoChooser.addOption("MoveNBalance", new MoveNBalance(arm, drivetrain));
         ShuffleboardDriver.autoChooser.addOption("PlaceNMoveNBalance", new PlaceNMoveNBalance(arm, armIntake, drivetrain));
         ShuffleboardDriver.autoChooser.addOption("PlaceNMoveNGrab", new PlaceNMoveNGrab(arm, drivetrain, armIntake));
-        ShuffleboardDriver.autoChooser.addOption("PlaceNMoveNGrabNBalance", new PlaceNMoveNGrabNBalance(arm, armIntake, drivetrain, Alliance.Red));
+        ShuffleboardDriver.autoChooser.addOption("PlaceNMoveNGrabNBalance", new PlaceNMoveNGrabNBalance(arm, armIntake, drivetrain));
         ShuffleboardDriver.autoChooser.addOption("Test", new SequentialCommandGroup(
-            new ArmOutOfStart(arm),
-            new TurnByEncoder(180, drivetrain)
+            new ArmOutOfStart(arm)
         ));
     }
 
