@@ -16,7 +16,7 @@ public class LEDCall implements LEDHandler {
 
     private final Color8Bit defaultColor;
 
-    private int startLoop;
+    protected int startLoop;
 
     /**
      * Creates a new LEDCall.
@@ -68,7 +68,9 @@ public class LEDCall implements LEDHandler {
     }
 
     public void activate() {
-        LEDs.getInstance().addCall(name, this);
+        if (LEDs.getInstance().addCall(name, this)) {
+            startLoop = 0;
+        }
     }
 
     public void cancel() {
@@ -114,8 +116,8 @@ public class LEDCall implements LEDHandler {
         return new LEDCall(priority, range) {
             @Override
             public Color8Bit getColor(int loop, int led) {
-                int time = loop % 14;
-                if (time < 7) {
+                int time = loop % 28;
+                if (time < 14) {
                     return onColor;
 
                 } else {
@@ -137,10 +139,10 @@ public class LEDCall implements LEDHandler {
         return new LEDCall(priority, range) {
             @Override
             public Color8Bit getColor(int loop, int led) {
-                if (startLoop == 0) {
-                    startLoop = loop;
+                if (this.startLoop == 0) {
+                    this.startLoop = loop;
                 }
-                int time = loop - startLoop;
+                int time = loop - this.startLoop;
                 if (time <= 8) {
                     return onColor;
 
@@ -173,10 +175,10 @@ public class LEDCall implements LEDHandler {
         return new LEDCall(priority, range) {
             @Override
             public Color8Bit getColor(int loop, int led) {
-                if (startLoop == 0) {
-                    startLoop = loop;
+                if (this.startLoop == 0) {
+                    this.startLoop = loop;
                 }
-                int time = loop - startLoop;
+                int time = loop - this.startLoop;
                 if (time <= 8) {
                     return onColor;
 

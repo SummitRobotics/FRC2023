@@ -103,7 +103,7 @@ public class CommunityDropOff extends SequentialCommandGroup {
                     node,
                     GRABBER_ANGLE
                 ),
-                new InstantCommand(() -> arm.unclamp()),
+                // new InstantCommand(() -> arm.unclamp()),
                 new MoveArmUnsafe(arm, ARM_POSITION.HOME)
             );
         }

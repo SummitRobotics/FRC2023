@@ -62,7 +62,7 @@ public class SubstationPickup extends SequentialCommandGroup {
                 drivetrain
             ),
             new MoveArmUnsafe(arm, FieldElementPositions.substationPregrab),
-            new InstantCommand(() -> arm.unclamp()),
+            // new InstantCommand(() -> arm.unclamp()),
             new FollowDynamicTrajectory(
                 drivetrain::getPose,
                 () -> drivePoint,
@@ -75,8 +75,8 @@ public class SubstationPickup extends SequentialCommandGroup {
                 arm,
                 Positions.Pose3d.fromFieldSpace(substation),
                 0.0
-            ),
-            new InstantCommand(() -> arm.clamp())
+            )
+            // new InstantCommand(() -> arm.clamp())
             );
     }
 }

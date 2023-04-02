@@ -13,7 +13,6 @@ import frc.robot.utilities.lists.Colors;
  * all the priorities for the LEDs.
  */
 public class LEDCalls {
-
     enum Priority {
         ON(0),
         LOW_GEAR(1),

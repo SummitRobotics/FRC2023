@@ -58,15 +58,15 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
     ARM_LINKAGE_0_LENGTH = 8 / 39.3701, // Length in meters
     ARM_LINKAGE_1_LENGTH = 31 / 39.3701, // Length in meters
     ARM_LINKAGE_2_LENGTH = 29 / 39.3701, // Length in meters
-    ARM_LINKAGE_3_LENGTH = 18.125 / 39.3701, // Length in meters
+    ARM_LINKAGE_3_LENGTH = 13.8 / 39.3701, // Length in meters
 
     ARM_LINKAGE_1_CG_DISTANCE = 14 / 39.3701, // Distance from the pivot to the center of gravity in meters
     ARM_LINKAGE_2_CG_DISTANCE = 19 / 39.3701, // Distance from the pivot to the center of gravity in meters
-    ARM_LINKAGE_3_CG_DISTANCE = 8 / 39.3701, // Distance from the pivot to the center of gravity in meters
+    ARM_LINKAGE_3_CG_DISTANCE = 6.5 / 39.3701, // Distance from the pivot to the center of gravity in meters
 
     ARM_LINKAGE_1_MASS = 13.5 / 2.205, // Mass in kilograms
     ARM_LINKAGE_2_MASS = 4, // Mass in kilograms
-    ARM_LINKAGE_3_MASS = (7 - 1.87393) / 2.205, // Mass in kilograms
+    ARM_LINKAGE_3_MASS = 5 / 2.205, // Mass in kilograms
     
     KG_TO_NEWTONS = 9.80665;
 
@@ -76,10 +76,10 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
     ARM_TURRET_REVERSE_SOFT_LIMIT = 1,
     ARM_JOINT_1_FORWARD_SOFT_LIMIT = 142,
     ARM_JOINT_1_REVERSE_SOFT_LIMIT = 1,
-    ARM_JOINT_2_FORWARD_SOFT_LIMIT = 141,
+    ARM_JOINT_2_FORWARD_SOFT_LIMIT = 144.1161f,
     ARM_JOINT_2_REVERSE_SOFT_LIMIT = 1,
     ARM_JOINT_3_FORWARD_SOFT_LIMIT = -10,
-    ARM_JOINT_3_REVERSE_SOFT_LIMIT = -175;
+    ARM_JOINT_3_REVERSE_SOFT_LIMIT = -175 * (5.0f/4/0.925925925925f);
 
     public static final double
 
@@ -114,13 +114,13 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
     ARM_JOINT_2_MOTOR_GEAR_RATIO = 5, // Ratio Example a 9:1 gear ratio would be 9
     ARM_JOINT_2_LEADSCREW_PITCH = 0.00635, // Length in meters. The distance the lead screw moves per revolution
 
-    ARM_JOINT_3_GEAR_RATIO_OVERALL = 350, // Ratio Example a 9:1 would be 9
-    ARM_JOINT_3_HOME_ANGLE = -1.62301, // Angle in radians where 0 is straight forward and positive is counter clockwise.
+    ARM_JOINT_3_GEAR_RATIO_OVERALL = 375, // Ratio Example a 9:1 would be 9
+    ARM_JOINT_3_HOME_ANGLE = -1.7310, // Angle in radians where 0 is straight forward and positive is counter clockwise.
 
     LIDAR_CLAMP_NEAR = 60,
     LIDAR_CLAMP_FAR = 70,
     
-    MAX_DISTANCE = 1.4732 - 0.51 + 0.0508,
+    MAX_DISTANCE = 1.4732 - 0.2,
     MAX_HEIGHT = 1.905;
 
     private static boolean distanceCheck = true;
@@ -150,10 +150,6 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
 
   private ArmConfiguration currentConfiguration = new ArmConfiguration();
   private ArmConfiguration targetConfiguration = new ArmConfiguration();
-
-    // Seperate boolean to store clamp state because it is slow to get the state of the solenoid.
-  private final Solenoid clampSolenoid = new Solenoid(Ports.Other.PCM, PneumaticsModuleType.REVPH, Ports.Arm.CLAMP_SOLENOID);
-  private boolean clampSolenoidState;
 
   private final Lidar lidar;
 
@@ -242,8 +238,6 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
     joint3Motor.enableSoftLimit(SoftLimitDirection.kForward, true);
     joint3Motor.enableSoftLimit(SoftLimitDirection.kReverse, true);
 
-    clampSolenoidState = clampSolenoid.get();
-
     // sets refresh rate for various types of CAN data
     for (CANSparkMax motor : new CANSparkMax[] {turretMotor, joint1Motor, joint2Motor, joint3Motor}) {
       motor.setPeriodicFramePeriod(PeriodicFrame.kStatus0, 100);
@@ -254,7 +248,7 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
       motor.setPeriodicFramePeriod(PeriodicFrame.kStatus5, 65531);
       motor.setPeriodicFramePeriod(PeriodicFrame.kStatus6, 65529);
     }
-
+    turretMotor.setInverted(true);
     // setEncoderToPosition(ARM_POSITION.STARTING_CONFIG);
   }
 
@@ -411,38 +405,6 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
     return currentConfiguration.equals(targetConfiguration, tolerance);
   }
 
-  /**
-   * Actuates the clamp on the end of the arm
-  */
-  public void clamp() {
-    clampSolenoid.set(false);
-    clampSolenoidState = false;
-  }
-
-  /**
-   * Releases the clamp on the end of the arm
-   */
-  public void unclamp() {
-    clampSolenoid.set(true);
-    clampSolenoidState = true;
-  }
-
-  public void toggleClamp() {
-    if (clampSolenoidState) {
-      clamp();
-    } else {
-      unclamp();
-    }
-  }
-
-  /**
-   * Gets the state of the clamp solenoid
-   * @return The state of the clamp solenoid
-   */
-  public boolean getClampSolenoidState() {
-    return clampSolenoidState;
-  }
-
   @Override
   public HomeableCANSparkMax[] getHomeables() {
     return new HomeableCANSparkMax[] {
@@ -460,7 +422,6 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
   public void initSendable(SendableBuilder builder) {
     super.initSendable(builder);
     // builder.addStringProperty("armConfiguration", getCurrentArmConfiguration()::toString, null);
-    builder.addStringProperty("grabberClamp", () -> clampSolenoidState ? "Open" : "Closed", null);
     builder.addDoubleProperty("turretEncoder", this::getTurretEncoderPosition, null);
     builder.addDoubleProperty("firstJointEncoder", this::getFirstJointEncoderPosition, null);
     builder.addDoubleProperty("secondJointEncoder", this::getSecondJointEncoderPosition, null);
@@ -500,7 +461,6 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
   public HashMap<String, Supplier<String>> getStringLogData() {
     HashMap<String, Supplier<String>> out = new HashMap<String, Supplier<String>>();
     out.put("Arm Configuration", getCurrentArmConfiguration()::toString);
-    out.put("Grabber Clamp", () -> clampSolenoidState ? "Open" : "Closed");
     return out;
   }
 
