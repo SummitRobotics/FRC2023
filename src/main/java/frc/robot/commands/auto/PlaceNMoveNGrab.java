@@ -4,7 +4,6 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
-import frc.robot.commands.Home;
 import frc.robot.commands.arm.EjectElement;
 import frc.robot.commands.arm.MoveArmUnsafe;
 import frc.robot.commands.automovements.AutoPickup;
@@ -23,34 +22,29 @@ public class PlaceNMoveNGrab extends SequentialCommandGroup {
     public PlaceNMoveNGrab(Arm arm, Drivetrain drivetrain, ArmIntake armIntake) {
         addCommands(
             new InstantCommand(() -> armIntake.setState(State.STATIONARY)),
-            new InstantCommand(() -> armIntake.setType(INTAKE_ELEMENT_TYPE.QUORB)),
+            new InstantCommand(() -> armIntake.setType(INTAKE_ELEMENT_TYPE.CONE)),
             new InstantCommand(() -> armIntake.setState(State.STALLING)),
             new InstantCommand(drivetrain::highGear),
-            new ParallelCommandGroup(
-              new EncoderDrive(-0.75, drivetrain),
-              new ArmOutOfStart(arm)
-            ),
+            new ArmOutOfStart(arm),
+            new MoveArmUnsafe(arm, ARM_POSITION.COBRA_START),
             new MoveArmUnsafe(arm, ARM_POSITION.MIDDLE_HIGH),
-            new EncoderDrive(0.75, drivetrain),
             new WaitCommand(0.25),
             new EjectElement(armIntake),
             new ParallelCommandGroup(
               new SequentialCommandGroup(
                 new WaitCommand(1),
-                new EncoderDrive(-2, drivetrain),
-                new WaitCommand(0.5),
-                new EncoderDrive(-2, drivetrain)
+                new EncoderDrive(-3, -3, drivetrain, 0.5)
               ),
               new MoveArmUnsafe(arm, ARM_POSITION.HOME)
             ),
-            new TurnByEncoder(195, drivetrain),
+            new TurnByEncoder(180, drivetrain),
             new InstantCommand(armIntake::stop),
             new InstantCommand(() -> AutoPickup.setType(ELEMENT_TYPE.CONE)),
             new ParallelCommandGroup(
               new AutoPickup(arm, armIntake, drivetrain, LOCATION.GROUND),
               new SequentialCommandGroup(
                 new WaitCommand(2),
-                new EncoderDrive(1, drivetrain)
+                new EncoderDrive(2, 2, drivetrain, 0.5)
               )
             )
             // new Home(arm.getHomeables()[1], arm.getHomeables()[2], arm.getHomeables()[3]),

@@ -9,6 +9,7 @@ import java.util.Map;
 
 import org.photonvision.PhotonCamera;
 import com.kauailabs.navx.frc.AHRS;
+import com.pathplanner.lib.server.PathPlannerServer;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StringSubscriber;
@@ -20,10 +21,12 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
+import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
 import edu.wpi.first.wpilibj2.command.SelectCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.StartEndCommand;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
+import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
 import frc.robot.commands.arm.DefaultArmCommand;
 import frc.robot.commands.arm.EjectElement;
 import frc.robot.commands.arm.FullManualArm;
@@ -37,9 +40,7 @@ import frc.robot.commands.auto.PlaceNMove;
 import frc.robot.commands.auto.PlaceNMoveNBalance;
 import frc.robot.commands.auto.PlaceNMoveNGrab;
 import frc.robot.commands.auto.PlaceNMoveNGrabNPlace;
-import frc.robot.commands.auto.TwoPieceGood;
-import frc.robot.commands.auto.OnePointFive;
-import frc.robot.commands.auto.OnePointFive.Type;
+import frc.robot.commands.auto.PlaceNMoveNGrabNBalance;
 import frc.robot.commands.automovements.AutoPickup;
 import frc.robot.commands.automovements.LimelightPlaceTurret;
 import frc.robot.commands.automovements.AutoPickup.ELEMENT_TYPE;
@@ -47,6 +48,7 @@ import frc.robot.commands.automovements.AutoPickup.LOCATION;
 import frc.robot.commands.drivetrain.ArcadeDrive;
 import frc.robot.commands.drivetrain.ChargeBalance;
 import frc.robot.commands.drivetrain.EncoderDrive;
+import frc.robot.commands.drivetrain.TurnByEncoder;
 import frc.robot.commands.drivetrain.ChargeBalance.BalanceDirection;
 import frc.robot.devices.Lidar;
 import frc.robot.devices.LidarV3;
@@ -351,10 +353,22 @@ public class RobotContainer {
         ShuffleboardDriver.autoChooser.addOption("PlaceNBalance", new PlaceNBalance(drivetrain, armIntake, arm));
         ShuffleboardDriver.autoChooser.addOption("MoveNBalance", new MoveNBalance(arm, drivetrain));
         ShuffleboardDriver.autoChooser.addOption("PlaceNMoveNBalance", new PlaceNMoveNBalance(arm, armIntake, drivetrain));
-        // ShuffleboardDriver.autoChooser.addOption("PlaceNMoveNGrab", new PlaceNMoveNGrab(arm, drivetrain, quorbCamera, coneCamera));
-        ShuffleboardDriver.autoChooser.addOption("BluePlaceNGrab", new OnePointFive(arm, armIntake, drivetrain, Type.CloseToSubstation, Alliance.Blue));
-        ShuffleboardDriver.autoChooser.addOption("RedPlaceNGrab", new OnePointFive(arm, armIntake, drivetrain, Type.CloseToSubstation, Alliance.Red));
-        ShuffleboardDriver.autoChooser.addOption("RedTwoPieceCharge", new TwoPieceGood(arm, armIntake, drivetrain, Alliance.Red));
+        ShuffleboardDriver.autoChooser.addOption("PlaceNMoveNGrab", new PlaceNMoveNGrab(arm, drivetrain, armIntake));
+        ShuffleboardDriver.autoChooser.addOption("PlaceNMoveNGrabNBalance", new PlaceNMoveNGrabNBalance(arm, armIntake, drivetrain, Alliance.Red));
+        ShuffleboardDriver.autoChooser.addOption("Test", new SequentialCommandGroup(
+            new ArmOutOfStart(arm),
+            new ParallelRaceGroup(
+              new InstantCommand(() -> drivetrain.setBothMotorPower(-0.5), drivetrain).repeatedly(),
+              new SequentialCommandGroup(
+                  new WaitUntilCommand(() -> Math.abs(drivetrain.gyro.getRoll()) > 8),
+                  new WaitCommand(0.5),
+                  new WaitUntilCommand(() -> Math.abs(drivetrain.gyro.getRoll()) < 8),
+                  new WaitUntilCommand(() -> Math.abs(drivetrain.gyro.getRoll()) > 10)
+              )
+              // new WaitCommand(2.1)
+          ),
+          new InstantCommand(() -> drivetrain.setBothMotorPower(0), drivetrain)
+        ));
     }
 
     public Command getAutonomousCommand() {
@@ -367,7 +381,7 @@ public class RobotContainer {
         LEDCalls.ON.activate();
 
         // TODO - check port number and comment out server for comp
-        // PathPlannerServer.startServer(5468);
+        PathPlannerServer.startServer(5468);
     }
     public void robotPeriodic() {
         // String val = HPSelector.get();
@@ -421,6 +435,7 @@ public class RobotContainer {
         //     new InstantCommand(arm::clamp)
         // )).initialize();
     }
+
     public void testPeriodic() {
         armIntake.setSpeed(0.1);
     }

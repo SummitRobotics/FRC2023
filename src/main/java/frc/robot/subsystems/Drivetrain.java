@@ -814,6 +814,7 @@ public class Drivetrain extends SubsystemBase implements Testable, Loggable {
         builder.addDoubleProperty("x-pos", () -> this.getPose().getX(), null);
         builder.addDoubleProperty("y-pos", () -> this.getPose().getY(), null);
         builder.addDoubleProperty("rot-degrees", () -> this.getPose().getRotation().getDegrees(), null);
+        builder.addDoubleProperty("roll", () -> Math.abs(gyro.getRoll()), null);
 
         // builder.addBooleanProperty("shifterStatus", this::getShift, null);
         //builder.addDoubleArrayProperty("pidValues", this::getPid, null);

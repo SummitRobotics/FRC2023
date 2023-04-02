@@ -20,8 +20,8 @@ public class CobraMode extends SequentialCommandGroup {
     // Add your commands in the addCommands() call, e.g.
     // addCommands(new FooCommand(), new BarCommand());
     addCommands(
-      new MoveArmUnsafe(arm, ARM_POSITION.COBRA_START),
-      new MoveArmUnsafe(arm, ARM_POSITION.COBRA_MID)
+      new MoveArmUnsafe(arm, ARM_POSITION.COBRA_START)
+      // new MoveArmUnsafe(arm, ARM_POSITION.COBRA_MID)
     );
   }
 }
