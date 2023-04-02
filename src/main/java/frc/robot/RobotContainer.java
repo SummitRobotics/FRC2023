@@ -361,17 +361,7 @@ public class RobotContainer {
         ShuffleboardDriver.autoChooser.addOption("PlaceNMoveNGrabNBalance", new PlaceNMoveNGrabNBalance(arm, armIntake, drivetrain, Alliance.Red));
         ShuffleboardDriver.autoChooser.addOption("Test", new SequentialCommandGroup(
             new ArmOutOfStart(arm),
-            new ParallelRaceGroup(
-              new InstantCommand(() -> drivetrain.setBothMotorPower(-0.5), drivetrain).repeatedly(),
-              new SequentialCommandGroup(
-                  new WaitUntilCommand(() -> Math.abs(drivetrain.gyro.getRoll()) > 8),
-                  new WaitCommand(0.5),
-                  new WaitUntilCommand(() -> Math.abs(drivetrain.gyro.getRoll()) < 8),
-                  new WaitUntilCommand(() -> Math.abs(drivetrain.gyro.getRoll()) > 10)
-              )
-              // new WaitCommand(2.1)
-          ),
-          new InstantCommand(() -> drivetrain.setBothMotorPower(0), drivetrain)
+            new TurnByEncoder(180, drivetrain)
         ));
     }
 

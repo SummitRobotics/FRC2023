@@ -27,13 +27,8 @@ public class PlaceNMoveNBalance extends SequentialCommandGroup {
             new InstantCommand(() -> armIntake.setState(State.STALLING)),
             new InstantCommand(drivetrain::highGear),
             new ArmOutOfStart(arm),
+            new MoveArmUnsafe(arm, ARM_POSITION.COBRA_START),
             new MoveArmUnsafe(arm, ARM_POSITION.MIDDLE_HIGH),
-            // 0.4748 is the distance from charge station to nodes minus our bumper length
-            // new ParallelCommandGroup(
-                // new EncoderDrive(0.4748, drivetrain),
-                // new MoveArmUnsafe(arm, ARM_POSITION.MIDDLE_HIGH)
-            // ),
-            new EncoderDrive(0.4748, drivetrain),
             new WaitCommand(0.25),
             new EjectElement(armIntake),
             new InstantCommand(drivetrain::lowGear),

@@ -26,43 +26,48 @@ import frc.robot.subsystems.arm.ArmPositions.ARM_POSITION;
 public class PlaceNMoveNGrabNBalance extends SequentialCommandGroup {
   
     public PlaceNMoveNGrabNBalance(Arm arm, ArmIntake armIntake, Drivetrain drivetrain, Alliance alliance) {
-      addCommands(
-        new InstantCommand(() -> armIntake.setState(State.STATIONARY)),
-        new InstantCommand(() -> armIntake.setType(INTAKE_ELEMENT_TYPE.CONE)),
-        new InstantCommand(() -> armIntake.setState(State.STALLING)),
-        new InstantCommand(drivetrain::highGear),
-        new ArmOutOfStart(arm),
-        new MoveArmUnsafe(arm, ARM_POSITION.COBRA_START),
-        new MoveArmUnsafe(arm, ARM_POSITION.MIDDLE_HIGH),
-        new WaitCommand(0.25),
-        new EjectElement(armIntake),
-        // new MoveArmUnsafe(arm, ARM_POSITION.COBRA_START),
-        new MoveArmUnsafe(arm, ARM_POSITION.HOME),
-          new ParallelRaceGroup(
-              new InstantCommand(() -> drivetrain.setBothMotorPower(-0.5), drivetrain).repeatedly(),
-              new SequentialCommandGroup(
-                  new WaitUntilCommand(() -> Math.abs(drivetrain.gyro.getRoll()) > 8),
-                  new WaitCommand(0.5),
-                  new WaitUntilCommand(() -> Math.abs(drivetrain.gyro.getRoll()) < 8),
-                  new WaitUntilCommand(() -> Math.abs(drivetrain.gyro.getRoll()) > 10)
-              )
-              // new WaitCommand(2.1)
-          ),
-          new InstantCommand(() -> drivetrain.setBothMotorPower(0), drivetrain),
-          new EncoderDrive(-0.5, -0.5, drivetrain, 0.5),
-          new WaitCommand(0.25),
-          new TurnByEncoder(180, drivetrain),
-          new InstantCommand(armIntake::stop),
-          new InstantCommand(() -> AutoPickup.setType(ELEMENT_TYPE.CONE)),
-          new ParallelCommandGroup(
-              new AutoPickup(arm, armIntake, drivetrain, LOCATION.GROUND),
-              new SequentialCommandGroup(
-                  new WaitCommand(2),
-                  new EncoderDrive(1, 1, drivetrain, 0.5)
-              )
-          ),
-          new MoveArmUnsafe(arm, ARM_POSITION.HOME),
-          new ChargeBalance(drivetrain, BalanceDirection.BACKWARD)
-      );
+        addCommands(
+            new InstantCommand(() -> armIntake.setState(State.STATIONARY)),
+            new InstantCommand(() -> armIntake.setType(INTAKE_ELEMENT_TYPE.CONE)),
+            new InstantCommand(() -> armIntake.setState(State.STALLING)),
+            new InstantCommand(drivetrain::highGear),
+            new ArmOutOfStart(arm),
+            new MoveArmUnsafe(arm, ARM_POSITION.COBRA_START),
+            new MoveArmUnsafe(arm, ARM_POSITION.MIDDLE_HIGH),
+            new WaitCommand(0.25),
+            new EjectElement(armIntake),
+            // new MoveArmUnsafe(arm, ARM_POSITION.COBRA_START),
+            new MoveArmUnsafe(arm, ARM_POSITION.HOME),
+            new InstantCommand(drivetrain::lowGear),
+            new ParallelRaceGroup(
+                new InstantCommand(() -> drivetrain.setBothMotorPower(-0.5), drivetrain).repeatedly(),
+                new SequentialCommandGroup(
+                    new WaitUntilCommand(() -> Math.abs(drivetrain.gyro.getRoll()) > 8),
+                    new WaitCommand(0.5),
+                    new WaitUntilCommand(() -> Math.abs(drivetrain.gyro.getRoll()) < 8),
+                    new WaitUntilCommand(() -> Math.abs(drivetrain.gyro.getRoll()) > 10)
+                )
+                // new WaitCommand(2.1)
+            ),
+            new InstantCommand(() -> drivetrain.setBothMotorPower(0), drivetrain),
+            new EncoderDrive(-1.3, -1.3, drivetrain, 0.5),
+            new WaitCommand(0.25),
+            new TurnByEncoder(180, drivetrain),
+            new WaitCommand(0.25),
+            new InstantCommand(armIntake::stop),
+            new InstantCommand(() -> AutoPickup.setType(ELEMENT_TYPE.CONE)),
+            new ParallelCommandGroup(
+                new ParallelRaceGroup(
+                    new AutoPickup(arm, armIntake, drivetrain, LOCATION.GROUND),
+                    new WaitCommand(2)
+                ),
+                new SequentialCommandGroup(
+                    new WaitCommand(2),
+                    new EncoderDrive(1.5, 1.5, drivetrain, 0.5)
+                )
+            ),
+            new MoveArmUnsafe(arm, ARM_POSITION.HOME),
+            new ChargeBalance(drivetrain, BalanceDirection.BACKWARD)
+        );
     }
 }
