@@ -49,6 +49,7 @@ import frc.robot.commands.drivetrain.EncoderDrive;
 import frc.robot.commands.drivetrain.ChargeBalance.BalanceDirection;
 import frc.robot.devices.Lidar;
 import frc.robot.devices.LidarV3Jack;
+import frc.robot.devices.LidarV3New;
 import frc.robot.devices.PCM;
 import frc.robot.devices.LEDs.LEDCalls;
 import frc.robot.oi.drivers.ControllerDriver;
@@ -121,7 +122,8 @@ public class RobotContainer {
 
         // Devices
         navx = new AHRS();
-        gripperLidar = new LidarV3Jack(Port.kMXP);
+        // gripperLidar = new LidarV3Jack(Port.kMXP);
+        gripperLidar = new LidarV3New();
         
         // Subsystems
         drivetrain = Drivetrain.init(navx, new Pose2d());
