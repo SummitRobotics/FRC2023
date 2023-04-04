@@ -18,7 +18,8 @@ public final class Ports {
         public static final int
             DRIVER_XBOX_PORT = 0,
             GUNNER_XBOX_PORT = 2,
-            LAUNCHPAD_PORT = 1;
+            LAUNCHPAD_PORT = 1,
+            DA_BUTTON_PORT = 5;
             }
 
     public static final class Drivetrain {

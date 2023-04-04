@@ -14,6 +14,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StringSubscriber;
 import edu.wpi.first.wpilibj.DataLogManager;
+import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.I2C.Port;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -21,10 +22,12 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
+import edu.wpi.first.wpilibj2.command.PrintCommand;
 import edu.wpi.first.wpilibj2.command.SelectCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.StartEndCommand;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.commands.arm.DefaultArmCommand;
 import frc.robot.commands.arm.EjectElement;
 import frc.robot.commands.arm.FullManualArm;
@@ -54,6 +57,7 @@ import frc.robot.oi.drivers.ControllerDriver;
 import frc.robot.oi.drivers.LaunchpadDriver;
 import frc.robot.oi.drivers.ShuffleboardDriver;
 import frc.robot.subsystems.arm.Arm;
+import frc.robot.subsystems.arm.ArmConfiguration;
 import frc.robot.subsystems.arm.ArmIntake;
 import frc.robot.subsystems.arm.ArmIntake.INTAKE_ELEMENT_TYPE;
 import frc.robot.subsystems.arm.ArmIntake.State;
@@ -77,6 +81,8 @@ public class RobotContainer {
     private ControllerDriver driverXBox;
     private ControllerDriver gunnerXBox;
     private LaunchpadDriver launchpad;
+    private DigitalInput daButtonRaw;
+    private Trigger daButton;
 
     // Subsystems
     private Drivetrain drivetrain;
@@ -117,6 +123,8 @@ public class RobotContainer {
         driverXBox = new ControllerDriver(Ports.OI.DRIVER_XBOX_PORT);
         gunnerXBox = new ControllerDriver(Ports.OI.GUNNER_XBOX_PORT);
         launchpad = new LaunchpadDriver(Ports.OI.LAUNCHPAD_PORT);
+        daButtonRaw = new DigitalInput(Ports.OI.DA_BUTTON_PORT);
+        daButton = new Trigger(() -> !daButtonRaw.get());
 
         // Devices
         navx = new AHRS();
@@ -160,10 +168,12 @@ public class RobotContainer {
         intakeManual = new FullManualArm(arm, armIntake, FullManualArm.Type.INTAKE, gunnerXBox);
 
         homeArm = new SequentialCommandGroup(
+            new InstantCommand(() -> Arm.setHommed(false), arm),
             new Home(arm.getHomeables()[3]),
             new TimedMoveMotor(arm::setJoint3MotorVoltage, -3, 0.25),
             new Home(arm.getHomeables()[2], arm.getHomeables()[1]),
             new ParallelCommandGroup(new TimedMoveMotor(arm::setJoint1MotorVoltage, 2, 0.2), new TimedMoveMotor(arm::setJoint2MotorVoltage, 2, 0.2)), new Home(gunnerXBox.buttonB.getTrigger()::getAsBoolean, arm.getHomeables()[0]),
+            new InstantCommand(() -> Arm.setHommed(true), arm),
             new TimedMoveMotor(arm::setTurretMotorVoltage, 5, 0.1), new MoveArmUnsafe(arm, ARM_POSITION.HOME)
             );
 
@@ -293,7 +303,9 @@ public class RobotContainer {
         launchpad.buttonF.getTrigger().and(this::notAltMode).toggleOnTrue(joint3Manual);
         launchpad.buttonH.getTrigger().and(this::notAltMode).and(() -> launchpad.missileB.getTrigger().getAsBoolean()).whileTrue(new SequentialCommandGroup(
             // new MoveArmUnsafe(arm, ARM_POSITION.PRE_HOME),
+            new InstantCommand(() -> Arm.setHommed(false), arm),
             new Home(arm.getHomeables()[1], arm.getHomeables()[2], arm.getHomeables()[3]),
+            new InstantCommand(() -> Arm.setHommed(true), arm),
             new MoveArmUnsafe(arm, ARM_POSITION.HOME)
         ));
         // launchpad.buttonI.getTrigger().and(this::notAltMode).toggleOnTrue(fancyArmMo);
@@ -306,6 +318,16 @@ public class RobotContainer {
         launchpad.buttonF.commandBind(joint3Manual);
         launchpad.buttonE.commandBind(intakeManual);
         launchpad.buttonD.booleanSupplierBind(() -> !(armIntake.getState() == State.STATIONARY));
+
+        // daButton.and(DriverStation::isDisabled).onTrue(new InstantCommand(() -> arm.manualHome(ARM_POSITION.HOME), arm).ignoringDisable(true));
+        daButton.and(DriverStation::isDisabled).onTrue(new InstantCommand(() -> arm.manualHome(ARM_POSITION.HOME), arm).ignoringDisable(true));
+        daButton.and(DriverStation::isDisabled).whileTrue(new SequentialCommandGroup(
+            // new PrintCommand("STARTING FALSE CHECK"),
+            new WaitCommand(10),
+            // new PrintCommand("10 sec"),
+            new InstantCommand(() -> arm.manualHome(new ArmConfiguration(), true), arm),
+            new InstantCommand(() -> Arm.setHommed(false))
+        ).ignoringDisable(true));
     }
 
     private void setDefaultCommands() {
@@ -369,6 +391,7 @@ public class RobotContainer {
     }
     public void robotPeriodic() {
         // String val = HPSelector.get();
+        // System.out.println(daButtonRaw.get());
 
         if (launchpad.funRight.get()) {
             LEDCalls.CUBE_HP.activate();

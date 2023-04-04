@@ -67,7 +67,7 @@ public class ArmConfiguration {
                 this.endPose = Positions.Pose3d.fromOtherSpace(new Pose3d(endPose, endRotation), Arm.ROBOT_TO_TURRET_BASE);
         }
 
-        ArmConfiguration() {
+        public ArmConfiguration() {
                 this(0, 0, 0, 0, POSITION_TYPE.ENCODER_ROTATIONS);
         }
 
@@ -371,6 +371,7 @@ public class ArmConfiguration {
                 if (!withinDistance()) {
                         return false;
                 }
+                if (!Arm.isHommed()) return false;
                 return true;
         }
 

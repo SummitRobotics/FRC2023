@@ -25,6 +25,7 @@ import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.devices.Lidar;
+import frc.robot.devices.LEDs.LEDCalls;
 import frc.robot.subsystems.arm.ArmConfiguration.POSITION_TYPE;
 import frc.robot.utilities.FancyArmFeedForward;
 import frc.robot.utilities.Functions;
@@ -47,8 +48,9 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
     ARM_JOINT_1_I = 1E-6,
     ARM_JOINT_1_D = 0,
 
-    ARM_JOINT_2_P = 5E-5,
+    ARM_JOINT_2_P = 7E-5,
     ARM_JOINT_2_I = 1E-6,
+    // ARM_JOINT_2_I = 0,
     ARM_JOINT_2_D = 0,
     
     ARM_JOINT_3_P = 4E-5,
@@ -124,6 +126,7 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
     MAX_HEIGHT = 1.905;
 
     private static boolean distanceCheck = true;
+    private static boolean hommed = false;
   
   private final CANSparkMax
     turretMotor = new CANSparkMax(Ports.Arm.TURRET, MotorType.kBrushless),
@@ -249,6 +252,18 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
       motor.setPeriodicFramePeriod(PeriodicFrame.kStatus6, 65529);
     }
     turretMotor.setInverted(true);
+
+    if (
+      (Functions.isWithin(turretEncoder.getPosition(), 0, 2) ||
+      Functions.isWithin(joint1Encoder.getPosition(), 0, 2) ||
+      Functions.isWithin(joint3Encoder.getPosition(), 0, 2))
+      && Functions.isWithin(joint2Encoder.getPosition(), 0, 5)
+    ) {
+      hommed = false;
+    } else {
+      hommed = true;
+    }
+
     // setEncoderToPosition(ARM_POSITION.STARTING_CONFIG);
   }
 
@@ -504,6 +519,12 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
         joint3Motor.setSoftLimit(SoftLimitDirection.kForward, ARM_JOINT_3_FORWARD_SOFT_LIMIT);
         joint3Motor.setSoftLimit(SoftLimitDirection.kReverse, ARM_JOINT_3_REVERSE_SOFT_LIMIT);
       }
+
+      if (hommed) {
+        LEDCalls.HOMMED_STATUS.cancel();
+      } else {
+        LEDCalls.HOMMED_STATUS.activate();
+      }
     }
 
   public static void setDistanceCheck(boolean value) {
@@ -566,14 +587,30 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
     return lidar.getAverageDistance();
   }
 
-  public void setEncoderToPosition(ArmConfiguration config) {
+  public void manualHome(ArmConfiguration config, boolean force) {
+    System.out.println("SETTING MANUAL HOME");
+    Thread.dumpStack();
+    if (!force && hommed) return;
     turretEncoder.setPosition(config.getTurretPosition(POSITION_TYPE.ENCODER_ROTATIONS));
     joint1Encoder.setPosition(config.getFirstJointPosition(POSITION_TYPE.ENCODER_ROTATIONS));
     joint2Encoder.setPosition(config.getSecondJointPosition(POSITION_TYPE.ENCODER_ROTATIONS));
     joint3Encoder.setPosition(config.getThirdJointPosition(POSITION_TYPE.ENCODER_ROTATIONS));
+    hommed = true;
   }
 
-  public void setEncoderToPosition(ArmPositions.ARM_POSITION position) {
-    setEncoderToPosition(position.config);
+  public void manualHome(ArmPositions.ARM_POSITION position) {
+    manualHome(position.config, false);
+  }
+
+  public void manualHomeForce(ArmPositions.ARM_POSITION position) {
+    manualHome(position.config, true);
+  }
+
+  public static boolean isHommed() {
+    return hommed;
+  }
+
+  public static void setHommed(boolean hommed) {
+    Arm.hommed = hommed;
   }
 }

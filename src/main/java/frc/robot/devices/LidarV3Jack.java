@@ -130,8 +130,8 @@ public class LidarV3Jack implements Lidar {
 
     @Override
     public void initSendable(SendableBuilder builder) {
-        // TODO Auto-generated method stub
-        
+        builder.addDoubleProperty("Distance", this::getDistance, null);      
+        builder.addDoubleProperty("getAverageDistance", this::getAverageDistance, null);        
     }
 
     @Override
