@@ -9,9 +9,6 @@ import java.util.Map;
 
 import org.photonvision.PhotonCamera;
 import com.kauailabs.navx.frc.AHRS;
-import com.pathplanner.lib.PathConstraints;
-import com.pathplanner.lib.PathPlanner;
-import com.pathplanner.lib.PathPlannerTrajectory;
 import com.pathplanner.lib.server.PathPlannerServer;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.networktables.NetworkTableInstance;
@@ -42,7 +39,6 @@ import frc.robot.commands.auto.PlaceNMoveNBalance;
 import frc.robot.commands.auto.PlaceNMoveNGrab;
 import frc.robot.commands.auto.PlaceNMoveNGrabNBalance;
 import frc.robot.commands.auto.PlaceNMoveNGrabNPlace;
-import frc.robot.commands.auto.PlaceNMoveNGrabNPlace.Type;
 import frc.robot.commands.automovements.AutoPickup;
 import frc.robot.commands.automovements.LimelightPlaceTurret;
 import frc.robot.commands.automovements.AutoPickup.ELEMENT_TYPE;
@@ -50,7 +46,6 @@ import frc.robot.commands.automovements.AutoPickup.LOCATION;
 import frc.robot.commands.drivetrain.ArcadeDrive;
 import frc.robot.commands.drivetrain.ChargeBalance;
 import frc.robot.commands.drivetrain.EncoderDrive;
-import frc.robot.commands.drivetrain.FollowPathPlannerTrajectory;
 import frc.robot.commands.drivetrain.ChargeBalance.BalanceDirection;
 import frc.robot.devices.Lidar;
 import frc.robot.devices.LidarV3Jack;
@@ -356,13 +351,7 @@ public class RobotContainer {
         ShuffleboardDriver.autoChooser.addOption("PlaceNMoveNBalance", new PlaceNMoveNBalance(arm, armIntake, drivetrain));
         ShuffleboardDriver.autoChooser.addOption("PlaceNMoveNGrab", new PlaceNMoveNGrab(arm, drivetrain, armIntake));
         ShuffleboardDriver.autoChooser.addOption("PlaceNMoveNGrabNBalance", new PlaceNMoveNGrabNBalance(arm, armIntake, drivetrain));
-        PathPlannerTrajectory firstTraj = PathPlanner.loadPath("Blue", new PathConstraints(3, 3), true);
-        ShuffleboardDriver.autoChooser.addOption("Test", new SequentialCommandGroup(
-            new ArmOutOfStart(arm),
-            new InstantCommand(drivetrain::highGear),
-            new FollowPathPlannerTrajectory(drivetrain, firstTraj, true)
-        ));
-        ShuffleboardDriver.autoChooser.addOption("TwoPiece (PlaceNMoveNGrabNPlace)", new PlaceNMoveNGrabNPlace(arm, armIntake, drivetrain, Type.Blue));
+        ShuffleboardDriver.autoChooser.addOption("TwoPiece (PlaceNMoveNGrabNPlace)", new PlaceNMoveNGrabNPlace(arm, armIntake, drivetrain));
     }
 
     public Command getAutonomousCommand() {

@@ -53,14 +53,14 @@
         "y": 4.393968681864153
       },
       "prevControl": {
-        "x": 3.4468181945931278,
-        "y": 4.392087318908415
+        "x": 2.8029860695494766,
+        "y": 4.393968681864153
       },
       "nextControl": null,
       "holonomicAngle": 0,
       "isReversal": false,
       "velOverride": null,
-      "isLocked": false,
+      "isLocked": true,
       "isStopPoint": false,
       "stopEvent": {
         "names": [],
