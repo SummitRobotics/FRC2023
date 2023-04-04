@@ -41,6 +41,7 @@ import frc.robot.commands.auto.PlaceNMove;
 import frc.robot.commands.auto.PlaceNMoveNBalance;
 import frc.robot.commands.auto.PlaceNMoveNGrab;
 import frc.robot.commands.auto.PlaceNMoveNGrabNBalance;
+import frc.robot.commands.auto.PlaceNMoveNGrabNPlace;
 import frc.robot.commands.automovements.AutoPickup;
 import frc.robot.commands.automovements.LimelightPlaceTurret;
 import frc.robot.commands.automovements.AutoPickup.ELEMENT_TYPE;
@@ -372,9 +373,7 @@ public class RobotContainer {
         ShuffleboardDriver.autoChooser.addOption("PlaceNMoveNBalance", new PlaceNMoveNBalance(arm, armIntake, drivetrain));
         ShuffleboardDriver.autoChooser.addOption("PlaceNMoveNGrab", new PlaceNMoveNGrab(arm, drivetrain, armIntake));
         ShuffleboardDriver.autoChooser.addOption("PlaceNMoveNGrabNBalance", new PlaceNMoveNGrabNBalance(arm, armIntake, drivetrain));
-        ShuffleboardDriver.autoChooser.addOption("Test", new SequentialCommandGroup(
-            new ArmOutOfStart(arm)
-        ));
+        ShuffleboardDriver.autoChooser.addOption("TwoPiece (PlaceNMoveNGrabNPlace)", new PlaceNMoveNGrabNPlace(arm, armIntake, drivetrain));
     }
 
     public Command getAutonomousCommand() {

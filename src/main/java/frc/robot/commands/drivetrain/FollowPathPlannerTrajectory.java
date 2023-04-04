@@ -5,6 +5,7 @@ import com.pathplanner.lib.PathPlannerTrajectory;
 import com.pathplanner.lib.commands.PPRamseteCommand;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.RamseteController;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import frc.robot.subsystems.Drivetrain;
@@ -15,11 +16,17 @@ import frc.robot.subsystems.Drivetrain;
  * https://github.com/mjansen4857/pathplanner/wiki/PathPlannerLib:-Java-Usage.
  */
 public class FollowPathPlannerTrajectory extends SequentialCommandGroup {
-    public FollowPathPlannerTrajectory(Drivetrain drivetrain, PathPlannerTrajectory traj, boolean resetPose) {
+    public FollowPathPlannerTrajectory(Drivetrain drivetrain, PathPlannerTrajectory traj, boolean resetPose, boolean allianceMirror) {
         addCommands(
             // Pose should be reset to the start point if this is the first trajectory to run
             new InstantCommand(() -> {
-                if (resetPose) drivetrain.setPose(traj.getInitialPose());
+                if (resetPose) {
+                    if (allianceMirror) {
+                        drivetrain.setPose(PathPlannerTrajectory.transformTrajectoryForAlliance(traj, DriverStation.getAlliance()).getInitialPose());
+                    } else {
+                        drivetrain.setPose(traj.getInitialPose());
+                    }
+                }
             }),
             new PPRamseteCommand(
                 traj, 
@@ -37,7 +44,7 @@ public class FollowPathPlannerTrajectory extends SequentialCommandGroup {
                         drivetrain.setMotorVolts(left, right);
                     }
                 },
-                false, // Should the path be automatically mirrored depending on alliance color? Optional, defaults to true
+                true, // Should the path be automatically mirrored depending on alliance color? Optional, defaults to true
                 drivetrain // Requires the drive subsystem
             )
         );

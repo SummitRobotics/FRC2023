@@ -37,8 +37,10 @@ public class ArmPositions {
         
         COBRA_START(31.45211, 39.21389, 67.43, -23.40462*(5.0/4)/.9259259259259259),
         // COBRA_MID(31.45211, 1, 50, -23.40462*(5.0/4)/.9259259259259259);
-        ONE_POINT_FIVE(35.7378, 132.3319, 142.4734, -95.6713);
-        
+        ONE_POINT_FIVE_PLACE(35.7378, 132.3319, 142.4734, -95.6713),
+        ONE_POINT_FIVE_GRAB(22.1903, 124.1571, 48.6426, -77.3134),
+        ONE_POINT_FIVE_INTERMEDIATE(31.59497, 124.1571, 68.6426, -77.3134),
+        TWO_POINT_O_PLACE(31.59497, 120.5715, 141.8306, -108.6683);
 
         public ArmConfiguration config;
         ARM_POSITION(double turret, double joint1, double joint2, double joint3) {

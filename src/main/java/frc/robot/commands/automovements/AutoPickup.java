@@ -4,19 +4,12 @@
 
 package frc.robot.commands.automovements;
 
-import java.time.Instant;
 import java.util.Map;
-
-import org.photonvision.PhotonCamera;
-
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SelectCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
-import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
 import frc.robot.commands.arm.MoveArmUnsafe;
-import frc.robot.commands.drivetrain.EncoderDrive;
-import frc.robot.commands.drivetrain.MoveToElement;
 import frc.robot.devices.LEDs.LEDCalls;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.arm.Arm;
@@ -38,7 +31,8 @@ public class AutoPickup extends SequentialCommandGroup {
 
   public enum LOCATION {
     GROUND,
-    LOADING_STATION
+    LOADING_STATION,
+    ONE_POINT_FIVE
   }
 
   private static ELEMENT_TYPE TYPE = ELEMENT_TYPE.CONE;
@@ -91,10 +85,10 @@ public class AutoPickup extends SequentialCommandGroup {
           ), () -> getType()),
           new InstantCommand(() -> intake.setState(State.INTAKE), intake),
           new WaitUntilCommand(() -> intake.getState() == State.STALLING),
+          new InstantCommand(LEDCalls.INTAKE_DOWN::cancel),
           new InstantCommand(drivetrain::highGear),
           new MoveArmUnsafe(arm, ARM_POSITION.GROUND_PICKUP_SAFE),
-          new MoveArmUnsafe(arm, ARM_POSITION.HOME),
-          new InstantCommand(LEDCalls.INTAKE_DOWN::cancel)
+          new MoveArmUnsafe(arm, ARM_POSITION.HOME)
       );
     } else if (location == LOCATION.LOADING_STATION) {
       addCommands(
@@ -113,6 +107,23 @@ public class AutoPickup extends SequentialCommandGroup {
           new WaitUntilCommand(() -> intake.getState() == State.STALLING),
           new InstantCommand(drivetrain::highGear),
           new InstantCommand(LEDCalls.INTAKE_DOWN::cancel)
+      );
+    } else if (location == LOCATION.ONE_POINT_FIVE) {
+      addCommands(
+          new InstantCommand(LEDCalls.INTAKE_DOWN::activate),
+          // new MoveArmUnsafe(arm, ARM_POSITION.GROUND_PICKUP_SAFE),
+          new MoveArmUnsafe(arm, ARM_POSITION.ONE_POINT_FIVE_GRAB),
+          new SelectCommand(Map.ofEntries(
+            Map.entry(ELEMENT_TYPE.CONE, new InstantCommand(() -> intake.setType(INTAKE_ELEMENT_TYPE.CONE))),
+            Map.entry(ELEMENT_TYPE.QUORB, new InstantCommand(() -> intake.setType(INTAKE_ELEMENT_TYPE.QUORB))),
+            Map.entry(ELEMENT_TYPE.NONE, new InstantCommand(() -> intake.setType(INTAKE_ELEMENT_TYPE.CONE)))
+          ), () -> getType()),
+          new InstantCommand(() -> intake.setState(State.INTAKE), intake),
+          new WaitUntilCommand(() -> intake.getState() == State.STALLING),
+          new InstantCommand(LEDCalls.INTAKE_DOWN::cancel),
+          new InstantCommand(drivetrain::highGear),
+          new MoveArmUnsafe(arm, ARM_POSITION.GROUND_PICKUP_SAFE),
+          new MoveArmUnsafe(arm, ARM_POSITION.HOME)
       );
     }
   }

@@ -22,6 +22,7 @@ public class MoveArmUnsafe extends CommandBase {
   private boolean extraUnsafe = false;
 
   private boolean homeMove = false;
+  private boolean precise = true;
 
   public MoveArmUnsafe(Arm arm, Positions.Pose3d endPosition, double grabberAngleRadians) {
     this.arm = arm;
@@ -47,6 +48,11 @@ public class MoveArmUnsafe extends CommandBase {
   public MoveArmUnsafe(Arm arm, ARM_POSITION location, boolean extraUnsafe) {
     this(arm, location.config);
     this.extraUnsafe = extraUnsafe;
+  }
+
+  public MoveArmUnsafe(Arm arm, ARM_POSITION location, boolean extraUnsafe, boolean isPrecise) {
+    this(arm, location, extraUnsafe);
+    precise = isPrecise;
   }
 
   // Called when the command is initially scheduled.
@@ -84,6 +90,6 @@ public class MoveArmUnsafe extends CommandBase {
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    return arm.atConfiguration(armConfiguration, 0.02) || !armConfiguration.validConfig(arm.getCurrentArmConfiguration());
+    return arm.atConfiguration(armConfiguration, precise ? 0.02 : 0.1) || !armConfiguration.validConfig(arm.getCurrentArmConfiguration());
   }
 }
