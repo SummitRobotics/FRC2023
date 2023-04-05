@@ -7,7 +7,8 @@ package frc.robot.subsystems.arm;
 import java.util.HashMap;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
-
+import com.ctre.phoenix.sensors.AbsoluteSensorRange;
+import com.ctre.phoenix.sensors.CANCoder;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkMaxPIDController;
@@ -16,13 +17,10 @@ import com.revrobotics.CANSparkMax.SoftLimitDirection;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import com.revrobotics.CANSparkMaxLowLevel.PeriodicFrame;
 import com.revrobotics.SparkMaxPIDController.AccelStrategy;
-
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.util.sendable.SendableBuilder;
-import edu.wpi.first.wpilibj.PneumaticsModuleType;
-import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.devices.Lidar;
 import frc.robot.devices.LEDs.LEDCalls;
@@ -73,6 +71,8 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
     KG_TO_NEWTONS = 9.80665;
 
     public static final float
+
+    WRIST_CANCODER_OFFSET = -2.1859f,
 
     ARM_TURRET_FORWARD_SOFT_LIMIT = 61.75f,
     ARM_TURRET_REVERSE_SOFT_LIMIT = 1,
@@ -153,6 +153,8 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
 
   private ArmConfiguration currentConfiguration = new ArmConfiguration();
   private ArmConfiguration targetConfiguration = new ArmConfiguration();
+
+  private CANCoder wristCANCoder = new CANCoder(Ports.Arm.WRIST_CANCODER);
 
   private final Lidar lidar;
 
@@ -264,7 +266,21 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
       hommed = true;
     }
 
+    wristCANCoder.configFactoryDefault();
+    wristCANCoder.configAbsoluteSensorRange(AbsoluteSensorRange.Signed_PlusMinus180);
+    wristCANCoder.configMagnetOffset(Math.toDegrees(WRIST_CANCODER_OFFSET));
     // setEncoderToPosition(ARM_POSITION.STARTING_CONFIG);
+  }
+
+  public void resetWrist() {
+    ArmConfiguration setToConfig = new ArmConfiguration(
+      0,
+      0,
+      0,
+      Math.toRadians(-wristCANCoder.getAbsolutePosition()),
+      POSITION_TYPE.ANGLE
+    );
+    joint3Encoder.setPosition(setToConfig.getThirdJointPosition(POSITION_TYPE.ENCODER_ROTATIONS));
   }
 
   /**
@@ -455,6 +471,7 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
     builder.addStringProperty("PosEstimateRS", () -> this.getCurrentArmConfiguration().getEndPosition().inRobotSpace().toString(), null);
     builder.addStringProperty("PosEstimateOS", () -> this.getCurrentArmConfiguration().getEndPosition().inOtherSpace(ROBOT_TO_TURRET_BASE).toString(), null);
     builder.addStringProperty("PosEstimateFS", () -> this.getCurrentArmConfiguration().getEndPosition().inFieldSpace().toString(), null);
+    builder.addDoubleProperty("WristCANCoderRadians", () -> Math.toRadians(wristCANCoder.getAbsolutePosition()), null);
   }
 
   @Override
@@ -588,13 +605,20 @@ public class Arm extends SubsystemBase implements HomeableSubsystem, Loggable {
   }
 
   public void manualHome(ArmConfiguration config, boolean force) {
-    System.out.println("SETTING MANUAL HOME");
-    Thread.dumpStack();
+    // System.out.println("SETTING MANUAL HOME");
+    // Thread.dumpStack();
+    ArmConfiguration setToConfig = new ArmConfiguration(
+      config.getTurretPosition(POSITION_TYPE.ANGLE),
+      config.getFirstJointPosition(POSITION_TYPE.ANGLE),
+      config.getSecondJointPosition(POSITION_TYPE.ANGLE),
+      Math.toRadians(-wristCANCoder.getAbsolutePosition()),
+      POSITION_TYPE.ANGLE
+    );
+    joint3Encoder.setPosition(setToConfig.getThirdJointPosition(POSITION_TYPE.ENCODER_ROTATIONS));
     if (!force && hommed) return;
-    turretEncoder.setPosition(config.getTurretPosition(POSITION_TYPE.ENCODER_ROTATIONS));
-    joint1Encoder.setPosition(config.getFirstJointPosition(POSITION_TYPE.ENCODER_ROTATIONS));
-    joint2Encoder.setPosition(config.getSecondJointPosition(POSITION_TYPE.ENCODER_ROTATIONS));
-    joint3Encoder.setPosition(config.getThirdJointPosition(POSITION_TYPE.ENCODER_ROTATIONS));
+    turretEncoder.setPosition(setToConfig.getTurretPosition(POSITION_TYPE.ENCODER_ROTATIONS));
+    joint1Encoder.setPosition(setToConfig.getFirstJointPosition(POSITION_TYPE.ENCODER_ROTATIONS));
+    joint2Encoder.setPosition(setToConfig.getSecondJointPosition(POSITION_TYPE.ENCODER_ROTATIONS));
     hommed = true;
   }
 

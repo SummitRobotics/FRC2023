@@ -44,7 +44,7 @@ public class FollowPathPlannerTrajectory extends SequentialCommandGroup {
                         drivetrain.setMotorVolts(left, right);
                     }
                 },
-                true, // Should the path be automatically mirrored depending on alliance color? Optional, defaults to true
+                allianceMirror, // Should the path be automatically mirrored depending on alliance color? Optional, defaults to true
                 drivetrain // Requires the drive subsystem
             )
         );

@@ -170,8 +170,8 @@ public class RobotContainer {
 
         homeArm = new SequentialCommandGroup(
             new InstantCommand(() -> Arm.setHommed(false), arm),
-            new Home(arm.getHomeables()[3]),
-            new TimedMoveMotor(arm::setJoint3MotorVoltage, -3, 0.25),
+            new InstantCommand(arm::resetWrist),
+            new TimedMoveMotor(arm::setJoint3MotorVoltage, 6, 1),
             new Home(arm.getHomeables()[2], arm.getHomeables()[1]),
             new ParallelCommandGroup(new TimedMoveMotor(arm::setJoint1MotorVoltage, 2, 0.2), new TimedMoveMotor(arm::setJoint2MotorVoltage, 2, 0.2)), new Home(gunnerXBox.buttonB.getTrigger()::getAsBoolean, arm.getHomeables()[0]),
             new InstantCommand(() -> Arm.setHommed(true), arm),
@@ -305,7 +305,9 @@ public class RobotContainer {
         launchpad.buttonH.getTrigger().and(this::notAltMode).and(() -> launchpad.missileB.getTrigger().getAsBoolean()).whileTrue(new SequentialCommandGroup(
             // new MoveArmUnsafe(arm, ARM_POSITION.PRE_HOME),
             new InstantCommand(() -> Arm.setHommed(false), arm),
-            new Home(arm.getHomeables()[1], arm.getHomeables()[2], arm.getHomeables()[3]),
+            new InstantCommand(arm::resetWrist),
+            new TimedMoveMotor(arm::setJoint3MotorVoltage, 6, 1),
+            new Home(arm.getHomeables()[1], arm.getHomeables()[2]),
             new InstantCommand(() -> Arm.setHommed(true), arm),
             new MoveArmUnsafe(arm, ARM_POSITION.HOME)
         ));

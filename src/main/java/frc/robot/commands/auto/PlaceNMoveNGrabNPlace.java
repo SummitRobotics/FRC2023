@@ -44,7 +44,7 @@ public class PlaceNMoveNGrabNPlace extends SequentialCommandGroup {
             new InstantCommand(() -> armIntake.setType(INTAKE_ELEMENT_TYPE.QUORB)),
             new ParallelCommandGroup(
                 new SequentialCommandGroup(
-                    new MoveArmUnsafe(arm, ARM_POSITION.HOME),
+                    new MoveArmUnsafe(arm, ARM_POSITION.GROUND_PICKUP_SAFE),
                     new ParallelDeadlineGroup(
                         new AutoPickup(arm, armIntake, drivetrain, LOCATION.GROUND),
                         new SequentialCommandGroup(

@@ -41,8 +41,9 @@ public final class Ports {
             JOINT_3 = 23,
             WRIST = 24,
             CLAMP_SOLENOID = 1,
-            // TODO - add port for intake motor
-            INTAKE_MOTOR = 24;
+            INTAKE_MOTOR = 24,
+            // TODO - add CAN ID for wrist CANCoder
+            WRIST_CANCODER = 0;
     }
     
     public static final class Intake {
