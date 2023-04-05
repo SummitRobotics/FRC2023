@@ -13,6 +13,8 @@ import com.pathplanner.lib.server.PathPlannerServer;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StringSubscriber;
+import edu.wpi.first.util.sendable.Sendable;
+import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -349,6 +351,13 @@ public class RobotContainer {
         SmartDashboard.putData("PCM", pcm);
         SmartDashboard.putData("Lidar", gripperLidar);
         SmartDashboard.putData("ArmIntake", armIntake);
+        SmartDashboard.putData("Controller", new Sendable() {
+            @Override
+            public void initSendable(SendableBuilder builder) {
+                builder.addDoubleProperty("DriverLeftTrigger", driverXBox.leftTrigger::get, null);
+                builder.addDoubleProperty("DriverRightTrigger", driverXBox.rightTrigger::get, null);
+            }
+        });
     }
 
     public void createAutoCommands() {
